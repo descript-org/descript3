@@ -1,0 +1,36 @@
+{
+    "author": {
+        "name": "Sergey Nikitin",
+        "email": "nik.pasaran@gmail.com",
+        "url": "https://github.com/pasaran"
+    },
+    "name": "descript2",
+    "description": "descript2",
+    "version": "0.0.43",
+    "homepage": "https://github.com/pasaran/descript2",
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/pasaran/descript2.git"
+    },
+    "dependencies": {
+        "cookies": "0.5.1",
+        "decompress-response": "^3.3.0"
+    },
+    "peerDependencies": {
+        "nommon": ">=0.0.46"
+    },
+    "devDependencies": {
+        "eslint": "5.15.1",
+        "eslint-plugin-nop": "0.0.1",
+        "expect.js": "*",
+        "mocha": "*",
+        "nommon": "0.0.56"
+    },
+    "files": [
+        "lib"
+    ],
+    "main": "lib/index.js",
+    "engines": {
+        "node": "*"
+    }
+}
