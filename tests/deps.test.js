@@ -600,5 +600,70 @@ describe( 'options.deps', () => {
         expect( result.quu ).toBe( data_foo );
     } );
 
+    it( 'unresolved preconditions #1', async () => {
+        const block = get_result_block( null, 50 )( {
+            options: {
+                deps: () => false,
+            },
+        } );
+
+        expect.assertions( 2 );
+
+        const context = new de.Context();
+        try {
+            await context.run( block );
+
+        } catch ( error ) {
+            expect( de.is_error( error ) ).toBe( true );
+            expect( error.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
+        }
+    } );
+
+    it( 'unresolved preconditions #2', async () => {
+        const block_foo = get_result_block( null, 50 );
+        const block_bar = get_result_block( null, 50 );
+
+        const block = de.object( {
+            block: {
+                foo: block_foo,
+
+                bar: block_bar( {
+                    options: {
+                        deps: () => false,
+                    },
+                } ),
+            },
+        } );
+
+        const context = new de.Context();
+        const result = await context.run( block );
+
+        expect( de.is_error( result.bar ) ).toBe( true );
+        expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
+    } );
+
+    it( 'expeption in precondition', async () => {
+        const error_foo = de.error( {
+            id: 'SOME_ERROR',
+        } );
+        const block_foo = get_result_block( null, 50 )( {
+            options: {
+                deps: () => {
+                    throw error_foo;
+                },
+            },
+        } );
+
+        expect.assertions( 1 );
+
+        const context = new de.Context();
+        try {
+            await context.run( block_foo );
+
+        } catch ( error ) {
+            expect( error ).toBe( error_foo );
+        }
+    } );
+
 } );
 

@@ -87,14 +87,12 @@ describe( 'de.func', () => {
             cancel.cancel( cancel_reason );
         }, 150 );
 
-        expect.assertions( 3 );
+        expect.assertions( 1 );
         try {
             await context.run( block, null, cancel );
 
         } catch ( error ) {
-            expect( de.is_error( error ) ).toBe( true );
-            expect( error.error.id ).toBe( de.ERROR_ID.CANCELLED );
-            expect( error.error.reason ).toBe( cancel_reason );
+            expect( error ).toBe( cancel_reason );
         }
     } );
 
