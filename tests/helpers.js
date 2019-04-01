@@ -29,10 +29,10 @@ function wait_for_error( error, timeout ) {
 function get_result_block( value, timeout ) {
     if ( !de.is_block( value ) && ( typeof value === 'function' ) ) {
         return de.func( {
-            block: async function() {
+            block: async function( ...args ) {
                 await wait_for_value( null, timeout );
 
-                return value();
+                return value( ...args );
             },
         } );
     }
