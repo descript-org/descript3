@@ -26,20 +26,24 @@ function wait_for_error( error, timeout ) {
     return Promise.reject( error );
 }
 
-function get_result_block( value, timeout ) {
-    if ( !de.is_block( value ) && ( typeof value === 'function' ) ) {
-        return de.func( {
-            block: async function( ...args ) {
-                await wait_for_value( null, timeout );
-
-                return value( ...args );
-            },
-        } );
-    }
-
+function get_result_block( value, timeout = 0, options = {} ) {
     return de.func( {
-        block: function() {
-            return wait_for_value( value, timeout );
+        block: async function( args ) {
+            const { cancel } = args;
+            if ( options.on_cancel ) {
+                cancel.subscribe( options.on_cancel );
+            }
+
+            await Promise.race( [
+                wait_for_value( null, timeout ),
+                cancel.get_promise(),
+            ] );
+
+            if ( !de.is_block( value ) && ( typeof value === 'function' ) ) {
+                value = value( args );
+            }
+
+            return value;
         },
     } );
 }

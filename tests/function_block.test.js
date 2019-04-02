@@ -75,8 +75,8 @@ describe( 'de.func', () => {
 
     } );
 
-    test( 'cancellable', async () => {
-        const block = get_result_block( null, 300 );
+    test.only( 'cancellable', async () => {
+        const block = get_result_block( null, 100 );
         const cancel = new de.Cancel();
         const context = new de.Context();
 
@@ -85,7 +85,7 @@ describe( 'de.func', () => {
         } );
         setTimeout( () => {
             cancel.cancel( cancel_reason );
-        }, 150 );
+        }, 50 );
 
         expect.assertions( 1 );
         try {
