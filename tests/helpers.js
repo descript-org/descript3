@@ -40,7 +40,7 @@ function get_result_block( value, timeout = 0, options = {} ) {
             ] );
 
             if ( !de.is_block( value ) && ( typeof value === 'function' ) ) {
-                value = value( args );
+                return value( args );
             }
 
             return value;
