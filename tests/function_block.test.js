@@ -16,7 +16,7 @@ describe( 'de.func', () => {
             foo: 42,
         };
 
-        const block = get_result_block( data, 300 );
+        const block = get_result_block( data, 50 );
         const context = new de.Context();
 
         const result = await context.run( block );
@@ -31,7 +31,7 @@ describe( 'de.func', () => {
 
         const block = de.func( {
             block: function() {
-                return wait_for_value( data, 300 );
+                return wait_for_value( data, 50 );
             },
         } );
 
@@ -47,8 +47,8 @@ describe( 'de.func', () => {
             foo: 42,
         };
 
-        const block1 = get_result_block( data, 300 );
-        const block2 = get_result_block( block1, 200 );
+        const block1 = get_result_block( data, 50 );
+        const block2 = get_result_block( block1, 50 );
 
         const context = new de.Context();
 
@@ -62,7 +62,7 @@ describe( 'de.func', () => {
             id: 'SOME_ERROR',
         } );
 
-        const block = get_error_block( error, 300 );
+        const block = get_error_block( error, 50 );
         const context = new de.Context();
 
         expect.assertions( 1 );
@@ -75,7 +75,7 @@ describe( 'de.func', () => {
 
     } );
 
-    test.only( 'cancellable', async () => {
+    test( 'cancellable', async () => {
         const block = get_result_block( null, 100 );
         const cancel = new de.Cancel();
         const context = new de.Context();

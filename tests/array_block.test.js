@@ -10,18 +10,19 @@ const {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-describe( 'de.object', () => {
+describe( 'de.array', () => {
 
-    it( 'empty object', async () => {
-        const block = de.object( {
-            block: {},
+    it( 'empty array', async () => {
+        const block = de.array( {
+            block: [],
         } );
 
         const context = new de.Context();
         const result = await context.run( block );
 
-        expect( result ).toEqual( {} );
+        expect( result ).toEqual( [] );
     } );
+
 
     it( 'two subblocks', async () => {
         const data_foo = {
@@ -34,22 +35,22 @@ describe( 'de.object', () => {
         };
         const block_bar = get_result_block( data_bar, get_timeout( 50, 100 ) );
 
-        const block = de.object( {
-            block: {
-                foo: block_foo,
-                bar: block_bar,
-            },
+        const block = de.array( {
+            block: [
+                block_foo,
+                block_bar,
+            ],
         } );
 
         const context = new de.Context();
         const result = await context.run( block );
 
-        expect( result ).toEqual( {
-            foo: data_foo,
-            bar: data_bar,
-        } );
-        expect( result.foo ).toBe( data_foo );
-        expect( result.bar ).toBe( data_bar );
+        expect( result ).toEqual( [
+            data_foo,
+            data_bar,
+        ] );
+        expect( result[ 0 ] ).toBe( data_foo );
+        expect( result[ 1 ] ).toBe( data_bar );
     } );
 
     it( 'two subblocks, one required', async () => {
@@ -63,26 +64,26 @@ describe( 'de.object', () => {
         };
         const block_bar = get_result_block( data_bar, get_timeout( 50, 100 ) );
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
+        const block = de.array( {
+            block: [
+                block_foo( {
                     options: {
                         required: true,
                     },
                 } ),
-                bar: block_bar,
-            },
+                block_bar,
+            ],
         } );
 
         const context = new de.Context();
         const result = await context.run( block );
 
-        expect( result ).toEqual( {
-            foo: data_foo,
-            bar: data_bar,
-        } );
-        expect( result.foo ).toBe( data_foo );
-        expect( result.bar ).toBe( data_bar );
+        expect( result ).toEqual( [
+            data_foo,
+            data_bar,
+        ] );
+        expect( result[ 0 ] ).toBe( data_foo );
+        expect( result[ 1 ] ).toBe( data_bar );
     } );
 
     it( 'two subblocks, one failed', async () => {
@@ -96,18 +97,18 @@ describe( 'de.object', () => {
         };
         const block_bar = get_result_block( data_bar, get_timeout( 50, 100 ) );
 
-        const block = de.object( {
-            block: {
-                foo: block_foo,
-                bar: block_bar,
-            },
+        const block = de.array( {
+            block: [
+                block_foo,
+                block_bar,
+            ],
         } );
 
         const context = new de.Context();
         const result = await context.run( block );
 
-        expect( result.foo ).toBe( error_foo );
-        expect( result.bar ).toBe( data_bar );
+        expect( result[ 0 ] ).toBe( error_foo );
+        expect( result[ 1 ] ).toBe( data_bar );
     } );
 
     it( 'two subblocks, both failed', async () => {
@@ -121,18 +122,18 @@ describe( 'de.object', () => {
         } );
         const block_bar = get_error_block( error_bar, get_timeout( 50, 100 ) );
 
-        const block = de.object( {
-            block: {
-                foo: block_foo,
-                bar: block_bar,
-            },
+        const block = de.array( {
+            block: [
+                block_foo,
+                block_bar,
+            ],
         } );
 
         const context = new de.Context();
         const result = await context.run( block );
 
-        expect( result.foo ).toBe( error_foo );
-        expect( result.bar ).toBe( error_bar );
+        expect( result[ 0 ] ).toBe( error_foo );
+        expect( result[ 1 ] ).toBe( error_bar );
     } );
 
     it( 'two subblocks, one required failed', async () => {
@@ -146,15 +147,15 @@ describe( 'de.object', () => {
         };
         const block_bar = get_result_block( data_bar, get_timeout( 50, 100 ) );
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
+        const block = de.array( {
+            block: [
+                block_foo( {
                     options: {
                         required: true,
                     },
                 } ),
-                bar: block_bar,
-            },
+                block_bar,
+            ],
         } );
 
         expect.assertions( 3 );
@@ -167,30 +168,6 @@ describe( 'de.object', () => {
             expect( e.error.id ).toBe( de.ERROR_ID.REQUIRED_BLOCK_FAILED );
             expect( e.error.reason ).toBe( error_foo );
         }
-    } );
-
-    it( 'order of keys', async () => {
-        const data_foo = {
-            foo: 42,
-        };
-        const block_foo = get_result_block( data_foo, 100 );
-
-        const data_bar = {
-            bar: 24,
-        };
-        const block_bar = get_result_block( data_bar, 50 );
-
-        const block = de.object( {
-            block: {
-                foo: block_foo,
-                bar: block_bar,
-            },
-        } );
-
-        const context = new de.Context();
-        const result = await context.run( block );
-
-        expect( Object.keys( result ) ).toEqual( [ 'foo', 'bar' ] );
     } );
 
     describe( 'cancel', () => {
@@ -206,11 +183,11 @@ describe( 'de.object', () => {
                 on_cancel: action_bar_spy,
             } );
 
-            const block = de.object( {
-                block: {
-                    foo: block_foo,
-                    bar: block_bar,
-                },
+            const block = de.array( {
+                block: [
+                    block_foo,
+                    block_bar,
+                ],
             } );
 
             const abort_error = de.error( {
@@ -241,11 +218,11 @@ describe( 'de.object', () => {
                 on_cancel: action_bar_spy,
             } );
 
-            const block = de.object( {
-                block: {
-                    foo: block_foo,
-                    bar: block_bar,
-                },
+            const block = de.array( {
+                block: [
+                    block_foo,
+                    block_bar,
+                ],
             } );
 
             const abort_error = de.error( {
@@ -276,15 +253,15 @@ describe( 'de.object', () => {
                 on_cancel: action_bar_spy,
             } );
 
-            const block = de.object( {
-                block: {
-                    foo: block_foo( {
+            const block = de.array( {
+                block: [
+                    block_foo( {
                         options: {
                             required: true,
                         },
                     } ),
-                    bar: block_bar,
-                },
+                    block_bar,
+                ],
             } );
 
             try {
@@ -308,23 +285,23 @@ describe( 'de.object', () => {
             const block_foo = get_result_block( () => spy( 'ACTION_FOO' ), 50 );
             const block_bar = get_result_block( () => spy( 'ACTION_BAR' ), 100 );
 
-            const block = de.object( {
-                block: {
-                    foo: block_foo( {
+            const block = de.array( {
+                block: [
+                    block_foo( {
                         options: {
                             before: () => spy( 'BEFORE_FOO' ),
                             after: () => spy( 'AFTER_FOO' ),
                         },
                     } ),
 
-                    bar: block_bar( {
+                    block_bar( {
                         options: {
                             priority: 10,
                             before: () => spy( 'BEFORE_BAR' ),
                             after: () => spy( 'AFTER_BAR' ),
                         },
                     } ),
-                },
+                ],
             } );
 
             const context = new de.Context();
@@ -346,22 +323,22 @@ describe( 'de.object', () => {
             const block_bar = get_result_block( () => spy( 'BAR' ), get_timeout( 50, 100 ) );
             const block_quu = get_result_block( () => spy( 'QUU' ), get_timeout( 50, 100 ) );
 
-            const block = de.object( {
-                block: {
-                    foo: block_foo,
+            const block = de.array( {
+                block: [
+                    block_foo,
 
-                    bar: block_bar( {
+                    block_bar( {
                         options: {
                             priority: 10,
                         },
                     } ),
 
-                    quu: block_quu( {
+                    block_quu( {
                         options: {
                             priority: 10,
                         },
                     } ),
-                },
+                ],
             } );
 
             const context = new de.Context();
