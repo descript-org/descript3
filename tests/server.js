@@ -1,13 +1,4 @@
-const no = require( 'nommon' );
-
-const http_ = require( 'http' );
 const url_ = require( 'url' );
-
-//  ---------------------------------------------------------------------------------------------------------------  //
-
-const DEFAULT_CONFIG = {
-    port: 9000,
-};
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -65,7 +56,7 @@ class Answer {
             set_content_type( 'text/plain' );
         }
 
-        res.setHeader( 'content-length', content.length );
+        res.setHeader( 'content-length', Buffer.byteLength( content ) );
 
         res.end( content );
 
@@ -100,21 +91,17 @@ class Route {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-class Fake {
+class Server {
 
-    constructor( config, routes ) {
-        this.config = no.extend( {}, DEFAULT_CONFIG, config );
-
+    constructor( config ) {
+        this.config = config;
         this.routes = {};
-        if ( routes ) {
-            this.add( routes );
-        }
 
         const response404 = new Answer( {
             status_code: 404,
         } );
 
-        this.server = http_.createServer( ( req, res ) => {
+        const handler = ( req, res ) => {
             const path = url_.parse( req.url ).pathname;
 
             const buffers = [];
@@ -136,7 +123,9 @@ class Fake {
                     response404.response( req, res, data );
                 }
             } );
-        } );
+        };
+
+        this.server = this.config.module.createServer( this.config.options, handler );
     }
 
     add( path, route ) {
@@ -155,7 +144,7 @@ class Fake {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-module.exports = Fake;
+module.exports = Server;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
