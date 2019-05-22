@@ -39,6 +39,10 @@ class Answer {
             return answer( req, res, data );
         }
 
+        if ( answer.wait > 0 ) {
+            await wait_for( answer.wait );
+        }
+
         let content = ( typeof answer.content === 'function' ) ? answer.content( req, res, data ) : answer.content;
         content = await content;
 
@@ -150,5 +154,11 @@ module.exports = Server;
 
 function to_array( value ) {
     return ( Array.isArray( value ) ) ? value : [ value ];
+}
+
+function wait_for( interval ) {
+    return new Promise( ( resolve ) => {
+        setTimeout( resolve, interval );
+    } );
 }
 
