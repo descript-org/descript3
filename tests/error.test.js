@@ -4,14 +4,14 @@ const de = require( '../lib' );
 
 describe( 'de.error', () => {
 
-    it( 'de.error from string', () => {
+    it( 'from string', () => {
         const error_id = 'SOME_ERROR';
         const error = de.error( error_id );
 
         expect( error.error.id ).toBe( error_id );
     } );
 
-    it( 'de.error from ReferenceError', () => {
+    it( 'from ReferenceError', () => {
         try {
             //  eslint-disable-next-line
             const a = b;
@@ -24,7 +24,7 @@ describe( 'de.error', () => {
 
     } );
 
-    it( 'de.error from TypeError', () => {
+    it( 'from TypeError', () => {
         try {
             const b = null;
             //  eslint-disable-next-line no-unused-vars
@@ -38,10 +38,12 @@ describe( 'de.error', () => {
 
     } );
 
-    it.skip( 'de.error from nodejs exception', () => {
+    //  https://github.com/facebook/jest/issues/2549
+    //
+    it.skip( 'from nodejs exception', () => {
         const filename = 'some_nonexistance_filename';
 
-        expect.assertions( 1 );
+        expect.assertions( 4 );
         try {
             fs_.readFileSync( filename, 'utf-8' );
 
@@ -60,6 +62,16 @@ describe( 'de.error', () => {
         const error = de.error();
 
         expect( de.is_error( error ) ).toBe( true );
+    } );
+
+    it( 'de.is_error #2', () => {
+        const id = 'SOME_ERROR';
+        const error = de.error( {
+            id: id,
+        } );
+
+        expect( de.is_error( error, id ) ).toBe( true );
+        expect( de.is_error( error, 'SOME_OTHER_ERROR' ) ).toBe( false );
     } );
 
 } );
