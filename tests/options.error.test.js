@@ -57,5 +57,43 @@ describe( 'options.error', () => {
         expect( result ).toBe( data );
     } );
 
+    it.each( [ 0, '', null, false ] )( 'returns %j', async ( value ) => {
+        const error = de.error( {
+            id: 'SOME_ERROR',
+        } );
+        const spy = jest.fn( () => value );
+        const block = get_error_block( error )( {
+            options: {
+                error: spy,
+            },
+        } );
+
+        const context = new de.Context();
+        const result = await context.run( block );
+
+        expect( result ).toBe( value );
+    } );
+
+    it( 'returns undefined', async () => {
+        const error = de.error( {
+            id: 'SOME_ERROR',
+        } );
+        const spy = jest.fn( () => undefined );
+        const block = get_error_block( error )( {
+            options: {
+                error: spy,
+            },
+        } );
+
+        expect.assertions( 1 );
+        try {
+            const context = new de.Context();
+            await context.run( block );
+
+        } catch ( e ) {
+            expect( e ).toBe( error );
+        }
+    } );
+
 } );
 

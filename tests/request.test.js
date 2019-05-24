@@ -482,7 +482,7 @@ describe( 'request', () => {
 
             } );
 
-            it( 'timeout', async () => {
+            it( 'timeout #1', async () => {
                 const path = get_path();
 
                 fake.add( path, {
@@ -500,6 +500,30 @@ describe( 'request', () => {
                 } catch ( error ) {
                     expect( de.is_error( error ) ).toBe( true );
                     expect( error.error.id ).toBe( de.ERROR_ID.REQUEST_TIMEOUT );
+                }
+            } );
+
+            //  FIXME: Флапающий тест. Иногда успевает установить коннект, иногда нет.
+            //  Видимо, нужен свежий сервер, к которому еще нет коннектов.
+            //
+            it.skip( 'timeout #2', async () => {
+                const path = get_path();
+
+                fake.add( path, {
+                    status_code: 200,
+                    wait: 200,
+                } );
+
+                expect.assertions( 2 );
+                try {
+                    await do_request( {
+                        path: path,
+                        timeout: 1,
+                    } );
+
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.id ).toBe( de.ERROR_ID.TCP_CONNECTION_TIMEOUT );
                 }
             } );
 
@@ -552,6 +576,112 @@ describe( 'request', () => {
                     expect( error.error.id ).toBe( 'UNKNOWN_ERROR' );
                     expect( error.error.code ).toBe( 'Z_DATA_ERROR' );
                 }
+            } );
+
+        } );
+
+        describe( 'agent', () => {
+
+            it( 'is an object', async () => {
+                const path = get_path();
+
+                fake.add( path, {
+                    status_code: 200,
+                } );
+
+                const agent = {
+                    keepAlive: true,
+                };
+
+                await do_request( {
+                    path: path,
+                    agent: agent,
+                } );
+                const result2 = await do_request( {
+                    path: path,
+                    agent: agent,
+                } );
+
+                expect( result2.timestamps.socket === result2.timestamps.tcp_connection ).toBe( true );
+            } );
+
+            it( 'is an object', async () => {
+                const path = get_path();
+
+                fake.add( path, {
+                    status_code: 200,
+                } );
+
+                const agent = new http_.Agent( {
+                    keepAlive: true,
+                } );
+
+                await do_request( {
+                    path: path,
+                    agent: agent,
+                } );
+                const result2 = await do_request( {
+                    path: path,
+                    agent: agent,
+                } );
+
+                expect( result2.timestamps.socket === result2.timestamps.tcp_connection ).toBe( true );
+            } );
+
+        } );
+
+        describe( 'cancel', () => {
+
+            it( 'cancel before request ended', async () => {
+                const path = get_path();
+
+                fake.add( path, {
+                    status_code: 200,
+                    wait: 200,
+                } );
+
+                const error = de.error( {
+                    id: 'SOME_ERROR',
+                } );
+                const cancel = new de.Cancel();
+                setTimeout( () => {
+                    cancel.cancel( error );
+                }, 50 );
+
+                expect.assertions( 1 );
+                try {
+                    await do_request( {
+                        path: path,
+                    }, undefined, cancel );
+
+                } catch ( e ) {
+                    expect( e ).toBe( error );
+                }
+            } );
+
+            it( 'cancel after request ended', async () => {
+                const path = get_path();
+
+                const CONTENT = 'Привет!';
+                fake.add( path, {
+                    status_code: 200,
+                    content: CONTENT,
+                    wait: 50,
+                } );
+
+                const error = de.error( {
+                    id: 'SOME_ERROR',
+                } );
+                const cancel = new de.Cancel();
+                setTimeout( () => {
+                    cancel.cancel( error );
+                }, 100 );
+
+                const result = await do_request( {
+                    path: path,
+                }, undefined, cancel );
+
+                expect( result.body.toString() ).toBe( CONTENT );
             } );
 
         } );

@@ -642,7 +642,7 @@ describe( 'options.deps', () => {
         expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
     } );
 
-    it( 'expeption in precondition', async () => {
+    it( 'exception in precondition', async () => {
         const error_foo = de.error( {
             id: 'SOME_ERROR',
         } );
@@ -663,6 +663,22 @@ describe( 'options.deps', () => {
         } catch ( error ) {
             expect( error ).toBe( error_foo );
         }
+    } );
+
+    it( 'no valid deps', async () => {
+        const data_foo = {
+            foo: 42,
+        };
+        const block_foo = get_result_block( data_foo, 50 )( {
+            options: {
+                deps: [ 'foo' ],
+            },
+        } );
+
+        const context = new de.Context();
+        const result = await context.run( block_foo );
+
+        expect( result ).toBe( data_foo );
     } );
 
 } );

@@ -103,5 +103,29 @@ describe( 'options.cache, options.key, options.maxage', () => {
         expect( spy.mock.calls.length ).toBe( 2 );
     } );
 
+    it( 'key returns undefined', async () => {
+        const spy = jest.fn();
+        const cache = {
+            get: spy,
+        };
+
+        const data = {
+            foo: 42,
+        };
+        const block = get_result_block( data, 50 )( {
+            options: {
+                cache: cache,
+                key: () => undefined,
+                maxage: 100,
+            },
+        } );
+
+        const context = new de.Context();
+        const result = await context.run( block );
+
+        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( result ).toBe( data );
+    } );
+
 } );
 
