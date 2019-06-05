@@ -10,12 +10,9 @@ const de = require( '../lib' );
 const request = require( '../lib/request' );
 const Server = require( './server' );
 
-//  ---------------------------------------------------------------------------------------------------------------  //
+const { get_path } = require( './helpers' );
 
-let _path_index = 1;
-function get_path() {
-    return `/test/${ _path_index++ }`;
-}
+//  ---------------------------------------------------------------------------------------------------------------  //
 
 function get_do_request( default_options ) {
     return function do_request( options, context, cancel ) {
@@ -32,7 +29,7 @@ describe( 'request', () => {
 
     describe( 'http', () => {
 
-        const PORT = 9001;
+        const PORT = 9000;
 
         const do_request = get_do_request( {
             protocol: 'http:',
@@ -322,164 +319,208 @@ describe( 'request', () => {
 
         describe( 'errors', () => {
 
-            describe( '2xx', () => {
+            it( '2xx, custom is_error', async () => {
+                const path = get_path();
+                const status_code = 200;
 
-                it( 'custom is_error', async () => {
-                    const path = get_path();
-
-                    fake.add( path, {
-                        status_code: 200,
-                    } );
-
-                    expect.assertions( 2 );
-                    try {
-                        await do_request( {
-                            path: path,
-                            is_error: () => true,
-                        } );
-
-                    } catch ( error ) {
-                        expect( de.is_error( error ) ).toBe( true );
-                        expect( error.error.status_code ).toBe( 200 );
-                    }
+                fake.add( path, {
+                    status_code: status_code,
                 } );
 
+                expect.assertions( 2 );
+                try {
+                    await do_request( {
+                        path: path,
+                        is_error: () => true,
+                    } );
+
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.status_code ).toBe( status_code );
+                }
             } );
 
-            describe( '4xx', () => {
+            it( '4xx, max_retries=1', async () => {
+                const path = get_path();
                 const status_code = 404;
 
-                it( 'max_retries=1', async () => {
-                    const path = get_path();
+                const spy = jest.fn( ( res ) => res.end() );
 
-                    const spy = jest.fn( ( res ) => res.end() );
+                fake.add( path, [
+                    {
+                        status_code: status_code,
+                    },
+                    spy,
+                ] );
 
-                    fake.add( path, [
-                        {
-                            status_code: status_code,
-                        },
-                        spy,
-                    ] );
-
-                    expect.assertions( 3 );
-                    try {
-                        await do_request( {
-                            path: path,
-                            max_retries: 1,
-                        } );
-
-                    } catch ( error ) {
-                        expect( de.is_error( error ) ).toBe( true );
-                        expect( error.error.status_code ).toBe( status_code );
-                        expect( spy.mock.calls.length ).toBe( 0 );
-                    }
-                } );
-
-                it( 'max_retries=1 with custom is_retry_allowed', async () => {
-                    const path = get_path();
-
-                    const CONTENT = 'Привет!';
-                    fake.add( path, [
-                        {
-                            status_code: status_code,
-                        },
-                        {
-                            status_code: 200,
-                            content: CONTENT,
-                        },
-                    ] );
-
-                    const result = await do_request( {
+                expect.assertions( 3 );
+                try {
+                    await do_request( {
                         path: path,
                         max_retries: 1,
-                        is_retry_allowed: () => true,
                     } );
 
-                    expect( result.status_code ).toBe( 200 );
-                    expect( result.body.toString() ).toBe( CONTENT );
-                } );
-
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.status_code ).toBe( status_code );
+                    expect( spy.mock.calls.length ).toBe( 0 );
+                }
             } );
 
-            describe( '5xx', () => {
+            it( '4xx, max_retries=1, custom is_retry_allowed', async () => {
+                const path = get_path();
+                const status_code = 404;
+                const CONTENT = 'Привет!';
+
+                fake.add( path, [
+                    {
+                        status_code: status_code,
+                    },
+                    {
+                        status_code: 200,
+                        content: CONTENT,
+                    },
+                ] );
+
+                const result = await do_request( {
+                    path: path,
+                    max_retries: 1,
+                    is_retry_allowed: () => true,
+                } );
+
+                expect( result.status_code ).toBe( 200 );
+                expect( result.body.toString() ).toBe( CONTENT );
+            } );
+
+            it( '5xx, max_retries=0', async () => {
+                const path = get_path();
                 const status_code = 503;
 
-                it( 'max_retries=0', async () => {
-                    const path = get_path();
+                const spy = jest.fn( ( res ) => res.end() );
 
-                    const spy = jest.fn( ( res ) => res.end() );
+                fake.add( path, [
+                    {
+                        status_code: status_code,
+                    },
+                    spy,
+                ] );
 
-                    fake.add( path, [
-                        {
-                            status_code: status_code,
-                        },
-                        spy,
-                    ] );
-
-                    expect.assertions( 3 );
-                    try {
-                        await do_request( {
-                            path: path,
-                            max_retries: 0,
-                        } );
-
-                    } catch ( error ) {
-                        expect( de.is_error( error ) ).toBe( true );
-                        expect( error.error.status_code ).toBe( status_code );
-                        expect( spy.mock.calls.length ).toBe( 0 );
-                    }
-                } );
-
-                it( 'max_retries=1 with custom is_retry_allowed', async () => {
-                    const path = get_path();
-
-                    const spy = jest.fn( ( res ) => res.end() );
-
-                    fake.add( path, [
-                        {
-                            status_code: status_code,
-                        },
-                        spy,
-                    ] );
-
-                    expect.assertions( 3 );
-                    try {
-                        await do_request( {
-                            path: path,
-                            max_retries: 1,
-                            is_retry_allowed: () => false,
-                        } );
-
-                    } catch ( error ) {
-                        expect( de.is_error( error ) ).toBe( true );
-                        expect( error.error.status_code ).toBe( status_code );
-                        expect( spy.mock.calls.length ).toBe( 0 );
-                    }
-                } );
-
-                it( 'max_retries=1', async () => {
-                    const path = get_path();
-
-                    const CONTENT = 'Привет!';
-                    fake.add( path, [
-                        {
-                            status_code: status_code,
-                        },
-                        {
-                            status_code: 200,
-                            content: CONTENT,
-                        },
-                    ] );
-
-                    const result = await do_request( {
+                expect.assertions( 3 );
+                try {
+                    await do_request( {
                         path: path,
+                        max_retries: 0,
+                    } );
+
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.status_code ).toBe( status_code );
+                    expect( spy.mock.calls.length ).toBe( 0 );
+                }
+            } );
+
+            it( '5xx, max_retries=1, custom is_retry_allowed', async () => {
+                const path = get_path();
+                const status_code = 503;
+
+                const spy = jest.fn( ( res ) => res.end() );
+
+                fake.add( path, [
+                    {
+                        status_code: status_code,
+                    },
+                    spy,
+                ] );
+
+                expect.assertions( 3 );
+                try {
+                    await do_request( {
+                        path: path,
+                        max_retries: 1,
+                        is_retry_allowed: () => false,
+                    } );
+
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.status_code ).toBe( status_code );
+                    expect( spy.mock.calls.length ).toBe( 0 );
+                }
+            } );
+
+            it( '5xx, max_retries=1', async () => {
+                const path = get_path();
+                const status_code = 503;
+                const CONTENT = 'Привет!';
+
+                fake.add( path, [
+                    {
+                        status_code: status_code,
+                    },
+                    {
+                        status_code: 200,
+                        content: CONTENT,
+                    },
+                ] );
+
+                const result = await do_request( {
+                    path: path,
+                    max_retries: 1,
+                } );
+
+                expect( result.status_code ).toBe( 200 );
+                expect( result.body.toString() ).toBe( CONTENT );
+            } );
+
+            it( '5xx, max_retries=1, retry_timeout=0', async () => {
+                const path = get_path();
+                const status_code = 503;
+                const CONTENT = 'Привет!';
+
+                fake.add( path, [
+                    {
+                        status_code: status_code,
+                    },
+                    {
+                        status_code: 200,
+                        content: CONTENT,
+                    },
+                ] );
+
+                const result = await do_request( {
+                    path: path,
+                    max_retries: 1,
+                    retry_timeout: 0,
+                } );
+
+                expect( result.status_code ).toBe( 200 );
+                expect( result.body.toString() ).toBe( CONTENT );
+            } );
+
+            it.each( [ 'POST', 'PATCH' ] )( '5xx, %j, max_retries=1, no retry', async ( method ) => {
+                const path = get_path();
+                const status_code = 503;
+
+                const spy = jest.fn( ( res ) => res.end() );
+
+                fake.add( path, [
+                    {
+                        status_code: status_code,
+                    },
+                    spy,
+                ] );
+
+                expect.assertions( 2 );
+                try {
+                    await do_request( {
+                        path: path,
+                        method: method,
                         max_retries: 1,
                     } );
 
-                    expect( result.status_code ).toBe( 200 );
-                    expect( result.body.toString() ).toBe( CONTENT );
-                } );
-
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.status_code ).toBe( status_code );
+                }
             } );
 
             it( 'timeout #1', async () => {
@@ -690,7 +731,7 @@ describe( 'request', () => {
 
     describe( 'https', () => {
 
-        const PORT = 9002;
+        const PORT = 9001;
 
         const do_request = get_do_request( {
             protocol: 'https:',
@@ -773,6 +814,99 @@ describe( 'request', () => {
                 } );
 
                 expect( is_error( error ) ).toBe( true );
+            } );
+
+        } );
+
+    } );
+
+    describe( 'aborted request', () => {
+
+        describe( 'no bytes sent', () => {
+            const server = http_.createServer( ( req, res ) => {
+                setTimeout( () => {
+                    res.socket.destroy();
+                }, 100 );
+            } );
+            const PORT = 9002;
+
+            beforeAll( () => server.listen( PORT, '0.0.0.0' ) );
+            afterAll( () => server.close() );
+
+            it( '', async () => {
+                const do_request = get_do_request( {
+                    protocol: 'http:',
+                    host: '127.0.0.1',
+                    port: PORT,
+                    path: '/',
+                } );
+
+                const path = get_path();
+
+                expect.assertions( 2 );
+                try {
+                    await do_request( {
+                        path: path,
+                    } );
+
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.id ).toBe( de.ERROR_ID.HTTP_UNKNOWN_ERROR );
+                }
+            } );
+        } );
+
+        describe( 'some bytes sent', () => {
+            const server = http_.createServer( ( req, res ) => {
+                res.write( 'Hello!' );
+                setTimeout( () => {
+                    res.socket.destroy();
+                }, 200 );
+            } );
+            const PORT = 9003;
+
+            beforeAll( () => server.listen( PORT, '0.0.0.0' ) );
+            afterAll( () => server.close() );
+
+            it( '', async () => {
+                const do_request = get_do_request( {
+                    protocol: 'http:',
+                    host: '127.0.0.1',
+                    port: PORT,
+                } );
+
+                expect.assertions( 2 );
+                try {
+                    await do_request();
+
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.id ).toBe( de.ERROR_ID.INCOMPLETE_RESPONSE );
+                }
+            } );
+
+            it.skip( 'cancelled', async () => {
+                const cancel = new de.Cancel();
+                const error = de.error( {
+                    id: 'SOME_ERROR',
+                } );
+                setTimeout( () => {
+                    cancel.cancel( error );
+                }, 100 );
+
+                const do_request = get_do_request( {
+                    protocol: 'http:',
+                    host: '127.0.0.1',
+                    port: PORT,
+                }, null, cancel );
+
+                expect.assertions( 1 );
+                try {
+                    await do_request();
+
+                } catch ( e ) {
+                    expect( e ).toBe( error );
+                }
             } );
 
         } );

@@ -2,6 +2,13 @@ const de = require( '../lib' );
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
+let PATH_INDEX = 1;
+function get_path() {
+    return `/test/${ PATH_INDEX++ }/`;
+}
+
+//  ---------------------------------------------------------------------------------------------------------------  //
+
 function wait_for_value( value, timeout ) {
     if ( timeout > 0 ) {
         return new Promise( ( resolve ) => {
@@ -73,6 +80,7 @@ function get_timeout( from, to ) {
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 module.exports = {
+    get_path,
     get_timeout,
     wait_for_value,
     wait_for_error,
