@@ -830,8 +830,8 @@ describe( 'request', () => {
             } );
             const PORT = 9002;
 
-            beforeAll( () => server.listen( PORT, '0.0.0.0' ) );
-            afterAll( () => server.close() );
+            beforeAll( () => server_listen( server, PORT ) );
+            afterAll( () => server_close( server ) );
 
             it( '', async () => {
                 const do_request = get_do_request( {
@@ -861,20 +861,20 @@ describe( 'request', () => {
                 res.write( 'Hello!' );
                 setTimeout( () => {
                     res.socket.destroy();
-                }, 200 );
+                }, 100 );
             } );
             const PORT = 9003;
 
-            beforeAll( () => server.listen( PORT, '0.0.0.0' ) );
-            afterAll( () => server.close() );
+            const do_request = get_do_request( {
+                protocol: 'http:',
+                host: '127.0.0.1',
+                port: PORT,
+            } );
+
+            beforeAll( () => server_listen( server, PORT ) );
+            afterAll( () => server_close( server ) );
 
             it( '', async () => {
-                const do_request = get_do_request( {
-                    protocol: 'http:',
-                    host: '127.0.0.1',
-                    port: PORT,
-                } );
-
                 expect.assertions( 2 );
                 try {
                     await do_request();
@@ -885,27 +885,63 @@ describe( 'request', () => {
                 }
             } );
 
-            it.skip( 'cancelled', async () => {
+            it( 'cancelled', async () => {
                 const cancel = new de.Cancel();
                 const error = de.error( {
                     id: 'SOME_ERROR',
                 } );
                 setTimeout( () => {
                     cancel.cancel( error );
-                }, 100 );
-
-                const do_request = get_do_request( {
-                    protocol: 'http:',
-                    host: '127.0.0.1',
-                    port: PORT,
-                }, null, cancel );
+                }, 50 );
 
                 expect.assertions( 1 );
                 try {
-                    await do_request();
+                    await do_request( {}, undefined, cancel );
 
                 } catch ( e ) {
                     expect( e ).toBe( error );
+                }
+            } );
+
+        } );
+
+        describe( 'tcp connection timeout', () => {
+            const PORT = 9004;
+            const server = http_.createServer( ( req, res ) => {
+                setTimeout( () => res.end(), 100 );
+            } );
+
+            const do_request = get_do_request( {
+                protocol: 'http:',
+                host: '127.0.0.1',
+                port: PORT,
+            } );
+
+            beforeAll( () => server_listen( server, PORT ) );
+            afterAll( () => server_close( server ) );
+
+            it( '', async () => {
+                expect.assertions( 2 );
+                try {
+                    const agent = {
+                        keepAlive: false,
+                        maxSockets: 1,
+                    };
+
+                    //  Делаем запрос и занимаем весь один сокет.
+                    do_request( {
+                        agent: agent,
+                    } );
+                    //  Так что этот запрос не сможет законнектиться.
+                    await do_request( {
+                        agent: agent,
+                        //  Тут должно быть что-то меньшее, чем время, за которое отвечает сервер (100 в данном случае).
+                        timeout: 50,
+                    } );
+
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.id ).toBe( de.ERROR_ID.TCP_CONNECTION_TIMEOUT );
                 }
             } );
 
@@ -915,3 +951,14 @@ describe( 'request', () => {
 
 } );
 
+function server_listen( server, port ) {
+    return new Promise( ( resolve ) => {
+        server.listen( port, resolve );
+    } );
+}
+
+function server_close( server ) {
+    return new Promise( ( resolve ) => {
+        server.close( resolve );
+    } );
+}

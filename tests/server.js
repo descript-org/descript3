@@ -136,12 +136,16 @@ class Server {
         this.routes[ path ] = new Route( route );
     }
 
-    start( callback ) {
-        this.server.listen( this.config.port, '0.0.0.0', callback );
+    start() {
+        return new Promise( ( resolve ) => {
+            this.server.listen( this.config.port, resolve );
+        } );
     }
 
-    stop( callback ) {
-        this.server.close( callback );
+    stop() {
+        return new Promise( ( resolve ) => {
+            this.server.close( resolve );
+        } );
     }
 
 }
