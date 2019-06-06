@@ -16,7 +16,8 @@ const { get_path } = require( './helpers' );
 
 function get_do_request( default_options ) {
     return function do_request( options, context, cancel ) {
-        context = context || new de.Context();
+        const logger = new de.Logger( { debug: true } );
+        context = context || new de.Context( null, null, { logger: logger } );
         cancel = cancel || new de.Cancel();
 
         return request( { ...default_options, ...options }, context, cancel );
