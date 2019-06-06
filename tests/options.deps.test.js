@@ -12,6 +12,44 @@ const {
 
 describe( 'options.deps', () => {
 
+    test( 'block with id and without deps', async () => {
+        const data = {
+            foo: 42,
+        };
+        const id = Symbol( 'block' );
+        const block = get_result_block( data, 50 )( {
+            options: {
+                id: id,
+            },
+        } );
+
+        const context = new de.Context();
+        const result = await context.run( block );
+
+        expect( result ).toBe( data );
+    } );
+
+    test( 'failed block with id and without deps', async () => {
+        const error = de.error( {
+            id: 'ERROR',
+        } );
+        const id = Symbol( 'block' );
+        const block = get_error_block( error, 50 )( {
+            options: {
+                id: id,
+            },
+        } );
+
+        expect.assertions( 1 );
+        try {
+            const context = new de.Context();
+            await context.run( block );
+
+        } catch ( e ) {
+            expect( e ).toBe( error );
+        }
+    } );
+
     test( 'block depends on block #1 (deps is id)', async () => {
         const spy = jest.fn();
 
@@ -159,6 +197,46 @@ describe( 'options.deps', () => {
         const calls = spy.mock.calls;
 
         expect( calls.length ).toBe( 3 );
+        expect( calls[ 2 ][ 0 ] ).toBe( 'QUU' );
+    } );
+
+    test( 'two block depend on block', async () => {
+        const spy = jest.fn();
+
+        const block_foo = get_result_block( () => spy( 'FOO' ), get_timeout( 50, 100 ) );
+        const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
+        const block_quu = get_result_block( () => spy( 'QUU' ), 100 );
+
+        const id_foo = Symbol( 'foo' );
+
+        const block = de.object( {
+            block: {
+                foo: block_foo( {
+                    options: {
+                        id: id_foo,
+                    },
+                } ),
+                bar: block_bar( {
+                    options: {
+                        deps: id_foo,
+                    },
+                } ),
+                quu: block_quu( {
+                    options: {
+                        deps: id_foo,
+                    },
+                } ),
+            },
+        } );
+
+        const context = new de.Context();
+        await context.run( block );
+
+        const calls = spy.mock.calls;
+
+        expect( calls.length ).toBe( 3 );
+        expect( calls[ 0 ][ 0 ] ).toBe( 'FOO' );
+        expect( calls[ 1 ][ 0 ] ).toBe( 'BAR' );
         expect( calls[ 2 ][ 0 ] ).toBe( 'QUU' );
     } );
 

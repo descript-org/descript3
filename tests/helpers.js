@@ -77,6 +77,14 @@ function get_timeout( from, to ) {
     return Math.round( from + ( Math.random() * ( to - from ) ) );
 }
 
+function set_timeout( callback, timeout ) {
+    return new Promise( ( resolve ) => {
+        setTimeout( () => {
+            resolve( callback() );
+        }, timeout );
+    } );
+}
+
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 module.exports = {
@@ -86,5 +94,6 @@ module.exports = {
     wait_for_error,
     get_result_block,
     get_error_block,
+    set_timeout,
 };
 
