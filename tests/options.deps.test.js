@@ -18,22 +18,25 @@ describe( 'options.deps', () => {
         const block_foo = get_result_block( () => spy( 'FOO' ), 50 );
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
 
-        const id_foo = Symbol( 'foo' );
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
-                bar: block_bar( {
-                    options: {
-                        deps: id_foo,
-                    },
-                } ),
-            },
-        } );
+        const block = function( get_id ) {
+            const id_foo = get_id( 'foo' );
+
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
+                    bar: block_bar( {
+                        options: {
+                            deps: id_foo,
+                        },
+                    } ),
+                },
+            } );
+        };
 
         const context = new de.Context();
         await context.run( block );

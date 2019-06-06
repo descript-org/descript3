@@ -523,7 +523,7 @@ describe( 'request', () => {
                 }
             } );
 
-            it( 'timeout #1', async () => {
+            it( 'timeout', async () => {
                 const path = get_path();
 
                 fake.add( path, {
@@ -541,30 +541,6 @@ describe( 'request', () => {
                 } catch ( error ) {
                     expect( de.is_error( error ) ).toBe( true );
                     expect( error.error.id ).toBe( de.ERROR_ID.REQUEST_TIMEOUT );
-                }
-            } );
-
-            //  FIXME: Флапающий тест. Иногда успевает установить коннект, иногда нет.
-            //  Видимо, нужен свежий сервер, к которому еще нет коннектов.
-            //
-            it.skip( 'timeout #2', async () => {
-                const path = get_path();
-
-                fake.add( path, {
-                    status_code: 200,
-                    wait: 200,
-                } );
-
-                expect.assertions( 2 );
-                try {
-                    await do_request( {
-                        path: path,
-                        timeout: 1,
-                    } );
-
-                } catch ( error ) {
-                    expect( de.is_error( error ) ).toBe( true );
-                    expect( error.error.id ).toBe( de.ERROR_ID.TCP_CONNECTION_TIMEOUT );
                 }
             } );
 
@@ -935,7 +911,7 @@ describe( 'request', () => {
                     //  Так что этот запрос не сможет законнектиться.
                     await do_request( {
                         agent: agent,
-                        //  Тут должно быть что-то меньшее, чем время, за которое отвечает сервер (100 в данном случае).
+                        //  Тут должно быть что-то меньшее, чем время, за которое отвечает сервер.
                         timeout: 50,
                     } );
 
