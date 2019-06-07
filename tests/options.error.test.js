@@ -1,28 +1,68 @@
 const de = require( '../lib' );
 
 const {
-    //  wait_for_value,
-    //  wait_for_error,
-    //  get_result_block,
     get_error_block,
-    //  get_timeout,
 } = require( './helpers' );
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 describe( 'options.error', () => {
 
-    it( 'returns another error', async () => {
-        const error_1 = de.error( {
-            id: 'SOME_ERROR_1',
+    it( 'receives { params, context, error }', async () => {
+        const error = de.error( {
+            id: 'ERROR',
         } );
-        const error_2 = de.error( {
-            id: 'SOME_ERROR_2',
-        } );
-        const spy = jest.fn( () => error_2 );
-        const block = get_error_block( error_1 )( {
+        const spy = jest.fn( () => null );
+        const block = get_error_block( error )( {
             options: {
                 error: spy,
+            },
+        } );
+
+        const params = {
+            id: 42,
+        };
+        const context = new de.Context();
+        await context.run( block, params );
+
+        const arg = spy.mock.calls[ 0 ][ 0 ];
+        expect( arg.params ).toBe( params );
+        expect( arg.context ).toBe( context );
+        expect( arg.error ).toBe( error );
+    } );
+
+    it( 'returns another error', async () => {
+        //  Нужно делать throw, а не кидать ошибку.
+        //  Просто return de.error( ... ) не приводит к ошибке на самом деле.
+
+        const error_1 = de.error( {
+            id: 'ERROR_1',
+        } );
+        const error_2 = de.error( {
+            id: 'ERROR_2',
+        } );
+        const block = get_error_block( error_1 )( {
+            options: {
+                error: () => error_2,
+            },
+        } );
+
+        const context = new de.Context();
+        const result = await context.run( block );
+
+        expect( result ).toBe( error_2 );
+    } );
+
+    it( 'throws ReferenceError', async () => {
+        const error_1 = de.error( {
+            id: 'ERROR_1',
+        } );
+        const block = get_error_block( error_1 )( {
+            options: {
+                error: () => {
+                    //  eslint-disable-next-line no-undef
+                    return x;
+                },
             },
         } );
 
@@ -32,39 +72,43 @@ describe( 'options.error', () => {
             await context.run( block );
 
         } catch ( e ) {
-            expect( e ).toBe( error_2 );
-            expect( spy.mock.calls[ 0 ][ 0 ].error ).toBe( error_1 );
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( 'ReferenceError' );
         }
     } );
 
-    it( 'returns not error', async () => {
-        const error = de.error( {
-            id: 'SOME_ERROR',
+    it( 'throws de.error', async () => {
+        const error_1 = de.error( {
+            id: 'ERROR_1',
         } );
-        const data = {
-            foo: 42,
-        };
-        const spy = jest.fn( () => data );
-        const block = get_error_block( error )( {
+        const error_2 = de.error( {
+            id: 'ERROR_2',
+        } );
+        const block = get_error_block( error_1 )( {
             options: {
-                error: spy,
+                error: () => {
+                    throw error_2;
+                },
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        expect.assertions( 1 );
+        try {
+            const context = new de.Context();
+            await context.run( block );
 
-        expect( result ).toBe( data );
+        } catch ( e ) {
+            expect( e ).toBe( error_2 );
+        }
     } );
 
-    it.each( [ 0, '', null, false ] )( 'returns %j', async ( value ) => {
+    it.each( [ { foo: 42 }, 0, '', null, false ] )( 'returns %j', async ( value ) => {
         const error = de.error( {
-            id: 'SOME_ERROR',
+            id: 'ERROR',
         } );
-        const spy = jest.fn( () => value );
         const block = get_error_block( error )( {
             options: {
-                error: spy,
+                error: () => value,
             },
         } );
 
@@ -76,7 +120,7 @@ describe( 'options.error', () => {
 
     it( 'returns undefined', async () => {
         const error = de.error( {
-            id: 'SOME_ERROR',
+            id: 'ERROR',
         } );
         const spy = jest.fn( () => undefined );
         const block = get_error_block( error )( {
@@ -93,6 +137,103 @@ describe( 'options.error', () => {
         } catch ( e ) {
             expect( e ).toBe( error );
         }
+    } );
+
+    it.each( [ { foo: 42 }, 0, '', null, false ] )( 'first returns %j, second never called', async ( value ) => {
+        const error = de.error( {
+            id: 'ERROR',
+        } );
+        const spy = jest.fn();
+        const block_1 = get_error_block( error )( {
+            options: {
+                error: () => value,
+            },
+        } );
+        const block_2 = block_1( {
+            options: {
+                error: spy,
+            },
+        } );
+
+        const context = new de.Context();
+        const result = await context.run( block_2 );
+
+        expect( result ).toBe( value );
+        expect( spy.mock.calls.length ).toBe( 0 );
+    } );
+
+    it( 'first returns undefined, second gets original error', async () => {
+        const error = de.error( {
+            id: 'ERROR',
+        } );
+        const spy = jest.fn( () => null );
+        const block_1 = get_error_block( error, 50 )( {
+            options: {
+                error: () => undefined,
+            },
+        } );
+        const block_2 = block_1( {
+            options: {
+                error: spy,
+            },
+        } );
+
+        const context = new de.Context();
+        await context.run( block_2 );
+
+        expect( spy.mock.calls[ 0 ][ 0 ].error ).toBe( error );
+    } );
+
+    it( 'first returns undefined, second returns undefined', async () => {
+        const error = de.error( {
+            id: 'ERROR',
+        } );
+        const block_1 = get_error_block( error, 50 )( {
+            options: {
+                error: () => undefined,
+            },
+        } );
+        const block_2 = block_1( {
+            options: {
+                error: () => undefined,
+            },
+        } );
+
+        expect.assertions( 1 );
+        try {
+            const context = new de.Context();
+            await context.run( block_2 );
+
+        } catch ( e ) {
+            expect( e ).toBe( error );
+        }
+    } );
+
+    it( 'first throws, second gets error from first', async () => {
+        const error_1 = de.error( {
+            id: 'ERROR',
+        } );
+        const error_2 = de.error( {
+            id: 'ANOTHER_ERROR',
+        } );
+        const block_1 = get_error_block( error_1, 50 )( {
+            options: {
+                error: () => {
+                    throw error_2;
+                },
+            },
+        } );
+        const spy = jest.fn( () => null );
+        const block_2 = block_1( {
+            options: {
+                error: spy,
+            },
+        } );
+
+        const context = new de.Context();
+        await context.run( block_2 );
+
+        expect( spy.mock.calls[ 0 ][ 0 ].error ).toBe( error_2 );
     } );
 
 } );
