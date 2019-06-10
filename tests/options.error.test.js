@@ -1,6 +1,7 @@
 const de = require( '../lib' );
 
 const {
+    get_result_block,
     get_error_block,
 } = require( './helpers' );
 
@@ -29,6 +30,23 @@ describe( 'options.error', () => {
         expect( arg.params ).toBe( params );
         expect( arg.context ).toBe( context );
         expect( arg.error ).toBe( error );
+    } );
+
+    it( 'never called if block successful', async () => {
+        const block_result = {
+            foo: 42,
+        };
+        const spy = jest.fn();
+        const block = get_result_block( block_result )( {
+            options: {
+                error: spy,
+            },
+        } );
+
+        const context = new de.Context();
+        await context.run( block );
+
+        expect( spy.mock.calls.length ).toBe( 0 );
     } );
 
     it( 'returns another error', async () => {

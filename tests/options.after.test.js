@@ -4,6 +4,7 @@ const {
     wait_for_value,
     wait_for_error,
     get_result_block,
+    get_error_block,
 } = require( './helpers' );
 
 describe( 'options.after', () => {
@@ -29,6 +30,26 @@ describe( 'options.after', () => {
         expect( calls[ 0 ][ 0 ].params ).toBe( params );
         expect( calls[ 0 ][ 0 ].context ).toBe( context );
         expect( calls[ 0 ][ 0 ].result ).toBe( block_result );
+    } );
+
+    it( 'after never called if block errors', async () => {
+        const block_error = de.error( {
+            id: 'ERROR',
+        } );
+        const spy = jest.fn();
+        const block = get_error_block( block_error, 50 )( {
+            options: {
+                after: spy,
+            },
+        } );
+
+        try {
+            const context = new de.Context();
+            await context.run( block );
+
+        } catch ( e ) {
+            expect( spy.mock.calls.length ).toBe( 0 );
+        }
     } );
 
     it.each( [ null, false, 0, '', 42, 'foo', {} ] )( 'after returns %j', async ( after_result ) => {
@@ -85,6 +106,22 @@ describe( 'options.after', () => {
         }
     } );
 
+    it( 'after returns error', async () => {
+        const after_error = de.error( {
+            id: 'ERROR',
+        } );
+        const block = get_result_block( null )( {
+            options: {
+                after: () => after_error,
+            },
+        } );
+
+        const context = new de.Context();
+        const result = await context.run( block );
+
+        expect( result ).toBe( after_error );
+    } );
+
     it( 'after returns promise that resolves', async () => {
         const after_result = {
             foo: 42,
@@ -119,6 +156,33 @@ describe( 'options.after', () => {
         } catch ( e ) {
             expect( e ).toBe( after_error );
         }
+    } );
+
+    it( 'cancelled during after', async () => {
+        const error = de.error( {
+            id: 'ERROR',
+        } );
+        const spy = jest.fn( () => wait_for_value( null, 100 ) );
+        const block = get_result_block( null )( {
+            options: {
+                after: spy,
+            },
+        } );
+        const cancel = new de.Cancel();
+        setTimeout( () => {
+            cancel.cancel( error );
+        }, 50 );
+
+        expect.assertions( 2 );
+        try {
+            const context = new de.Context();
+            await context.run( block, null, cancel );
+
+        } catch ( e ) {
+            expect( e ).toBe( error );
+            expect( spy.mock.calls.length ).toBe( 1 );
+        }
+
     } );
 
     describe( 'inheritance', () => {
