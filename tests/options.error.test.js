@@ -75,12 +75,43 @@ describe( 'options.error', () => {
         const error_1 = de.error( {
             id: 'ERROR_1',
         } );
+        const spy = jest.fn( () => {
+            //  eslint-disable-next-line no-undef
+            return x;
+        } );
         const block = get_error_block( error_1 )( {
             options: {
-                error: () => {
-                    //  eslint-disable-next-line no-undef
-                    return x;
-                },
+                error: spy,
+            },
+        } );
+
+        expect.assertions( 3 );
+        try {
+            const context = new de.Context();
+            await context.run( block );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( 'ReferenceError' );
+            expect( spy.mock.calls.length ).toBe( 1 );
+        }
+    } );
+
+    it( 'throws de.error', async () => {
+        const error_1 = de.error( {
+            id: 'ERROR_1',
+        } );
+        let error_2;
+        const spy = jest.fn( () => {
+            error_2 = de.error( {
+                id: 'ERROR_2',
+            } );
+
+            throw error_2;
+        } );
+        const block = get_error_block( error_1 )( {
+            options: {
+                error: spy,
             },
         } );
 
@@ -90,33 +121,8 @@ describe( 'options.error', () => {
             await context.run( block );
 
         } catch ( e ) {
-            expect( de.is_error( e ) ).toBe( true );
-            expect( e.error.id ).toBe( 'ReferenceError' );
-        }
-    } );
-
-    it( 'throws de.error', async () => {
-        const error_1 = de.error( {
-            id: 'ERROR_1',
-        } );
-        const error_2 = de.error( {
-            id: 'ERROR_2',
-        } );
-        const block = get_error_block( error_1 )( {
-            options: {
-                error: () => {
-                    throw error_2;
-                },
-            },
-        } );
-
-        expect.assertions( 1 );
-        try {
-            const context = new de.Context();
-            await context.run( block );
-
-        } catch ( e ) {
             expect( e ).toBe( error_2 );
+            expect( spy.mock.calls.length ).toBe( 1 );
         }
     } );
 

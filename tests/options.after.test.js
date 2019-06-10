@@ -56,9 +56,10 @@ describe( 'options.after', () => {
         const block_result = {
             foo: 42,
         };
+        const spy = jest.fn( () => after_result );
         const block = get_result_block( block_result )( {
             options: {
-                after: () => after_result,
+                after: spy,
             },
         } );
 
@@ -66,6 +67,23 @@ describe( 'options.after', () => {
         const result = await context.run( block );
 
         expect( result ).toBe( after_result );
+    } );
+
+    it( 'after returns value and called only once', async () => {
+        const after_result = {
+            foo: 42,
+        };
+        const spy = jest.fn( () => after_result );
+        const block = get_result_block( null, 50 )( {
+            options: {
+                after: spy,
+            },
+        } );
+
+        const context = new de.Context();
+        await context.run( block );
+
+        expect( spy.mock.calls.length ).toBe( 1 );
     } );
 
     it( 'after returns undefined', async () => {
@@ -106,9 +124,115 @@ describe( 'options.after', () => {
         }
     } );
 
+    it( 'after throws, error returns value, after gets this value', async () => {
+        let after_error;
+        const spy_after = jest.fn()
+            .mockImplementationOnce( () => {
+                after_error = de.error( {
+                    id: 'ERROR',
+                } );
+                throw after_error;
+            } )
+            .mockImplementationOnce( () => null );
+
+        let error_result;
+        const spy_error = jest.fn( () => {
+            error_result = {
+                bar: 24,
+            };
+            return error_result;
+        } );
+
+        const block = get_result_block( null, 50 )( {
+            options: {
+                after: spy_after,
+                error: spy_error,
+            },
+        } );
+
+        const context = new de.Context();
+        await context.run( block );
+
+        expect( spy_error.mock.calls[ 0 ][ 0 ].error ).toBe( after_error );
+        expect( spy_after.mock.calls[ 1 ][ 0 ].result ).toBe( error_result );
+    } );
+
+    it( 'after throws, error returns value, ...', async () => {
+        let after_error;
+        const spy_after = jest.fn( () => {
+            after_error = de.error( {
+                id: 'AFTER_ERROR',
+            } );
+            throw after_error;
+        } );
+
+        let error_result;
+        const spy_error = jest.fn( () => {
+            error_result = {
+                foo: 42,
+            };
+            return error_result;
+        } );
+
+        const block = get_result_block( null, 50 )( {
+            options: {
+                after: spy_after,
+                error: spy_error,
+            },
+        } );
+
+        expect.assertions( 2 );
+        try {
+            const context = new de.Context();
+            await context.run( block );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.TOO_MANY_AFTERS_OR_ERRORS );
+        }
+    } );
+
+    it( 'error returns value, after throws, ...', async () => {
+        let after_error;
+        const spy_after = jest.fn( () => {
+            after_error = de.error( {
+                id: 'AFTER_ERROR',
+            } );
+            throw after_error;
+        } );
+
+        let error_result;
+        const spy_error = jest.fn( () => {
+            error_result = {
+                foo: 42,
+            };
+            return error_result;
+        } );
+
+        const block_error = de.error( {
+            id: 'BLOCK_ERROR',
+        } );
+        const block = get_error_block( block_error, 50 )( {
+            options: {
+                after: spy_after,
+                error: spy_error,
+            },
+        } );
+
+        expect.assertions( 2 );
+        try {
+            const context = new de.Context();
+            await context.run( block );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.TOO_MANY_AFTERS_OR_ERRORS );
+        }
+    } );
+
     it( 'after returns error', async () => {
         const after_error = de.error( {
-            id: 'ERROR',
+            id: 'AFTER_ERROR',
         } );
         const block = get_result_block( null )( {
             options: {
