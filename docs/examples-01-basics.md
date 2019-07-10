@@ -78,7 +78,11 @@ module.exports = de.object( {
 
     block: {
         foo: block_foo,
-        bar: block_bar,
+        bar: block_bar( {
+            options: {
+                required: true,
+            },
+        } ),
     },
 
 } );
