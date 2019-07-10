@@ -93,6 +93,34 @@ const de = require( 'descript' );
 const block_foo = require( '.../blocks/foo' );
 const block_bar = require( '.../blocks/bar' );
 
+module.exports = de.func( {
+    block: ( { params } ) => {
+        if ( params.foo ) {
+            return block_foo;
+        }
+
+        if ( params.bar ) {
+            return {
+                bar: params.bar,
+            };
+        }
+
+        throw de.error( {
+            id: 'INVALID_PARAMS',
+        } );
+    },
+} );
+```
+
+
+## Упрощенный func-блок
+
+```js
+const de = require( 'descript' );
+
+const block_foo = require( '.../blocks/foo' );
+const block_bar = require( '.../blocks/bar' );
+
 module.exports = function( { params } ) {
     if ( params.foo ) {
         return block_foo;
