@@ -8,11 +8,7 @@ describe( 'options.params', () => {
 
     it( 'no params', async () => {
         const spy = jest.fn();
-        const block = get_result_block( spy )( {
-            options: {
-                params: undefined,
-            },
-        } );
+        const block = get_result_block( spy );
 
         const context = new de.Context();
         await context.run( block );
@@ -25,7 +21,7 @@ describe( 'options.params', () => {
 
         it( 'params gets { params, context }', async () => {
             const spy = jest.fn();
-            const block = get_result_block( spy )( {
+            const block = get_result_block( null )( {
                 options: {
                     params: spy,
                 },
@@ -42,7 +38,44 @@ describe( 'options.params', () => {
             expect( calls[ 0 ][ 0 ].context ).toBe( context );
         } );
 
-        it.each( [ undefined, null, false, '', 0 ] )( 'params returns %j', async ( params_result ) => {
+        it( 'params gets { deps }', async () => {
+            const spy = jest.fn();
+
+            let data_foo;
+            let id_foo;
+
+            const block = function( get_id ) {
+                data_foo = {
+                    foo: 42,
+                };
+                id_foo = get_id( 'foo' );
+
+                return de.object( {
+                    block: {
+                        foo: get_result_block( data_foo )( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
+
+                        bar: get_result_block( null )( {
+                            options: {
+                                deps: id_foo,
+                                params: spy,
+                            },
+                        } ),
+                    },
+                } );
+            };
+
+            const context = new de.Context();
+            await context.run( block );
+
+            const calls = spy.mock.calls;
+            expect( calls[ 0 ][ 0 ].deps[ id_foo ] ).toBe( data_foo );
+        } );
+
+        it.each( [ undefined, null, false, '', 0, 42 ] )( 'params returns %j', async ( params_result ) => {
             const spy = jest.fn();
             const block = get_result_block( spy )( {
                 options: {
@@ -59,13 +92,17 @@ describe( 'options.params', () => {
 
         it( 'params returns object, action gets it as { params }', async () => {
             const spy = jest.fn();
-            const block_params = {
-                id: 42,
-            };
+
+            let params;
+
             const block = get_result_block( spy )( {
                 options: {
                     params: () => {
-                        return block_params;
+                        params = {
+                            id: 42,
+                        };
+
+                        return params;
                     },
                 },
             } );
@@ -73,17 +110,17 @@ describe( 'options.params', () => {
             const context = new de.Context();
             await context.run( block );
 
-            expect( spy.mock.calls[ 0 ][ 0 ].params ).toBe( block_params );
+            expect( spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
         } );
 
         it( 'params throws', async () => {
-            const params_error = de.error( {
+            const error = de.error( {
                 id: 'SOME_ERROR',
             } );
             const block = get_result_block( null )( {
                 options: {
                     params: () => {
-                        throw params_error;
+                        throw error;
                     },
                 },
             } );
@@ -94,7 +131,7 @@ describe( 'options.params', () => {
                 await context.run( block );
 
             } catch ( e ) {
-                expect( e ).toBe( params_error );
+                expect( e ).toBe( error );
             }
         } );
 
@@ -102,30 +139,12 @@ describe( 'options.params', () => {
 
     describe( 'params is an object', () => {
 
-        it( 'params extends passed params #1', async () => {
+        it( 'params replaces passed params', async () => {
             const spy = jest.fn();
             const block = get_result_block( spy )( {
                 options: {
                     params: {
-                        foo: 42,
-                    },
-                },
-            } );
-
-            const context = new de.Context();
-            const params = {};
-            await context.run( block, params );
-
-            expect( spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
-        } );
-
-        it( 'params extends passed params #2', async () => {
-            const spy = jest.fn();
-            const value_bar = Symbol( 'bar' );
-            const block = get_result_block( spy )( {
-                options: {
-                    params: {
-                        bar: value_bar,
+                        bar: 24,
                     },
                 },
             } );
@@ -135,15 +154,15 @@ describe( 'options.params', () => {
                 foo: 42,
             };
             await context.run( block, params );
+            await context.run( block, params );
 
-            const calls = spy.mock.calls;
-            expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                foo: 42,
-                bar: value_bar,
+            expect( spy.mock.calls[ 0 ][ 0 ].params ).toStrictEqual( {
+                bar: 24,
             } );
+            expect( spy.mock.calls[ 0 ][ 0 ].params ).not.toBe( spy.mock.calls[ 1 ][ 0 ].params );
         } );
 
-        it( 'property is undefined', async () => {
+        it.each( [ undefined, null, 0, false, '', 42 ] )( 'options.params property is undefined, params property is %j', async ( value ) => {
             const spy = jest.fn();
             const block = get_result_block( spy )( {
                 options: {
@@ -155,17 +174,57 @@ describe( 'options.params', () => {
 
             const context = new de.Context();
             const params = {
-                foo: 42,
+                foo: value,
             };
             await context.run( block, params );
 
             const calls = spy.mock.calls;
-            expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                foo: 42,
+            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {} );
+        } );
+
+        it.each( [ null, 0, false, '', 42 ] )( 'options.params property is null, params property is %j', async ( value ) => {
+            const spy = jest.fn();
+            const block = get_result_block( spy )( {
+                options: {
+                    params: {
+                        foo: null,
+                    },
+                },
+            } );
+
+            const context = new de.Context();
+            const params = {
+                foo: value,
+            };
+            await context.run( block, params );
+
+            const calls = spy.mock.calls;
+            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
+                foo: value,
             } );
         } );
 
-        it.each( [ null, false, 0, '' ] )( 'property is %j', async ( value ) => {
+        it( 'options.params property is null, params property is undefined', async () => {
+            const spy = jest.fn();
+            const block = get_result_block( spy )( {
+                options: {
+                    params: {
+                        foo: null,
+                    },
+                },
+            } );
+
+            const context = new de.Context();
+            const params = {
+                foo: undefined,
+            };
+            await context.run( block, params );
+
+            const calls = spy.mock.calls;
+            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {} );
+        } );
+
+        it.each( [ false, 0, '', 42 ] )( 'options.params property is %j, params property is 0', async ( value ) => {
             const spy = jest.fn();
             const block = get_result_block( spy )( {
                 options: {
@@ -177,12 +236,122 @@ describe( 'options.params', () => {
 
             const context = new de.Context();
             const params = {
-                foo: 42,
+                foo: 0,
             };
             await context.run( block, params );
 
             const calls = spy.mock.calls;
-            expect( calls[ 0 ][ 0 ].params ).toEqual( {
+            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
+                foo: 0,
+            } );
+        } );
+
+        it.each( [ false, 0, '', 42 ] )( 'options.params property is %j, params property is false', async ( value ) => {
+            const spy = jest.fn();
+            const block = get_result_block( spy )( {
+                options: {
+                    params: {
+                        foo: value,
+                    },
+                },
+            } );
+
+            const context = new de.Context();
+            const params = {
+                foo: false,
+            };
+            await context.run( block, params );
+
+            const calls = spy.mock.calls;
+            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
+                foo: false,
+            } );
+        } );
+
+        it.each( [ false, 0, '', 42 ] )( 'options.params property is %j, params property is ""', async ( value ) => {
+            const spy = jest.fn();
+            const block = get_result_block( spy )( {
+                options: {
+                    params: {
+                        foo: value,
+                    },
+                },
+            } );
+
+            const context = new de.Context();
+            const params = {
+                foo: '',
+            };
+            await context.run( block, params );
+
+            const calls = spy.mock.calls;
+            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
+                foo: '',
+            } );
+        } );
+
+        it.each( [ false, 0, '', 42 ] )( 'options.params property is %j, params property is 24', async ( value ) => {
+            const spy = jest.fn();
+            const block = get_result_block( spy )( {
+                options: {
+                    params: {
+                        foo: value,
+                    },
+                },
+            } );
+
+            const context = new de.Context();
+            const params = {
+                foo: 24,
+            };
+            await context.run( block, params );
+
+            const calls = spy.mock.calls;
+            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
+                foo: 24,
+            } );
+        } );
+
+        it.each( [ false, 0, '', 42 ] )( 'options.params property is %j, params property is null', async ( value ) => {
+            const spy = jest.fn();
+            const block = get_result_block( spy )( {
+                options: {
+                    params: {
+                        foo: value,
+                    },
+                },
+            } );
+
+            const context = new de.Context();
+            const params = {
+                foo: null,
+            };
+            await context.run( block, params );
+
+            const calls = spy.mock.calls;
+            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
+                foo: null,
+            } );
+        } );
+
+        it.each( [ false, 0, '', 42 ] )( 'options.params property is %j, params property is undefined', async ( value ) => {
+            const spy = jest.fn();
+            const block = get_result_block( spy )( {
+                options: {
+                    params: {
+                        foo: value,
+                    },
+                },
+            } );
+
+            const context = new de.Context();
+            const params = {
+                foo: undefined,
+            };
+            await context.run( block, params );
+
+            const calls = spy.mock.calls;
+            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
                 foo: value,
             } );
         } );
@@ -210,26 +379,6 @@ describe( 'options.params', () => {
                 expect( calls[ 0 ][ 0 ].context ).toBe( context );
             } );
 
-            it( 'property returns value', async () => {
-                const spy = jest.fn();
-                const value_foo = Symbol( 'foo' );
-                const block = get_result_block( spy )( {
-                    options: {
-                        params: {
-                            foo: () => value_foo,
-                        },
-                    },
-                } );
-
-                const context = new de.Context();
-                await context.run( block );
-
-                const calls = spy.mock.calls;
-                expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                    foo: value_foo,
-                } );
-            } );
-
             it( 'property returns undefined', async () => {
                 const spy = jest.fn();
                 const block = get_result_block( spy )( {
@@ -246,13 +395,12 @@ describe( 'options.params', () => {
                 const context = new de.Context();
                 await context.run( block, params );
 
-                const calls = spy.mock.calls;
-                expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                    foo: 42,
-                } );
+                const call_params = spy.mock.calls[ 0 ][ 0 ].params;
+                expect( call_params ).toStrictEqual( {} );
+                expect( 'foo' in call_params ).toBe( false );
             } );
 
-            it.each( [ null, false, '', 0 ] )( 'property returns %j', async ( value ) => {
+            it.each( [ null, false, '', 0, 'Hello', 42 ] )( 'property returns %j', async ( value ) => {
                 const spy = jest.fn();
                 const block = get_result_block( spy )( {
                     options: {
@@ -268,8 +416,8 @@ describe( 'options.params', () => {
                 const context = new de.Context();
                 await context.run( block, params );
 
-                const calls = spy.mock.calls;
-                expect( calls[ 0 ][ 0 ].params ).toEqual( {
+                const call_params = spy.mock.calls[ 0 ][ 0 ].params;
+                expect( call_params ).toStrictEqual( {
                     foo: value,
                 } );
             } );
@@ -304,386 +452,81 @@ describe( 'options.params', () => {
 
     describe( 'inheritance', () => {
 
-        describe( 'parent is an object, child is an object', () => {
+        it.each( [ undefined, null, 42 ] )( 'parent returns %j', async ( value ) => {
+            const params_spy = jest.fn();
 
-            it( 'properties are values', async () => {
-                const spy = jest.fn();
-                const parent_foo_value = Symbol( 'parent_foo' );
-                const parent_bar_value = Symbol( 'parent_bar' );
-                const parent = get_result_block( spy )( {
-                    options: {
-                        params: {
-                            foo: parent_foo_value,
-                            bar: parent_bar_value,
-                        },
-                    },
-                } );
-                const child_foo_value = Symbol( 'child_foo' );
-                const child_quu_value = Symbol( 'child_quu' );
-                const child = parent( {
-                    options: {
-                        params: {
-                            foo: child_foo_value,
-                            quu: child_quu_value,
-                        },
-                    },
-                } );
-
-                const params = {
-                    foo: 42,
-                    bar: 24,
-                    quu: 66,
-                    boo: 39,
-                };
-                const context = new de.Context();
-                await context.run( child, params );
-
-                const calls = spy.mock.calls;
-                expect( calls[ 0 ][ 0 ].params ).toBe( params );
-                expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                    foo: child_foo_value,
-                    bar: parent_bar_value,
-                    quu: child_quu_value,
-                    boo: 39,
-                } );
+            const parent = get_result_block()( {
+                options: {
+                    params: () => value,
+                },
+            } );
+            const child = parent( {
+                options: {
+                    params: params_spy,
+                },
             } );
 
-            it( 'properties are undefined', async () => {
-                const spy = jest.fn();
-                const parent = get_result_block( spy )( {
-                    options: {
-                        params: {
-                            foo: undefined,
-                            bar: undefined,
-                        },
-                    },
-                } );
-                const child = parent( {
-                    options: {
-                        params: {
-                            foo: undefined,
-                            quu: undefined,
-                        },
-                    },
-                } );
+            const params = {
+                foo: 42,
+            };
+            const context = new de.Context();
+            await context.run( child, params );
 
-                const params = {
-                    foo: 42,
-                    bar: 24,
-                    quu: 66,
-                    boo: 39,
-                };
-                const context = new de.Context();
-                await context.run( child, params );
-
-                const calls = spy.mock.calls;
-                expect( calls[ 0 ][ 0 ].params ).toBe( params );
-                expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                    foo: 42,
-                    bar: 24,
-                    quu: 66,
-                    boo: 39,
-                } );
-            } );
-
-            it( 'parent properties are values, child properties are undefined', async () => {
-                const spy = jest.fn();
-                const parent_foo_value = Symbol( 'parent_foo' );
-                const parent_bar_value = Symbol( 'parent_bar' );
-                const parent = get_result_block( spy )( {
-                    options: {
-                        params: {
-                            foo: parent_foo_value,
-                            bar: parent_bar_value,
-                        },
-                    },
-                } );
-                const child = parent( {
-                    options: {
-                        params: {
-                            foo: undefined,
-                            quu: undefined,
-                        },
-                    },
-                } );
-
-                const params = {
-                    foo: 42,
-                    bar: 24,
-                    quu: 66,
-                    boo: 39,
-                };
-                const context = new de.Context();
-                await context.run( child, params );
-
-                const calls = spy.mock.calls;
-                expect( calls[ 0 ][ 0 ].params ).toBe( params );
-                expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                    foo: parent_foo_value,
-                    bar: parent_bar_value,
-                    quu: 66,
-                    boo: 39,
-                } );
-            } );
-
-            it( 'parent properties are undefined, child properties are values', async () => {
-                const spy = jest.fn();
-                const parent = get_result_block( spy )( {
-                    options: {
-                        params: {
-                            foo: undefined,
-                            bar: undefined,
-                        },
-                    },
-                } );
-                const child_foo_value = Symbol( 'child_foo' );
-                const child_quu_value = Symbol( 'child_quu' );
-                const child = parent( {
-                    options: {
-                        params: {
-                            foo: child_foo_value,
-                            quu: child_quu_value,
-                        },
-                    },
-                } );
-
-                const params = {
-                    foo: 42,
-                    bar: 24,
-                    quu: 66,
-                    boo: 39,
-                };
-                const context = new de.Context();
-                await context.run( child, params );
-
-                const calls = spy.mock.calls;
-                expect( calls[ 0 ][ 0 ].params ).toBe( params );
-                expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                    foo: child_foo_value,
-                    bar: 24,
-                    quu: child_quu_value,
-                    boo: 39,
-                } );
-            } );
-
-            describe( 'properties are functions', () => {
-
-                it( 'parent returns value, child returns value', async () => {
-                    const spy = jest.fn();
-                    const parent_foo_value = Symbol( 'parent_foo' );
-                    const parent = get_result_block( spy )( {
-                        options: {
-                            params: {
-                                foo: () => parent_foo_value,
-                            },
-                        },
-                    } );
-                    const child_foo_value = Symbol( 'child_foo' );
-                    const child = parent( {
-                        options: {
-                            params: {
-                                foo: () => child_foo_value,
-                            },
-                        },
-                    } );
-
-                    const params = {
-                        foo: 42,
-                    };
-                    const context = new de.Context();
-                    await context.run( child, params );
-
-                    const calls = spy.mock.calls;
-                    expect( calls[ 0 ][ 0 ].params ).toBe( params );
-                    expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                        foo: child_foo_value,
-                    } );
-                } );
-
-                it( 'parent returns undefined, child returns value', async () => {
-                    const spy = jest.fn();
-                    const parent = get_result_block( spy )( {
-                        options: {
-                            params: {
-                                foo: () => undefined,
-                            },
-                        },
-                    } );
-                    const child_foo_value = Symbol( 'child_foo' );
-                    const child = parent( {
-                        options: {
-                            params: {
-                                foo: () => child_foo_value,
-                            },
-                        },
-                    } );
-
-                    const params = {
-                        foo: 42,
-                    };
-                    const context = new de.Context();
-                    await context.run( child, params );
-
-                    const calls = spy.mock.calls;
-                    expect( calls[ 0 ][ 0 ].params ).toBe( params );
-                    expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                        foo: child_foo_value,
-                    } );
-                } );
-
-                it( 'parent returns value, child returns undefined', async () => {
-                    const spy = jest.fn();
-                    const parent_foo_value = Symbol( 'parent_foo' );
-                    const parent = get_result_block( spy )( {
-                        options: {
-                            params: {
-                                foo: () => parent_foo_value,
-                            },
-                        },
-                    } );
-                    const child = parent( {
-                        options: {
-                            params: {
-                                foo: () => undefined,
-                            },
-                        },
-                    } );
-
-                    const params = {
-                        foo: 42,
-                    };
-                    const context = new de.Context();
-                    await context.run( child, params );
-
-                    const calls = spy.mock.calls;
-                    expect( calls[ 0 ][ 0 ].params ).toBe( params );
-                    expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                        foo: parent_foo_value,
-                    } );
-                } );
-
-                it( 'parent returns undefined, child returns undefined', async () => {
-                    const spy = jest.fn();
-                    const parent = get_result_block( spy )( {
-                        options: {
-                            params: {
-                                foo: () => undefined,
-                            },
-                        },
-                    } );
-                    const child = parent( {
-                        options: {
-                            params: {
-                                foo: () => undefined,
-                            },
-                        },
-                    } );
-
-                    const params = {
-                        foo: 42,
-                    };
-                    const context = new de.Context();
-                    await context.run( child, params );
-
-                    const calls = spy.mock.calls;
-                    expect( calls[ 0 ][ 0 ].params ).toBe( params );
-                    expect( calls[ 0 ][ 0 ].params ).toEqual( {
-                        foo: 42,
-                    } );
-                } );
-
-            } );
-
+            expect( params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
         } );
 
-        describe( 'parent is a function, child is a function', () => {
+        it( 'child is an object', async () => {
+            const params_spy = jest.fn();
 
-            it( 'parent\'s first, child\'s second', async () => {
-                const action_spy = jest.fn();
-                const parent_params_result = {
-                    foo: 42,
-                };
-                const parent_params_spy = jest.fn( () => parent_params_result );
-                const parent = get_result_block( action_spy )( {
-                    options: {
-                        params: parent_params_spy,
+            let parent_params;
+            const parent = get_result_block()( {
+                options: {
+                    params: () => {
+                        parent_params = {
+                            foo: 42,
+                        };
+                        return parent_params;
                     },
-                } );
-                const child_params_result = {
-                    bar: 24,
-                };
-                const child_params_spy = jest.fn( () => child_params_result );
-                const child = parent( {
-                    options: {
-                        params: child_params_spy,
+                },
+            } );
+            const child = parent( {
+                options: {
+                    params: {
+                        bar: params_spy,
                     },
-                } );
-
-                const params = {
-                    quu: 66,
-                };
-                const context = new de.Context();
-                await context.run( child, params );
-
-                expect( parent_params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
-                expect( child_params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( parent_params_result );
-                expect( action_spy.mock.calls[ 0 ][ 0 ].params ).toBe( child_params_result );
+                },
             } );
 
-            it.each( [ undefined, null, false, '', 0 ] )( 'parent returns %j', async ( parent_params_result ) => {
-                const action_spy = jest.fn();
-                const parent = get_result_block( action_spy )( {
-                    options: {
-                        params: () => parent_params_result,
-                    },
-                } );
-                const child_params_result = {
-                    bar: 24,
-                };
-                const child_params_spy = jest.fn( () => child_params_result );
-                const child = parent( {
-                    options: {
-                        params: child_params_spy,
-                    },
-                } );
+            const context = new de.Context();
+            await context.run( child );
 
-                const params = {
-                    quu: 66,
-                };
-                const context = new de.Context();
-                await context.run( child, params );
+            expect( params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( parent_params );
+        } );
 
-                expect( child_params_spy.mock.calls[ 0 ][ 0 ].params ).toEqual( {} );
-                expect( action_spy.mock.calls[ 0 ][ 0 ].params ).toBe( child_params_result );
+        it( 'child is a function', async () => {
+            const params_spy = jest.fn();
+
+            let parent_params;
+            const parent = get_result_block()( {
+                options: {
+                    params: () => {
+                        parent_params = {
+                            foo: 42,
+                        };
+                        return parent_params;
+                    },
+                },
+            } );
+            const child = parent( {
+                options: {
+                    params: params_spy,
+                },
             } );
 
-            it.each( [ undefined, null, false, '', 0 ] )( 'child returns %j', async ( child_params_result ) => {
-                const action_spy = jest.fn();
-                const parent_params_result = {
-                    foo: 42,
-                };
-                const parent_params_spy = jest.fn( () => parent_params_result );
-                const parent = get_result_block( action_spy )( {
-                    options: {
-                        params: parent_params_spy,
-                    },
-                } );
-                const child = parent( {
-                    options: {
-                        params: () => child_params_result,
-                    },
-                } );
+            const context = new de.Context();
+            await context.run( child );
 
-                const params = {
-                    quu: 66,
-                };
-                const context = new de.Context();
-                await context.run( child, params );
-
-                expect( parent_params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
-                expect( action_spy.mock.calls[ 0 ][ 0 ].params ).toEqual( {} );
-            } );
-
+            expect( params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( parent_params );
         } );
 
     } );
