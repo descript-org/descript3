@@ -19,8 +19,10 @@ describe( 'options.before', () => {
         const params = {
             foo: 42,
         };
-        const context = new de.Context();
-        await context.run( block, params );
+        const context = {
+            context: true,
+        };
+        await de.run( block, { params, context } );
 
         const calls = spy.mock.calls;
         expect( calls[ 0 ][ 0 ].params ).toBe( params );
@@ -35,8 +37,7 @@ describe( 'options.before', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( before_result );
         expect( spy.mock.calls.length ).toBe( 0 );
@@ -57,8 +58,7 @@ describe( 'options.before', () => {
 
         expect.assertions( 2 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( e ).toBe( before_error );
@@ -79,8 +79,7 @@ describe( 'options.before', () => {
 
         expect.assertions( 2 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( e ).toBe( before_error );
@@ -99,8 +98,7 @@ describe( 'options.before', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( before_result );
         expect( spy.mock.calls.length ).toBe( 0 );
@@ -116,8 +114,7 @@ describe( 'options.before', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( block_result );
     } );
@@ -137,8 +134,7 @@ describe( 'options.before', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( child );
+            await de.run( child );
 
             const calls = spy.mock.calls;
             expect( calls.length ).toBe( 2 );
@@ -159,8 +155,7 @@ describe( 'options.before', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( child );
+            const result = await de.run( child );
 
             expect( result ).toBe( child_before_result );
             expect( spy.mock.calls.length ).toBe( 0 );
@@ -178,8 +173,7 @@ describe( 'options.before', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( child );
+            const result = await de.run( child );
 
             expect( result ).toBe( parent_before_result );
         } );
@@ -199,8 +193,7 @@ describe( 'options.before', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( child );
+            const result = await de.run( child );
 
             expect( result ).toBe( block_result );
         } );
@@ -224,8 +217,7 @@ describe( 'options.before', () => {
 
             expect.assertions( 1 );
             try {
-                const context = new de.Context();
-                await context.run( child );
+                await de.run( child );
 
             } catch ( e ) {
                 expect( e ).toBe( parent_before_error );
@@ -252,8 +244,7 @@ describe( 'options.before', () => {
 
             expect.assertions( 2 );
             try {
-                const context = new de.Context();
-                await context.run( child );
+                await de.run( child );
 
             } catch ( e ) {
                 expect( e ).toBe( child_before_error );

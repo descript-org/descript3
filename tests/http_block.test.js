@@ -50,8 +50,7 @@ describe( 'http', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result.status_code ).toBe( 200 );
         expect( result.result ).toBe( CONTENT );
@@ -73,8 +72,7 @@ describe( 'http', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result.status_code ).toBe( 200 );
         expect( result.result ).toBe( CONTENT );
@@ -104,8 +102,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const headers = spy.mock.calls[ 0 ][ 0 ].headers;
             expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -138,8 +135,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const headers = spy.mock.calls[ 0 ][ 0 ].headers;
             expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -170,8 +166,7 @@ describe( 'http', () => {
                     },
                 } );
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -199,8 +194,7 @@ describe( 'http', () => {
                     },
                 } );
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -223,8 +217,7 @@ describe( 'http', () => {
                 } );
                 const block2 = block1();
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -249,8 +242,7 @@ describe( 'http', () => {
                 } );
                 const block2 = block1();
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -281,8 +273,7 @@ describe( 'http', () => {
                     },
                 } );
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -317,8 +308,7 @@ describe( 'http', () => {
                     },
                 } );
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -353,8 +343,7 @@ describe( 'http', () => {
                     },
                 } );
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -391,8 +380,7 @@ describe( 'http', () => {
                     },
                 } );
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -423,8 +411,7 @@ describe( 'http', () => {
                     },
                 } );
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( undefined );
@@ -453,8 +440,7 @@ describe( 'http', () => {
                     },
                 } );
 
-                const context = new de.Context();
-                await context.run( block2 );
+                await de.run( block2 );
 
                 const headers = spy.mock.calls[ 0 ][ 0 ].headers;
                 expect( headers[ 'x-a' ] ).toBe( 'a' );
@@ -484,8 +470,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const req = spy.mock.calls[ 0 ][ 0 ];
             expect( url_.parse( req.url, true ).query ).toEqual( query );
@@ -509,8 +494,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const req = spy.mock.calls[ 0 ][ 0 ];
             expect( url_.parse( req.url, true ).query ).toEqual( query );
@@ -534,8 +518,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const body = spy.mock.calls[ 0 ][ 2 ];
             expect( body ).toBe( null );
@@ -556,8 +539,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const body = spy.mock.calls[ 0 ][ 2 ];
             expect( body.toString() ).toBe( '42' );
@@ -579,8 +561,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const body = spy.mock.calls[ 0 ][ 2 ];
             expect( body.toString() ).toBe( BODY );
@@ -602,8 +583,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const body = spy.mock.calls[ 0 ][ 2 ];
             expect( body.toString() ).toBe( BODY.toString() );
@@ -630,8 +610,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const body = spy.mock.calls[ 0 ][ 2 ];
             expect( body.toString() ).toBe( qs_.stringify( {
@@ -656,8 +635,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const body = spy.mock.calls[ 0 ][ 2 ];
             expect( body.toString() ).toBe( BODY );
@@ -679,8 +657,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const body = spy.mock.calls[ 0 ][ 2 ];
             expect( body.toString() ).toBe( BODY.toString() );
@@ -704,8 +681,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const body = spy.mock.calls[ 0 ][ 2 ];
             expect( body.toString() ).toBe( qs_.stringify( BODY ) );
@@ -731,8 +707,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( block );
+            const result = await de.run( block );
 
             expect( result.result.toString() ).toBe( RESPONSE.toString() );
         } );
@@ -756,8 +731,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( block );
+            const result = await de.run( block );
 
             expect( result.result ).toEqual( RESPONSE );
         } );
@@ -781,8 +755,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( block );
+            const result = await de.run( block );
 
             expect( result.result ).toEqual( RESPONSE );
         } );
@@ -807,8 +780,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( block );
+            const result = await de.run( block );
 
             expect( result.result ).toEqual( RESPONSE );
         } );
@@ -831,8 +803,7 @@ describe( 'http', () => {
 
             expect.assertions( 2 );
             try {
-                const context = new de.Context();
-                await context.run( block );
+                await de.run( block );
 
             } catch ( error ) {
                 expect( de.is_error( error ) ).toBe( true );
@@ -859,8 +830,7 @@ describe( 'http', () => {
 
             expect.assertions( 2 );
             try {
-                const context = new de.Context();
-                await context.run( block );
+                await de.run( block );
 
             } catch ( error ) {
                 expect( de.is_error( error ) ).toBe( true );
@@ -886,10 +856,9 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
             expect.assertions( 1 );
             try {
-                await context.run( block );
+                await de.run( block );
 
             } catch ( error ) {
                 expect( error.error.body ).toBe( null );
@@ -914,10 +883,9 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
             expect.assertions( 1 );
             try {
-                await context.run( block );
+                await de.run( block );
 
             } catch ( error ) {
                 expect( error.error.body ).toBe( RESPONSE );
@@ -944,10 +912,9 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
             expect.assertions( 1 );
             try {
-                await context.run( block );
+                await de.run( block );
 
             } catch ( error ) {
                 expect( error.error.body ).toEqual( RESPONSE );
@@ -973,10 +940,9 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
             expect.assertions( 1 );
             try {
-                await context.run( block );
+                await de.run( block );
 
             } catch ( error ) {
                 expect( error.error.body ).toBe( RESPONSE );
@@ -1001,10 +967,9 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
             expect.assertions( 1 );
             try {
-                await context.run( block );
+                await de.run( block );
 
             } catch ( error ) {
                 expect( error.error.body ).toBe( RESPONSE );
@@ -1033,8 +998,7 @@ describe( 'http', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( block );
+            const result = await de.run( block );
 
             expect( result.request_options.extra ).toEqual( {
                 name: NAME,

@@ -65,13 +65,11 @@ describe( 'options.cache, options.key, options.maxage', () => {
             },
         } );
 
-        const context_1 = new de.Context();
-        const result_1 = await context_1.run( block );
+        const result_1 = await de.run( block );
 
         await wait_for_value( null, 100 );
 
-        const context_2 = new de.Context();
-        const result_2 = await context_2.run( block );
+        const result_2 = await de.run( block );
 
         expect( result_1 ).toBe( block_value );
         expect( result_2 ).toBe( block_value );
@@ -92,13 +90,11 @@ describe( 'options.cache, options.key, options.maxage', () => {
             },
         } );
 
-        const context_1 = new de.Context();
-        await context_1.run( block );
+        await de.run( block );
 
         await wait_for_value( null, 100 );
 
-        const context_2 = new de.Context();
-        await context_2.run( block );
+        await de.run( block );
 
         expect( spy.mock.calls.length ).toBe( 2 );
     } );
@@ -120,8 +116,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( spy.mock.calls.length ).toBe( 0 );
         expect( result ).toBe( data );

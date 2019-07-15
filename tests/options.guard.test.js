@@ -4,7 +4,7 @@ const {
     get_result_block,
 } = require( './helpers' );
 
-describe( 'options.guard', () => {
+describe.skip( 'options.guard', () => {
 
     it( 'guard returns true', async () => {
         const data = {

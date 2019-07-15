@@ -17,8 +17,7 @@ describe( 'de.array', () => {
             block: [],
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toEqual( [] );
     } );
@@ -42,8 +41,7 @@ describe( 'de.array', () => {
             ],
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toEqual( [
             data_foo,
@@ -75,8 +73,7 @@ describe( 'de.array', () => {
             ],
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toEqual( [
             data_foo,
@@ -104,8 +101,7 @@ describe( 'de.array', () => {
             ],
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result[ 0 ] ).toBe( error_foo );
         expect( result[ 1 ] ).toBe( data_bar );
@@ -129,8 +125,7 @@ describe( 'de.array', () => {
             ],
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result[ 0 ] ).toBe( error_foo );
         expect( result[ 1 ] ).toBe( error_bar );
@@ -160,8 +155,7 @@ describe( 'de.array', () => {
 
         expect.assertions( 3 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( de.is_error( e ) ).toBe( true );
@@ -194,11 +188,11 @@ describe( 'de.array', () => {
                 id: 'SOME_ERROR',
             } );
             try {
-                const context = new de.Context();
+                const cancel = new de.Cancel();
                 setTimeout( () => {
-                    context.abort( abort_error );
+                    cancel.cancel( abort_error );
                 }, 100 );
-                await context.run( block );
+                await de.run( block, { cancel } );
 
             } catch ( e ) {
                 expect( e ).toBe( abort_error );
@@ -229,11 +223,11 @@ describe( 'de.array', () => {
                 id: 'SOME_ERROR',
             } );
             try {
-                const context = new de.Context();
+                const cancel = new de.Cancel();
                 setTimeout( () => {
-                    context.abort( abort_error );
+                    cancel.cancel( abort_error );
                 }, 100 );
-                await context.run( block );
+                await de.run( block, { cancel } );
 
             } catch ( e ) {
                 expect( e ).toBe( abort_error );
@@ -265,8 +259,7 @@ describe( 'de.array', () => {
             } );
 
             try {
-                const context = new de.Context();
-                await context.run( block );
+                await de.run( block );
 
             } catch ( e ) {
                 const call_0_0 = action_bar_spy.mock.calls[ 0 ][ 0 ];
@@ -304,8 +297,7 @@ describe( 'de.array', () => {
                 ],
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const calls = spy.mock.calls;
             expect( calls.length ).toBe( 6 );
@@ -341,8 +333,7 @@ describe( 'de.array', () => {
                 ],
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const calls = spy.mock.calls;
             expect( calls.length ).toBe( 3 );

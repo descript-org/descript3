@@ -5,7 +5,7 @@ const {
     set_timeout,
 } = require( './helpers' );
 
-describe( 'context', () => {
+describe.skip( 'context', () => {
 
     it( 'run non block', async () => {
         const block = {

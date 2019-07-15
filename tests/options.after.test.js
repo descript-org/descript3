@@ -23,8 +23,10 @@ describe( 'options.after', () => {
         const params = {
             bar: 24,
         };
-        const context = new de.Context();
-        await context.run( block, params );
+        const context = {
+            context: true,
+        };
+        await de.run( block, { params, context } );
 
         const calls = spy.mock.calls;
         expect( calls[ 0 ][ 0 ].params ).toBe( params );
@@ -44,8 +46,7 @@ describe( 'options.after', () => {
         } );
 
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( spy.mock.calls.length ).toBe( 0 );
@@ -63,8 +64,7 @@ describe( 'options.after', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( after_result );
     } );
@@ -80,8 +80,7 @@ describe( 'options.after', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         expect( spy.mock.calls.length ).toBe( 1 );
     } );
@@ -96,8 +95,7 @@ describe( 'options.after', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( block_result );
     } );
@@ -116,8 +114,7 @@ describe( 'options.after', () => {
 
         expect.assertions( 1 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( e ).toBe( after_error );
@@ -150,8 +147,7 @@ describe( 'options.after', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         expect( spy_error.mock.calls[ 0 ][ 0 ].error ).toBe( after_error );
         expect( spy_after.mock.calls[ 1 ][ 0 ].result ).toBe( error_result );
@@ -183,8 +179,7 @@ describe( 'options.after', () => {
 
         expect.assertions( 2 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( de.is_error( e ) ).toBe( true );
@@ -221,8 +216,7 @@ describe( 'options.after', () => {
 
         expect.assertions( 2 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( de.is_error( e ) ).toBe( true );
@@ -240,8 +234,7 @@ describe( 'options.after', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( after_error );
     } );
@@ -256,8 +249,7 @@ describe( 'options.after', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( after_result );
     } );
@@ -274,8 +266,7 @@ describe( 'options.after', () => {
 
         expect.assertions( 1 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( e ).toBe( after_error );
@@ -299,8 +290,7 @@ describe( 'options.after', () => {
 
         expect.assertions( 2 );
         try {
-            const context = new de.Context();
-            await context.run( block, null, cancel );
+            await de.run( block, { cancel } );
 
         } catch ( e ) {
             expect( e ).toBe( error );
@@ -324,8 +314,7 @@ describe( 'options.after', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( child );
+            await de.run( child );
 
             const calls = spy.mock.calls;
             expect( calls.length ).toBe( 2 );
@@ -353,8 +342,7 @@ describe( 'options.after', () => {
 
             expect.assertions( 2 );
             try {
-                const context = new de.Context();
-                await context.run( child );
+                await de.run( child );
 
             } catch ( e ) {
                 expect( e ).toBe( parent_after_error );
@@ -384,8 +372,7 @@ describe( 'options.after', () => {
 
             expect.assertions( 1 );
             try {
-                const context = new de.Context();
-                await context.run( child );
+                await de.run( child );
 
             } catch ( e ) {
                 expect( e ).toBe( child_after_error );
@@ -408,8 +395,7 @@ describe( 'options.after', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( child );
+            await de.run( child );
 
             expect( spy.mock.calls[ 0 ][ 0 ].result ).toBe( block_result );
         } );
@@ -430,8 +416,7 @@ describe( 'options.after', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( child );
+            const result = await de.run( child );
 
             expect( result ).toBe( value );
             const calls = spy.mock.calls;
@@ -455,8 +440,7 @@ describe( 'options.after', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( child );
+            const result = await de.run( child );
 
             expect( result ).toBe( parent_after_result );
             const calls = spy.mock.calls;
@@ -481,8 +465,7 @@ describe( 'options.after', () => {
                 },
             } );
 
-            const context = new de.Context();
-            const result = await context.run( child );
+            const result = await de.run( child );
 
             expect( result ).toBe( child_after_result );
         } );

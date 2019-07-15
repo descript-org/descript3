@@ -23,8 +23,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( data );
     } );
@@ -42,8 +41,7 @@ describe( 'options.deps', () => {
 
         expect.assertions( 1 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( e ).toBe( error );
@@ -56,9 +54,8 @@ describe( 'options.deps', () => {
         const block_foo = get_result_block( () => spy( 'FOO' ), 50 );
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
 
-
-        const block = function( get_id ) {
-            const id_foo = get_id( 'foo' );
+        const block = function( { generate_id } ) {
+            const id_foo = generate_id( 'foo' );
 
             return de.object( {
                 block: {
@@ -76,8 +73,7 @@ describe( 'options.deps', () => {
             } );
         };
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const calls = spy.mock.calls;
 
@@ -109,8 +105,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const calls = spy.mock.calls;
 
@@ -150,8 +145,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const calls = spy.mock.calls;
 
@@ -191,8 +185,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const calls = spy.mock.calls;
 
@@ -229,8 +222,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const calls = spy.mock.calls;
 
@@ -267,8 +259,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( de.is_error( result.bar ) ).toBe( true );
         expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_ERROR );
@@ -315,8 +306,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( de.is_error( result.quu ) ).toBe( true );
         expect( result.quu.error.id ).toBe( de.ERROR_ID.DEPS_ERROR );
@@ -354,8 +344,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const deps = before_bar.mock.calls[ 0 ][ 0 ].deps;
         expect( deps[ id_foo ] ).toBe( data_foo );
@@ -402,8 +391,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const deps = before_quu.mock.calls[ 0 ][ 0 ].deps;
         expect( deps[ id_foo ] ).toBe( data_foo );
@@ -451,8 +439,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const deps = before_quu.mock.calls[ 0 ][ 0 ].deps;
         expect( deps[ id_foo ] ).toBe( undefined );
@@ -490,8 +477,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const deps = before_quu.mock.calls[ 0 ][ 0 ].deps;
         expect( deps[ id_foo ] ).toBe( data_foo );
@@ -508,9 +494,8 @@ describe( 'options.deps', () => {
 
         expect.assertions( 2 );
 
-        const context = new de.Context();
         try {
-            await context.run( block );
+            await de.run( block );
 
         } catch ( error ) {
             expect( de.is_error( error ) ).toBe( true );
@@ -536,8 +521,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( de.is_error( result.bar ) ).toBe( true );
         expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
@@ -572,8 +556,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result.bar ).toBe( data_foo );
     } );
@@ -627,8 +610,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result.quu ).toEqual( {
             foo: data_foo,
@@ -675,8 +657,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result.quu ).toBe( data_foo );
     } );
@@ -690,9 +671,8 @@ describe( 'options.deps', () => {
 
         expect.assertions( 2 );
 
-        const context = new de.Context();
         try {
-            await context.run( block );
+            await de.run( block );
 
         } catch ( error ) {
             expect( de.is_error( error ) ).toBe( true );
@@ -716,8 +696,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( de.is_error( result.bar ) ).toBe( true );
         expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
@@ -737,9 +716,8 @@ describe( 'options.deps', () => {
 
         expect.assertions( 1 );
 
-        const context = new de.Context();
         try {
-            await context.run( block_foo );
+            await de.run( block_foo );
 
         } catch ( error ) {
             expect( error ).toBe( error_foo );
@@ -756,8 +734,7 @@ describe( 'options.deps', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block_foo );
+        const result = await de.run( block_foo );
 
         expect( result ).toBe( data_foo );
     } );

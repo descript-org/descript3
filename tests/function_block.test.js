@@ -17,9 +17,8 @@ describe( 'de.func', () => {
         };
 
         const block = get_result_block( data, 50 );
-        const context = new de.Context();
 
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( data );
     } );
@@ -35,9 +34,7 @@ describe( 'de.func', () => {
             },
         } );
 
-        const context = new de.Context();
-
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( data );
     } );
@@ -50,9 +47,7 @@ describe( 'de.func', () => {
         const block1 = get_result_block( data, 50 );
         const block2 = get_result_block( block1, 50 );
 
-        const context = new de.Context();
-
-        const result = await context.run( block2 );
+        const result = await de.run( block2 );
 
         expect( result ).toBe( data );
     } );
@@ -63,11 +58,10 @@ describe( 'de.func', () => {
         } );
 
         const block = get_error_block( error, 50 );
-        const context = new de.Context();
 
         expect.assertions( 1 );
         try {
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( e ).toBe( error );
@@ -78,7 +72,6 @@ describe( 'de.func', () => {
     test( 'cancellable', async () => {
         const block = get_result_block( null, 100 );
         const cancel = new de.Cancel();
-        const context = new de.Context();
 
         const cancel_reason = de.error( {
             id: 'SOME_REASON',
@@ -89,7 +82,7 @@ describe( 'de.func', () => {
 
         expect.assertions( 1 );
         try {
-            await context.run( block, null, cancel );
+            await de.run( block, { cancel } );
 
         } catch ( error ) {
             expect( error ).toBe( cancel_reason );

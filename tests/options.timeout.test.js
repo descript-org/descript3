@@ -15,8 +15,7 @@ describe( 'options.timeout', () => {
 
         expect.assertions( 2 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( de.is_error( e ) ).toBe( true );
@@ -34,8 +33,7 @@ describe( 'options.timeout', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toBe( data );
     } );

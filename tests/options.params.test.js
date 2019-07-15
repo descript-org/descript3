@@ -10,8 +10,7 @@ describe( 'options.params', () => {
         const spy = jest.fn();
         const block = get_result_block( spy );
 
-        const context = new de.Context();
-        await context.run( block );
+        await de.run( block );
 
         const calls = spy.mock.calls;
         expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {} );
@@ -30,8 +29,10 @@ describe( 'options.params', () => {
             const params = {
                 id: 42,
             };
-            const context = new de.Context();
-            await context.run( block, params );
+            const context = {
+                context: true,
+            };
+            await de.run( block, { params, context } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toBe( params );
@@ -44,11 +45,11 @@ describe( 'options.params', () => {
             let data_foo;
             let id_foo;
 
-            const block = function( get_id ) {
+            const block = function( { generate_id } ) {
                 data_foo = {
                     foo: 42,
                 };
-                id_foo = get_id( 'foo' );
+                id_foo = generate_id( 'foo' );
 
                 return de.object( {
                     block: {
@@ -68,8 +69,7 @@ describe( 'options.params', () => {
                 } );
             };
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].deps[ id_foo ] ).toBe( data_foo );
@@ -83,8 +83,7 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {} );
@@ -107,8 +106,7 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             expect( spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
         } );
@@ -127,8 +125,7 @@ describe( 'options.params', () => {
 
             expect.assertions( 1 );
             try {
-                const context = new de.Context();
-                await context.run( block );
+                await de.run( block );
 
             } catch ( e ) {
                 expect( e ).toBe( error );
@@ -149,12 +146,12 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: 42,
             };
-            await context.run( block, params );
-            await context.run( block, params );
+            await de.run( block, { params } );
+            //  FIXME: WTF?
+            await de.run( block, { params } );
 
             expect( spy.mock.calls[ 0 ][ 0 ].params ).toStrictEqual( {
                 bar: 24,
@@ -172,11 +169,10 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: value,
             };
-            await context.run( block, params );
+            await de.run( block, { params } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {} );
@@ -192,11 +188,10 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: value,
             };
-            await context.run( block, params );
+            await de.run( block, { params } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
@@ -214,11 +209,10 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: undefined,
             };
-            await context.run( block, params );
+            await de.run( block, { params } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {} );
@@ -234,11 +228,10 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: 0,
             };
-            await context.run( block, params );
+            await de.run( block, { params } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
@@ -256,11 +249,10 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: false,
             };
-            await context.run( block, params );
+            await de.run( block, { params } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
@@ -278,11 +270,10 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: '',
             };
-            await context.run( block, params );
+            await de.run( block, { params } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
@@ -300,11 +291,10 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: 24,
             };
-            await context.run( block, params );
+            await de.run( block, { params } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
@@ -322,11 +312,10 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: null,
             };
-            await context.run( block, params );
+            await de.run( block, { params } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
@@ -344,11 +333,10 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
             const params = {
                 foo: undefined,
             };
-            await context.run( block, params );
+            await de.run( block, { params } );
 
             const calls = spy.mock.calls;
             expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {
@@ -371,8 +359,10 @@ describe( 'options.params', () => {
                 const params = {
                     id: 42,
                 };
-                const context = new de.Context();
-                await context.run( block, params );
+                const context = {
+                    context: true,
+                };
+                await de.run( block, { params, context } );
 
                 const calls = spy.mock.calls;
                 expect( calls[ 0 ][ 0 ].params ).toBe( params );
@@ -392,8 +382,7 @@ describe( 'options.params', () => {
                 const params = {
                     foo: 42,
                 };
-                const context = new de.Context();
-                await context.run( block, params );
+                await de.run( block, { params } );
 
                 const call_params = spy.mock.calls[ 0 ][ 0 ].params;
                 expect( call_params ).toStrictEqual( {} );
@@ -413,8 +402,7 @@ describe( 'options.params', () => {
                 const params = {
                     foo: 42,
                 };
-                const context = new de.Context();
-                await context.run( block, params );
+                await de.run( block, { params } );
 
                 const call_params = spy.mock.calls[ 0 ][ 0 ].params;
                 expect( call_params ).toStrictEqual( {
@@ -438,8 +426,7 @@ describe( 'options.params', () => {
 
                 expect.assertions( 1 );
                 try {
-                    const context = new de.Context();
-                    await context.run( block );
+                    await de.run( block );
 
                 } catch ( e ) {
                     expect( e ).toBe( params_error );
@@ -469,8 +456,7 @@ describe( 'options.params', () => {
             const params = {
                 foo: 42,
             };
-            const context = new de.Context();
-            await context.run( child, params );
+            await de.run( child, { params } );
 
             expect( params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
         } );
@@ -497,8 +483,7 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( child );
+            await de.run( child );
 
             expect( params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( parent_params );
         } );
@@ -523,8 +508,7 @@ describe( 'options.params', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( child );
+            await de.run( child );
 
             expect( params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( parent_params );
         } );

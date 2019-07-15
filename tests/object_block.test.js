@@ -17,8 +17,7 @@ describe( 'de.object', () => {
             block: {},
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toEqual( {} );
     } );
@@ -41,8 +40,7 @@ describe( 'de.object', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toEqual( {
             foo: data_foo,
@@ -74,8 +72,7 @@ describe( 'de.object', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result ).toEqual( {
             foo: data_foo,
@@ -103,8 +100,7 @@ describe( 'de.object', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result.foo ).toBe( error_foo );
         expect( result.bar ).toBe( data_bar );
@@ -128,8 +124,7 @@ describe( 'de.object', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( result.foo ).toBe( error_foo );
         expect( result.bar ).toBe( error_bar );
@@ -159,8 +154,7 @@ describe( 'de.object', () => {
 
         expect.assertions( 3 );
         try {
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
         } catch ( e ) {
             expect( de.is_error( e ) ).toBe( true );
@@ -187,8 +181,7 @@ describe( 'de.object', () => {
             },
         } );
 
-        const context = new de.Context();
-        const result = await context.run( block );
+        const result = await de.run( block );
 
         expect( Object.keys( result ) ).toEqual( [ 'foo', 'bar' ] );
     } );
@@ -217,11 +210,11 @@ describe( 'de.object', () => {
                 id: 'SOME_ERROR',
             } );
             try {
-                const context = new de.Context();
+                const cancel = new de.Cancel();
                 setTimeout( () => {
-                    context.abort( abort_error );
+                    cancel.cancel( abort_error );
                 }, 100 );
-                await context.run( block );
+                await de.run( block );
 
             } catch ( e ) {
                 expect( e ).toBe( abort_error );
@@ -252,11 +245,11 @@ describe( 'de.object', () => {
                 id: 'SOME_ERROR',
             } );
             try {
-                const context = new de.Context();
+                const cancel = new de.Cancel();
                 setTimeout( () => {
-                    context.abort( abort_error );
+                    cancel.cancel( abort_error );
                 }, 100 );
-                await context.run( block );
+                await de.run( block );
 
             } catch ( e ) {
                 expect( e ).toBe( abort_error );
@@ -288,8 +281,7 @@ describe( 'de.object', () => {
             } );
 
             try {
-                const context = new de.Context();
-                await context.run( block );
+                await de.run( block );
 
             } catch ( e ) {
                 const call_0_0 = action_bar_spy.mock.calls[ 0 ][ 0 ];
@@ -327,8 +319,7 @@ describe( 'de.object', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const calls = spy.mock.calls;
             expect( calls.length ).toBe( 6 );
@@ -364,8 +355,7 @@ describe( 'de.object', () => {
                 },
             } );
 
-            const context = new de.Context();
-            await context.run( block );
+            await de.run( block );
 
             const calls = spy.mock.calls;
             expect( calls.length ).toBe( 3 );
