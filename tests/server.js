@@ -3,7 +3,7 @@ const url_ = require( 'url' );
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 class Answer {
-    constructor( answer ) {
+    constructor( answer = {} ) {
         if ( typeof answer === 'function' ) {
             this.answer = answer;
 

@@ -6,11 +6,7 @@ const de = require( '../lib' );
 
 const Server = require( './server' );
 
-const { get_path } = require( './helpers' );
-
-//  ---------------------------------------------------------------------------------------------------------------  //
-
-const P_METHODS = [ 'POST', 'PUT', 'PATCH' ];
+const { get_path, get_result_block } = require( './helpers' );
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -34,6 +30,95 @@ describe( 'http', () => {
     beforeAll( () => fake.start() );
     afterAll( () => fake.stop() );
 
+    describe( 'basic block properties', () => {
+        const path = get_path();
+
+        const PROPS = [
+            [ 'method', 'POST' ],
+            [ 'protocol', 'http:' ],
+            [ 'port', PORT ],
+            [ 'host', '127.0.0.1' ],
+            [ 'path', path ],
+            [ 'max_retries', 0 ],
+            [ 'timeout', 100 ],
+            [ 'headers', {} ],
+            [ 'query', {} ],
+            [ 'body', {} ],
+        ];
+
+        fake.add( path );
+
+        it.each( PROPS )( '%j is a function and it gets { params, context }', async ( name, value ) => {
+            const spy = jest.fn( () => value );
+
+            const block = base_block( {
+                block: {
+                    path: path,
+                    //  Чтобы body отработал.
+                    method: 'POST',
+                    [ name ]: spy,
+                },
+            } );
+
+            const params = {
+                foo: 42,
+            };
+            const context = {
+                req: true,
+                res: true,
+            };
+            await de.run( block, { params, context } );
+
+            const call = spy.mock.calls[ 0 ][ 0 ];
+            expect( call.params ).toBe( params );
+            expect( call.context ).toBe( context );
+        } );
+
+        it.each( PROPS )( '%j is a function and it gets { deps }', async ( name, value ) => {
+            const spy = jest.fn( () => value );
+
+            let foo_result;
+            let id;
+            const block = ( { generate_id } ) => {
+                id = generate_id();
+
+                return de.object( {
+                    block: {
+                        foo: get_result_block( () => {
+                            foo_result = {
+                                foo: 42,
+                            };
+                            return foo_result;
+                        } )( {
+                            options: {
+                                id: id,
+                            },
+                        } ),
+
+                        bar: base_block( {
+                            block: {
+                                path: path,
+                                method: 'POST',
+                                [ name ]: spy,
+                            },
+
+                            options: {
+                                deps: id,
+                            },
+                        } ),
+                    },
+                } );
+            };
+
+            await de.run( block );
+
+            const call = spy.mock.calls[ 0 ][ 0 ];
+            expect( call.deps[ id ] ).toBe( foo_result );
+        } );
+
+    } );
+
+    /*
     it( 'path is a string', async () => {
         const path = get_path();
 
@@ -77,42 +162,9 @@ describe( 'http', () => {
         expect( result.status_code ).toBe( 200 );
         expect( result.result ).toBe( CONTENT );
     } );
+    */
 
     describe( 'headers', () => {
-
-        it( 'is an object', async () => {
-            const path = get_path();
-
-            const spy = jest.fn( ( req, res ) => res.end() );
-
-            fake.add( path, spy );
-
-            const block = base_block( {
-                block: {
-                    path: path,
-                    headers: {
-                        'x-a': 'a',
-                        'X-B': 'b',
-                        'x-c': () => 'c',
-                        'x-d': null,
-                        'x-e': undefined,
-                        'x-f': () => null,
-                        'x-g': () => undefined,
-                    },
-                },
-            } );
-
-            await de.run( block );
-
-            const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-            expect( headers[ 'x-a' ] ).toBe( 'a' );
-            expect( headers[ 'x-b' ] ).toBe( 'b' );
-            expect( headers[ 'x-c' ] ).toBe( 'c' );
-            expect( headers[ 'x-d' ] ).toBe( undefined );
-            expect( headers[ 'x-e' ] ).toBe( undefined );
-            expect( headers[ 'x-f' ] ).toBe( undefined );
-            expect( headers[ 'x-g' ] ).toBe( undefined );
-        } );
 
         it( 'is a function', async () => {
             const path = get_path();
@@ -121,16 +173,16 @@ describe( 'http', () => {
 
             fake.add( path, spy );
 
+            let block_headers;
             const block = base_block( {
                 block: {
                     path: path,
                     headers: () => {
-                        return {
+                        block_headers = {
                             'x-a': 'a',
-                            'X-B': 'b',
-                            'x-c': null,
-                            'x-d': undefined,
+                            'X-B': 'B',
                         };
+                        return block_headers;
                     },
                 },
             } );
@@ -139,311 +191,135 @@ describe( 'http', () => {
 
             const headers = spy.mock.calls[ 0 ][ 0 ].headers;
             expect( headers[ 'x-a' ] ).toBe( 'a' );
-            expect( headers[ 'x-b' ] ).toBe( 'b' );
-            expect( headers[ 'x-c' ] ).toBe( undefined );
-            expect( headers[ 'x-d' ] ).toBe( undefined );
+            expect( headers[ 'x-b' ] ).toBe( 'B' );
+        } );
+
+        it( 'is an object', async () => {
+            const path = get_path();
+
+            const spy = jest.fn( ( req, res ) => res.end() );
+
+            fake.add( path, spy );
+
+            const header_spy = jest.fn( () => 'c' );
+            const block = base_block( {
+                block: {
+                    path: path,
+                    headers: {
+                        'x-a': 'a',
+                        'X-B': 'B',
+                        'x-c': header_spy,
+                    },
+                },
+            } );
+
+            await de.run( block );
+
+            const headers = spy.mock.calls[ 0 ][ 0 ].headers;
+            expect( headers[ 'x-a' ] ).toBe( 'a' );
+            expect( headers[ 'x-b' ] ).toBe( 'B' );
+            expect( headers[ 'x-c' ] ).toBe( 'c' );
+        } );
+
+        it( 'is an object and value function gets { params, context }', async () => {
+            const path = get_path();
+
+            fake.add( path );
+
+            const spy = jest.fn( () => 'a' );
+            const block = base_block( {
+                block: {
+                    path: path,
+                    headers: {
+                        'x-a': spy,
+                    },
+                },
+            } );
+
+            const params = {
+                foo: 42,
+            };
+            const context = {
+                context: true,
+            };
+            await de.run( block, { params, context } );
+
+            const call = spy.mock.calls[ 0 ][ 0 ];
+            expect( call.params ).toBe( params );
+            expect( call.context ).toBe( context );
         } );
 
         describe( 'inheritance', () => {
 
-            it( 'no headers and object', async () => {
+            it( 'child is a function and it gets { headers }', async () => {
                 const path = get_path();
 
-                const spy = jest.fn( ( req, res ) => res.end() );
+                fake.add( path );
 
-                fake.add( path, spy );
+                const spy = jest.fn();
 
-                const block1 = base_block( {
+                let parent_headers;
+                const parent = base_block( {
                     block: {
                         path: path,
-                    },
-                } );
-                const block2 = block1( {
-                    block: {
-                        headers: {
-                            'x-a': 'a',
-                        },
-                    },
-                } );
-
-                await de.run( block2 );
-
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( 'a' );
-            } );
-
-            it( 'no headers and function', async () => {
-                const path = get_path();
-
-                const spy = jest.fn( ( req, res ) => res.end() );
-
-                fake.add( path, spy );
-
-                const block1 = base_block( {
-                    block: {
-                        path: path,
-                    },
-                } );
-                const block2 = block1( {
-                    block: {
                         headers: () => {
-                            return {
+                            parent_headers = {
                                 'x-a': 'a',
                             };
+                            return parent_headers;
                         },
                     },
                 } );
-
-                await de.run( block2 );
-
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( 'a' );
-            } );
-
-            it( 'object and no headers', async () => {
-                const path = get_path();
-
-                const spy = jest.fn( ( req, res ) => res.end() );
-
-                fake.add( path, spy );
-
-                const block1 = base_block( {
+                const child = parent( {
                     block: {
-                        path: path,
-                        headers: {
-                            'x-a': 'a',
-                        },
+                        headers: spy,
                     },
                 } );
-                const block2 = block1();
 
-                await de.run( block2 );
+                await de.run( child );
 
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( 'a' );
+                const call = spy.mock.calls[ 0 ][ 0 ];
+                expect( call.headers ).toBe( parent_headers );
             } );
 
-            it( 'function and no headers', async () => {
+            it( 'child is an object', async () => {
                 const path = get_path();
 
                 const spy = jest.fn( ( req, res ) => res.end() );
-
                 fake.add( path, spy );
 
-                const block1 = base_block( {
+                const header_spy = jest.fn( () => 'b' );
+
+                let parent_headers;
+                const parent = base_block( {
                     block: {
                         path: path,
                         headers: () => {
-                            return {
+                            parent_headers = {
                                 'x-a': 'a',
                             };
+                            return parent_headers;
                         },
                     },
                 } );
-                const block2 = block1();
-
-                await de.run( block2 );
-
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( 'a' );
-            } );
-
-            it( 'object and object', async () => {
-                const path = get_path();
-
-                const spy = jest.fn( ( req, res ) => res.end() );
-
-                fake.add( path, spy );
-
-                const block1 = base_block( {
-                    block: {
-                        path: path,
-                        headers: {
-                            'x-a': 'a',
-                            'x-b': 'b',
-                        },
-                    },
-                } );
-                const block2 = block1( {
+                const child = parent( {
                     block: {
                         headers: {
-                            'x-b': 'B',
-                            'x-c': 'C',
+                            'x-b': header_spy,
+                            'X-C': 'C',
                         },
                     },
                 } );
 
-                await de.run( block2 );
+                await de.run( child );
 
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( 'a' );
-                expect( headers[ 'x-b' ] ).toBe( 'B' );
-                expect( headers[ 'x-c' ] ).toBe( 'C' );
-            } );
+                const header_call = header_spy.mock.calls[ 0 ][ 0 ];
+                expect( header_call.headers ).toBe( parent_headers );
 
-            it( 'object and function', async () => {
-                const path = get_path();
-
-                const spy = jest.fn( ( req, res ) => res.end() );
-
-                fake.add( path, spy );
-
-                const block1 = base_block( {
-                    block: {
-                        path: path,
-                        headers: {
-                            'x-a': 'a',
-                            'x-b': 'b',
-                        },
-                    },
-                } );
-                const block2 = block1( {
-                    block: {
-                        headers: () => {
-                            return {
-                                'x-b': 'B',
-                                'x-c': 'C',
-                            };
-                        },
-                    },
-                } );
-
-                await de.run( block2 );
-
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( 'a' );
-                expect( headers[ 'x-b' ] ).toBe( 'B' );
-                expect( headers[ 'x-c' ] ).toBe( 'C' );
-            } );
-
-            it( 'function and object', async () => {
-                const path = get_path();
-
-                const spy = jest.fn( ( req, res ) => res.end() );
-
-                fake.add( path, spy );
-
-                const block1 = base_block( {
-                    block: {
-                        path: path,
-                        headers: () => {
-                            return {
-                                'x-a': 'a',
-                                'x-b': 'b',
-                            };
-                        },
-                    },
-                } );
-                const block2 = block1( {
-                    block: {
-                        headers: {
-                            'x-b': 'B',
-                            'x-c': 'C',
-                        },
-                    },
-                } );
-
-                await de.run( block2 );
-
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( 'a' );
-                expect( headers[ 'x-b' ] ).toBe( 'B' );
-                expect( headers[ 'x-c' ] ).toBe( 'C' );
-            } );
-
-            it( 'function and function', async () => {
-                const path = get_path();
-
-                const spy = jest.fn( ( req, res ) => res.end() );
-
-                fake.add( path, spy );
-
-                const block1 = base_block( {
-                    block: {
-                        path: path,
-                        headers: () => {
-                            return {
-                                'x-a': 'a',
-                                'x-b': 'b',
-                            };
-                        },
-                    },
-                } );
-                const block2 = block1( {
-                    block: {
-                        headers: () => {
-                            return {
-                                'x-b': 'B',
-                                'x-c': 'C',
-                            };
-                        },
-                    },
-                } );
-
-                await de.run( block2 );
-
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( 'a' );
-                expect( headers[ 'x-b' ] ).toBe( 'B' );
-                expect( headers[ 'x-c' ] ).toBe( 'C' );
-            } );
-
-            it( 'null value deletes header', async () => {
-                const path = get_path();
-
-                const spy = jest.fn( ( req, res ) => res.end() );
-
-                fake.add( path, spy );
-
-                const block1 = base_block( {
-                    block: {
-                        path: path,
-                        headers: {
-                            'x-a': 'a',
-                        },
-                    },
-                } );
-                const block2 = block1( {
-                    block: {
-                        headers: {
-                            'x-a': null,
-                        },
-                    },
-                } );
-
-                await de.run( block2 );
-
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( undefined );
-            } );
-
-            it( 'undefined value is ignored', async () => {
-                const path = get_path();
-
-                const spy = jest.fn( ( req, res ) => res.end() );
-
-                fake.add( path, spy );
-
-                const block1 = base_block( {
-                    block: {
-                        path: path,
-                        headers: {
-                            'x-a': 'a',
-                        },
-                    },
-                } );
-                const block2 = block1( {
-                    block: {
-                        headers: {
-                            'x-a': undefined,
-                        },
-                    },
-                } );
-
-                await de.run( block2 );
-
-                const headers = spy.mock.calls[ 0 ][ 0 ].headers;
-                expect( headers[ 'x-a' ] ).toBe( 'a' );
+                const call = spy.mock.calls[ 0 ][ 0 ];
+                expect( call.headers[ 'x-a' ] ).toBe( undefined );
+                expect( call.headers[ 'x-b' ] ).toBe( 'b' );
+                expect( call.headers[ 'x-c' ] ).toBe( 'C' );
             } );
 
         } );
@@ -452,35 +328,9 @@ describe( 'http', () => {
 
     describe( 'query', () => {
 
-        it( 'is an object', async () => {
-            const path = get_path();
-
-            const spy = jest.fn( ( req, res ) => res.end() );
-
-            fake.add( path, spy );
-
-            const query = {
-                b: 'b',
-                a: 'a',
-            };
-            const block = base_block( {
-                block: {
-                    path: path,
-                    query: query,
-                },
-            } );
-
-            await de.run( block );
-
-            const req = spy.mock.calls[ 0 ][ 0 ];
-            expect( url_.parse( req.url, true ).query ).toEqual( query );
-        } );
-
         it( 'is a function', async () => {
             const path = get_path();
-
             const spy = jest.fn( ( req, res ) => res.end() );
-
             fake.add( path, spy );
 
             const query = {
@@ -500,11 +350,251 @@ describe( 'http', () => {
             expect( url_.parse( req.url, true ).query ).toEqual( query );
         } );
 
+        it( 'is an object and value is null', async () => {
+            const path = get_path();
+            const spy = jest.fn( ( req, res ) => res.end() );
+            fake.add( path, spy );
+
+            const block = base_block( {
+                block: {
+                    path: path,
+                    query: {
+                        a: null,
+                        b: null,
+                        c: null,
+                        d: null,
+                        e: null,
+                        f: null,
+                    },
+                },
+            } );
+
+            const params = {
+                a: null,
+                b: undefined,
+                c: 0,
+                d: '',
+                e: false,
+                f: 'foo',
+                g: 'bar',
+            };
+            await de.run( block, { params } );
+
+            const req = spy.mock.calls[ 0 ][ 0 ];
+            const query = url_.parse( req.url, true ).query;
+            //  NOTE: В ноде query сделано через Object.create( null ),
+            //  так что toStrictEqual работает неправильно с ним.
+            expect( { ...query } ).toStrictEqual( {
+                a: '',
+                c: '0',
+                d: '',
+                e: 'false',
+                f: 'foo',
+            } );
+        } );
+
+        it( 'is an object and value is undefined', async () => {
+            const path = get_path();
+            const spy = jest.fn( ( req, res ) => res.end() );
+            fake.add( path, spy );
+
+            const block = base_block( {
+                block: {
+                    path: path,
+                    query: {
+                        a: undefined,
+                        b: undefined,
+                        c: undefined,
+                        d: undefined,
+                        e: undefined,
+                        f: undefined,
+                    },
+                },
+            } );
+
+            const params = {
+                a: null,
+                b: undefined,
+                c: 0,
+                d: '',
+                e: false,
+                f: 'foo',
+                g: 'bar',
+            };
+            await de.run( block, { params } );
+
+            const req = spy.mock.calls[ 0 ][ 0 ];
+            const query = url_.parse( req.url, true ).query;
+            expect( { ...query } ).toStrictEqual( {} );
+        } );
+
+        it( 'is an object and value is not null or undefined #1', async () => {
+            const path = get_path();
+            const spy = jest.fn( ( req, res ) => res.end() );
+            fake.add( path, spy );
+
+            const block = base_block( {
+                block: {
+                    path: path,
+                    query: {
+                        a: 0,
+                        b: '',
+                        c: false,
+                        d: 42,
+                        e: 'foo',
+                    },
+                },
+            } );
+
+            const params = {};
+            await de.run( block, { params } );
+
+            const req = spy.mock.calls[ 0 ][ 0 ];
+            const query = url_.parse( req.url, true ).query;
+            expect( { ...query } ).toStrictEqual( {
+                a: '0',
+                b: '',
+                c: 'false',
+                d: '42',
+                e: 'foo',
+            } );
+        } );
+
+        it( 'is an object and value is not null or undefined #2', async () => {
+            const path = get_path();
+            const spy = jest.fn( ( req, res ) => res.end() );
+            fake.add( path, spy );
+
+            const block = base_block( {
+                block: {
+                    path: path,
+                    query: {
+                        a: 'foo',
+                        b: 'foo',
+                        c: 'foo',
+                        d: 'foo',
+                        e: 'foo',
+                    },
+                },
+            } );
+
+            const params = {
+                a: 0,
+                b: '',
+                c: false,
+                d: null,
+                e: undefined,
+            };
+            await de.run( block, { params } );
+
+            const req = spy.mock.calls[ 0 ][ 0 ];
+            const query = url_.parse( req.url, true ).query;
+            expect( { ...query } ).toStrictEqual( {
+                a: '0',
+                b: '',
+                c: 'false',
+                d: '',
+                e: 'foo',
+            } );
+        } );
+
+        it( 'is an object and value function gets { params, context }', async () => {
+            const path = get_path();
+            fake.add( path );
+
+            const spy = jest.fn();
+            const block = base_block( {
+                block: {
+                    path: path,
+                    query: spy,
+                },
+            } );
+
+            const params = {
+                foo: 42,
+            };
+            const context = {
+                req: true,
+                res: true,
+            };
+            await de.run( block, { params, context } );
+
+            const call = spy.mock.calls[ 0 ][ 0 ];
+            expect( call.params ).toBe( params );
+            expect( call.context ).toBe( context );
+        } );
+
+        describe( 'inheritance', () => {
+
+            it( 'child is a function and it gets { query }', async () => {
+                const path = get_path();
+                fake.add( path );
+
+                let parent_query;
+                const parent = base_block( {
+                    block: {
+                        path: path,
+                        query: () => {
+                            parent_query = {
+                                foo: 42,
+                            };
+                            return parent_query;
+                        },
+                    },
+                } );
+
+                const spy = jest.fn();
+                const child = parent( {
+                    block: {
+                        query: spy,
+                    },
+                } );
+
+                await de.run( child );
+
+                const call = spy.mock.calls[ 0 ][ 0 ];
+                expect( call.query ).toBe( parent_query );
+            } );
+
+            it( 'child is an object and value function gets { query }', async () => {
+                const path = get_path();
+                fake.add( path );
+
+                let parent_query;
+                const parent = base_block( {
+                    block: {
+                        path: path,
+                        query: () => {
+                            parent_query = {
+                                foo: 42,
+                            };
+                            return parent_query;
+                        },
+                    },
+                } );
+
+                const spy = jest.fn();
+                const child = parent( {
+                    block: {
+                        query: {
+                            bar: spy,
+                        },
+                    },
+                } );
+
+                await de.run( child );
+
+                const call = spy.mock.calls[ 0 ][ 0 ];
+                expect( call.query ).toBe( parent_query );
+            } );
+
+        } );
+
     } );
 
     describe( 'body', () => {
 
-        it.each( P_METHODS )( 'no body, method=%j', async ( method ) => {
+        it( 'no body', async () => {
             const path = get_path();
 
             const spy = jest.fn( ( req, res ) => res.end() );
@@ -514,7 +604,7 @@ describe( 'http', () => {
             const block = base_block( {
                 block: {
                     path: path,
-                    method: method,
+                    method: 'POST',
                 },
             } );
 
@@ -524,7 +614,7 @@ describe( 'http', () => {
             expect( body ).toBe( null );
         } );
 
-        it.each( P_METHODS )( 'is a number, method=%j', async ( method ) => {
+        it( 'is a number', async () => {
             const path = get_path();
 
             const spy = jest.fn( ( req, res ) => res.end() );
@@ -534,7 +624,7 @@ describe( 'http', () => {
             const block = base_block( {
                 block: {
                     path: path,
-                    method: method,
+                    method: 'POST',
                     body: 42,
                 },
             } );
@@ -545,7 +635,7 @@ describe( 'http', () => {
             expect( body.toString() ).toBe( '42' );
         } );
 
-        it.each( P_METHODS )( 'is a string, method=%j', async ( method ) => {
+        it( 'is a string', async () => {
             const path = get_path();
 
             const spy = jest.fn( ( req, res ) => res.end() );
@@ -556,7 +646,7 @@ describe( 'http', () => {
             const block = base_block( {
                 block: {
                     path: path,
-                    method: method,
+                    method: 'POST',
                     body: BODY,
                 },
             } );
@@ -567,7 +657,7 @@ describe( 'http', () => {
             expect( body.toString() ).toBe( BODY );
         } );
 
-        it.each( P_METHODS )( 'is a Buffer, method=%j', async ( method ) => {
+        it( 'is a Buffer', async () => {
             const path = get_path();
 
             const spy = jest.fn( ( req, res ) => res.end() );
@@ -578,7 +668,7 @@ describe( 'http', () => {
             const block = base_block( {
                 block: {
                     path: path,
-                    method: method,
+                    method: 'POST',
                     body: BODY,
                 },
             } );
@@ -589,37 +679,7 @@ describe( 'http', () => {
             expect( body.toString() ).toBe( BODY.toString() );
         } );
 
-        it.each( P_METHODS )( 'is an object, method=%j', async ( method ) => {
-            const path = get_path();
-
-            const spy = jest.fn( ( req, res ) => res.end() );
-
-            fake.add( path, spy );
-
-            const BODY = {
-                a: 'Привет!',
-                b: () => 'Привет!',
-                c: null,
-                d: undefined,
-            };
-            const block = base_block( {
-                block: {
-                    path: path,
-                    method: method,
-                    body: BODY,
-                },
-            } );
-
-            await de.run( block );
-
-            const body = spy.mock.calls[ 0 ][ 2 ];
-            expect( body.toString() ).toBe( qs_.stringify( {
-                a: 'Привет!',
-                b: 'Привет!',
-            } ) );
-        } );
-
-        it.each( P_METHODS )( 'is a function returning string, method=%j', async ( method ) => {
+        it( 'is a function returning string', async () => {
             const path = get_path();
 
             const spy = jest.fn( ( req, res ) => res.end() );
@@ -630,7 +690,7 @@ describe( 'http', () => {
             const block = base_block( {
                 block: {
                     path: path,
-                    method: method,
+                    method: 'POST',
                     body: () => BODY,
                 },
             } );
@@ -641,7 +701,7 @@ describe( 'http', () => {
             expect( body.toString() ).toBe( BODY );
         } );
 
-        it.each( P_METHODS )( 'is a function returning Buffer, method=%j', async ( method ) => {
+        it( 'is a function returning Buffer', async () => {
             const path = get_path();
 
             const spy = jest.fn( ( req, res ) => res.end() );
@@ -652,7 +712,7 @@ describe( 'http', () => {
             const block = base_block( {
                 block: {
                     path: path,
-                    method: method,
+                    method: 'POST',
                     body: () => BODY,
                 },
             } );
@@ -663,7 +723,7 @@ describe( 'http', () => {
             expect( body.toString() ).toBe( BODY.toString() );
         } );
 
-        it.each( P_METHODS )( 'is an function returning object, method=%j', async ( method ) => {
+        it( 'is an function returning object', async () => {
             const path = get_path();
 
             const spy = jest.fn( ( req, res ) => res.end() );
@@ -676,7 +736,7 @@ describe( 'http', () => {
             const block = base_block( {
                 block: {
                     path: path,
-                    method: method,
+                    method: 'POST',
                     body: () => BODY,
                 },
             } );
