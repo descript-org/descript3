@@ -614,27 +614,6 @@ describe( 'http', () => {
             expect( body ).toBe( null );
         } );
 
-        it( 'is a number', async () => {
-            const path = get_path();
-
-            const spy = jest.fn( ( req, res ) => res.end() );
-
-            fake.add( path, spy );
-
-            const block = base_block( {
-                block: {
-                    path: path,
-                    method: 'POST',
-                    body: 42,
-                },
-            } );
-
-            await de.run( block );
-
-            const body = spy.mock.calls[ 0 ][ 2 ];
-            expect( body.toString() ).toBe( '42' );
-        } );
-
         it( 'is a string', async () => {
             const path = get_path();
 

@@ -55,7 +55,7 @@ describe( 'options.deps', () => {
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
 
         const block = ( { generate_id } ) => {
-            const id_foo = generate_id( 'foo' );
+            const id_foo = generate_id();
 
             return de.object( {
                 block: {
