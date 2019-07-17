@@ -12,7 +12,7 @@ const {
 
 describe( 'options.deps', () => {
 
-    test( 'block with id and without deps', async () => {
+    it( 'block with id and without deps', async () => {
         const data = {
             foo: 42,
         };
@@ -28,7 +28,7 @@ describe( 'options.deps', () => {
         expect( result ).toBe( data );
     } );
 
-    test( 'failed block with id and without deps', async () => {
+    it( 'failed block with id and without deps', async () => {
         const error = de.error( {
             id: 'ERROR',
         } );
@@ -48,13 +48,13 @@ describe( 'options.deps', () => {
         }
     } );
 
-    test( 'block depends on block #1 (deps is id)', async () => {
+    it( 'block depends on block #1 (deps is id)', async () => {
         const spy = jest.fn();
 
         const block_foo = get_result_block( () => spy( 'FOO' ), 50 );
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
 
-        const block = function( { generate_id } ) {
+        const block = ( { generate_id } ) => {
             const id_foo = generate_id( 'foo' );
 
             return de.object( {
@@ -82,28 +82,30 @@ describe( 'options.deps', () => {
         expect( calls[ 1 ][ 0 ] ).toBe( 'BAR' );
     } );
 
-    test( 'block depends on block #2 (deps is array)', async () => {
+    it( 'block depends on block #2 (deps is array)', async () => {
         const spy = jest.fn();
 
         const block_foo = get_result_block( () => spy( 'FOO' ), 50 );
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
 
-        const id_foo = Symbol( 'foo' );
+        const block = ( { generate_id } ) => {
+            const id_foo = generate_id();
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
-                bar: block_bar( {
-                    options: {
-                        deps: [ id_foo ],
-                    },
-                } ),
-            },
-        } );
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
+                    bar: block_bar( {
+                        options: {
+                            deps: [ id_foo ],
+                        },
+                    } ),
+                },
+            } );
+        };
 
         await de.run( block );
 
@@ -114,36 +116,38 @@ describe( 'options.deps', () => {
         expect( calls[ 1 ][ 0 ] ).toBe( 'BAR' );
     } );
 
-    test( 'block depends on block depends on block', async () => {
+    it( 'block depends on block depends on block', async () => {
         const spy = jest.fn();
 
         const block_foo = get_result_block( () => spy( 'FOO' ), 50 );
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
         const block_quu = get_result_block( () => spy( 'QUU' ), 50 );
 
-        const id_foo = Symbol( 'foo' );
-        const id_bar = Symbol( 'bar' );
+        const block = ( { generate_id } ) => {
+            const id_foo = generate_id();
+            const id_bar = generate_id();
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
-                bar: block_bar( {
-                    options: {
-                        id: id_bar,
-                        deps: id_foo,
-                    },
-                } ),
-                quu: block_quu( {
-                    options: {
-                        deps: id_bar,
-                    },
-                } ),
-            },
-        } );
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
+                    bar: block_bar( {
+                        options: {
+                            id: id_bar,
+                            deps: id_foo,
+                        },
+                    } ),
+                    quu: block_quu( {
+                        options: {
+                            deps: id_bar,
+                        },
+                    } ),
+                },
+            } );
+        };
 
         await de.run( block );
 
@@ -155,35 +159,37 @@ describe( 'options.deps', () => {
         expect( calls[ 2 ][ 0 ] ).toBe( 'QUU' );
     } );
 
-    test( 'block depends on two blocks', async () => {
+    it( 'block depends on two blocks', async () => {
         const spy = jest.fn();
 
         const block_foo = get_result_block( () => spy( 'FOO' ), get_timeout( 50, 100 ) );
         const block_bar = get_result_block( () => spy( 'BAR' ), get_timeout( 50, 100 ) );
         const block_quu = get_result_block( () => spy( 'QUU' ), 50 );
 
-        const id_foo = Symbol( 'foo' );
-        const id_bar = Symbol( 'bar' );
+        const block = ( { generate_id } ) => {
+            const id_foo = generate_id();
+            const id_bar = generate_id();
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
-                bar: block_bar( {
-                    options: {
-                        id: id_bar,
-                    },
-                } ),
-                quu: block_quu( {
-                    options: {
-                        deps: [ id_foo, id_bar ],
-                    },
-                } ),
-            },
-        } );
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
+                    bar: block_bar( {
+                        options: {
+                            id: id_bar,
+                        },
+                    } ),
+                    quu: block_quu( {
+                        options: {
+                            deps: [ id_foo, id_bar ],
+                        },
+                    } ),
+                },
+            } );
+        };
 
         await de.run( block );
 
@@ -193,34 +199,36 @@ describe( 'options.deps', () => {
         expect( calls[ 2 ][ 0 ] ).toBe( 'QUU' );
     } );
 
-    test( 'two block depend on block', async () => {
+    it( 'two block depend on block', async () => {
         const spy = jest.fn();
 
         const block_foo = get_result_block( () => spy( 'FOO' ), get_timeout( 50, 100 ) );
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
         const block_quu = get_result_block( () => spy( 'QUU' ), 100 );
 
-        const id_foo = Symbol( 'foo' );
+        const block = ( { generate_id } ) => {
+            const id_foo = generate_id();
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
-                bar: block_bar( {
-                    options: {
-                        deps: id_foo,
-                    },
-                } ),
-                quu: block_quu( {
-                    options: {
-                        deps: id_foo,
-                    },
-                } ),
-            },
-        } );
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
+                    bar: block_bar( {
+                        options: {
+                            deps: id_foo,
+                        },
+                    } ),
+                    quu: block_quu( {
+                        options: {
+                            deps: id_foo,
+                        },
+                    } ),
+                },
+            } );
+        };
 
         await de.run( block );
 
@@ -232,7 +240,7 @@ describe( 'options.deps', () => {
         expect( calls[ 2 ][ 0 ] ).toBe( 'QUU' );
     } );
 
-    test( 'failed deps #1', async () => {
+    it( 'failed deps #1', async () => {
         const error_foo = de.error( {
             id: 'SOME_ERROR',
         } );
@@ -241,23 +249,25 @@ describe( 'options.deps', () => {
         const body_bar = jest.fn();
         const block_bar = get_result_block( body_bar, 50 );
 
-        const id_foo = Symbol( 'foo' );
+        const block = ( { generate_id } ) => {
+            const id_foo = generate_id();
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
 
-                bar: block_bar( {
-                    options: {
-                        deps: id_foo,
-                    },
-                } ),
-            },
-        } );
+                    bar: block_bar( {
+                        options: {
+                            deps: id_foo,
+                        },
+                    } ),
+                },
+            } );
+        };
 
         const result = await de.run( block );
 
@@ -267,7 +277,7 @@ describe( 'options.deps', () => {
         expect( body_bar ).toHaveBeenCalledTimes( 0 );
     } );
 
-    test( 'failed deps #2', async () => {
+    it( 'failed deps #2', async () => {
         const error_foo = de.error( {
             id: 'SOME_ERROR_1',
         } );
@@ -281,30 +291,32 @@ describe( 'options.deps', () => {
         const body_quu = jest.fn();
         const block_quu = get_result_block( body_quu, 50 );
 
-        const id_foo = Symbol( 'foo' );
-        const id_bar = Symbol( 'bar' );
+        const block = ( { generate_id } ) => {
+            const id_foo = generate_id();
+            const id_bar = generate_id();
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
 
-                bar: block_bar( {
-                    options: {
-                        id: id_bar,
-                    },
-                } ),
+                    bar: block_bar( {
+                        options: {
+                            id: id_bar,
+                        },
+                    } ),
 
-                quu: block_quu( {
-                    options: {
-                        deps: [ id_foo, id_bar ],
-                    },
-                } ),
-            },
-        } );
+                    quu: block_quu( {
+                        options: {
+                            deps: [ id_foo, id_bar ],
+                        },
+                    } ),
+                },
+            } );
+        };
 
         const result = await de.run( block );
 
@@ -316,33 +328,37 @@ describe( 'options.deps', () => {
         expect( body_quu ).toHaveBeenCalledTimes( 0 );
     } );
 
-    test( 'before( { deps } ) has deps results #1', async () => {
+    it( 'before( { deps } ) has deps results #1', async () => {
         const data_foo = {
             foo: 42,
         };
         const block_foo = get_result_block( data_foo, 50 );
         const block_bar = get_result_block( null, 50 );
 
-        const id_foo = Symbol( 'foo' );
         const before_bar = jest.fn();
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
+        let id_foo;
+        const block = ( { generate_id } ) => {
+            id_foo = generate_id();
 
-                bar: block_bar( {
-                    options: {
-                        deps: id_foo,
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
 
-                        before: before_bar,
-                    },
-                } ),
-            },
-        } );
+                    bar: block_bar( {
+                        options: {
+                            deps: id_foo,
+
+                            before: before_bar,
+                        },
+                    } ),
+                },
+            } );
+        };
 
         await de.run( block );
 
@@ -350,7 +366,7 @@ describe( 'options.deps', () => {
         expect( deps[ id_foo ] ).toBe( data_foo );
     } );
 
-    test( 'before( { deps } ) has deps results #2', async () => {
+    it( 'before( { deps } ) has deps results #2', async () => {
         const data_foo = {
             foo: 42,
         };
@@ -363,33 +379,38 @@ describe( 'options.deps', () => {
 
         const block_quu = get_result_block( null, 100 );
 
-        const id_foo = Symbol( 'foo' );
-        const id_bar = Symbol( 'bar' );
         const before_quu = jest.fn();
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
+        let id_foo;
+        let id_bar;
+        const block = ( { generate_id } ) => {
+            id_foo = generate_id();
+            id_bar = generate_id();
 
-                bar: block_bar( {
-                    options: {
-                        id: id_bar,
-                    },
-                } ),
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
 
-                quu: block_quu( {
-                    options: {
-                        deps: [ id_foo, id_bar ],
+                    bar: block_bar( {
+                        options: {
+                            id: id_bar,
+                        },
+                    } ),
 
-                        before: before_quu,
-                    },
-                } ),
-            },
-        } );
+                    quu: block_quu( {
+                        options: {
+                            deps: [ id_foo, id_bar ],
+
+                            before: before_quu,
+                        },
+                    } ),
+                },
+            } );
+        };
 
         await de.run( block );
 
@@ -398,7 +419,7 @@ describe( 'options.deps', () => {
         expect( deps[ id_bar ] ).toBe( data_bar );
     } );
 
-    test( 'before( { deps } ) has not results from other blocks', async () => {
+    it( 'before( { deps } ) has not results from other blocks', async () => {
         const data_foo = {
             foo: 42,
         };
@@ -411,33 +432,38 @@ describe( 'options.deps', () => {
 
         const block_quu = get_result_block( null, 50 );
 
-        const id_foo = Symbol( 'foo' );
-        const id_bar = Symbol( 'bar' );
         const before_quu = jest.fn();
 
-        const block = de.object( {
-            block: {
-                foo: block_foo( {
-                    options: {
-                        id: id_foo,
-                    },
-                } ),
+        let id_foo;
+        let id_bar;
+        const block = ( { generate_id } ) => {
+            id_foo = generate_id();
+            id_bar = generate_id();
 
-                bar: block_bar( {
-                    options: {
-                        id: id_bar,
-                    },
-                } ),
+            return de.object( {
+                block: {
+                    foo: block_foo( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } ),
 
-                quu: block_quu( {
-                    options: {
-                        deps: id_bar,
+                    bar: block_bar( {
+                        options: {
+                            id: id_bar,
+                        },
+                    } ),
 
-                        before: before_quu,
-                    },
-                } ),
-            },
-        } );
+                    quu: block_quu( {
+                        options: {
+                            deps: id_bar,
+
+                            before: before_quu,
+                        },
+                    } ),
+                },
+            } );
+        };
 
         await de.run( block );
 
@@ -447,35 +473,39 @@ describe( 'options.deps', () => {
     } );
 
     it( 'wait for result of de.func', async () => {
-        const id_foo = Symbol( 'foo' );
-        const data_foo = {
-            foo: 42,
-        };
-        const block_foo = get_result_block( data_foo, 50 )( {
-            options: {
-                id: id_foo,
-            },
-        } );
-
-        const block_bar = get_result_block( block_foo, 50 );
-
         const before_quu = jest.fn();
-        const block_quu = get_result_block( null, 50 );
 
-        const block = de.object( {
-            block: {
-                bar: block_bar,
+        let data_foo;
+        let id_foo;
 
-                quu: block_quu( {
-                    options: {
-                        deps: id_foo,
+        const block = ( { generate_id } ) => {
+            id_foo = generate_id();
 
-                        before: before_quu,
-                    },
-                } ),
+            data_foo = {
+                foo: 42,
+            };
 
-            },
-        } );
+            const block_foo = get_result_block( data_foo, 50 )( {
+                options: {
+                    id: id_foo,
+                },
+            } );
+
+            return de.object( {
+                block: {
+                    bar: get_result_block( block_foo, 50 ),
+
+                    quu: get_result_block( null, 50 )( {
+                        options: {
+                            deps: id_foo,
+
+                            before: before_quu,
+                        },
+                    } ),
+
+                },
+            } );
+        };
 
         await de.run( block );
 
@@ -483,31 +513,26 @@ describe( 'options.deps', () => {
         expect( deps[ id_foo ] ).toBe( data_foo );
     } );
 
-    it( 'unresolved deps #1', async () => {
-        const id_foo = Symbol( 'foo' );
-
+    it.each( [ 'foo', Symbol( 'foo' ) ] )( 'unresolved deps #1, id is %p', async ( id ) => {
         const block = get_result_block( null, 50 )( {
             options: {
-                deps: id_foo,
+                deps: id,
             },
         } );
 
         expect.assertions( 2 );
-
         try {
             await de.run( block );
 
         } catch ( error ) {
             expect( de.is_error( error ) ).toBe( true );
-            expect( error.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
+            expect( error.error.id ).toBe( de.ERROR_ID.INVALID_DEPS_ID );
         }
     } );
 
-    it( 'unresolved deps #2', async () => {
+    it.each( [ 'foo', Symbol( 'foo' ) ] )( 'unresolved deps #2, id is %p', async ( id ) => {
         const block_foo = get_result_block( null, 50 );
         const block_bar = get_result_block( null, 50 );
-
-        const foo_id = Symbol( 'foo' );
 
         const block = de.object( {
             block: {
@@ -515,7 +540,7 @@ describe( 'options.deps', () => {
 
                 bar: block_bar( {
                     options: {
-                        deps: foo_id,
+                        deps: id,
                     },
                 } ),
             },
@@ -524,22 +549,7 @@ describe( 'options.deps', () => {
         const result = await de.run( block );
 
         expect( de.is_error( result.bar ) ).toBe( true );
-        expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
-    } );
-
-    it( 'no valid deps', async () => {
-        const data_foo = {
-            foo: 42,
-        };
-        const block_foo = get_result_block( data_foo, 50 )( {
-            options: {
-                deps: [ 'foo' ],
-            },
-        } );
-
-        const result = await de.run( block_foo );
-
-        expect( result ).toBe( data_foo );
+        expect( result.bar.error.id ).toBe( de.ERROR_ID.INVALID_DEPS_ID );
     } );
 
 } );
