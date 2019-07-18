@@ -36,14 +36,14 @@ function wait_for_error( error, timeout ) {
 function get_result_block( value, timeout = 0, options = {} ) {
     return de.func( {
         block: async function( args ) {
-            const { cancel } = args;
+            const { block_cancel } = args;
             if ( options.on_cancel ) {
-                cancel.subscribe( options.on_cancel );
+                block_cancel.subscribe( options.on_cancel );
             }
 
             await Promise.race( [
                 wait_for_value( null, timeout ),
-                cancel.get_promise(),
+                block_cancel.get_promise(),
             ] );
 
             if ( !de.is_block( value ) && ( typeof value === 'function' ) ) {

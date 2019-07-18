@@ -291,6 +291,38 @@ describe( 'de.object', () => {
             }
         } );
 
+        it( 'nested subblock cancels all', async () => {
+
+            let cancel_reason;
+
+            const block = de.object( {
+                block: {
+                    foo: de.object( {
+                        block: {
+                            bar: get_result_block()( {
+                                options: {
+                                    after: ( { cancel } ) => {
+                                        cancel_reason = de.error( {
+                                            id: 'ERROR',
+                                        } );
+                                        cancel.cancel( cancel_reason );
+                                    },
+                                },
+                            } ),
+                        },
+                    } ),
+                },
+            } );
+
+            expect.assertions( 1 );
+            try {
+                await de.run( block );
+
+            } catch ( error ) {
+                expect( error ).toBe( cancel_reason );
+            }
+        } );
+
     } );
 
 } );
