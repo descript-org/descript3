@@ -18,8 +18,9 @@ function get_do_request( default_options ) {
     return function do_request( options, logger, cancel ) {
         logger = logger || new de.Logger( { debug: true } );
         cancel = cancel || new de.Cancel();
+        const context = null;
 
-        return request( { ...default_options, ...options }, logger, cancel );
+        return request( { ...default_options, ...options }, logger, context, cancel );
     };
 }
 
