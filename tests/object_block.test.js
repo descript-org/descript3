@@ -325,5 +325,38 @@ describe( 'de.object', () => {
 
     } );
 
+    describe( 'inheritance', () => {
+
+        it( 'two subblocks', async () => {
+            const data_foo = {
+                foo: 42,
+            };
+            const block_foo = get_result_block( data_foo, get_timeout( 50, 100 ) );
+
+            const data_bar = {
+                bar: 24,
+            };
+            const block_bar = get_result_block( data_bar, get_timeout( 50, 100 ) );
+
+            const parent = de.object( {
+                block: {
+                    foo: block_foo,
+                    bar: block_bar,
+                },
+            } );
+            const child = parent();
+
+            const result = await de.run( child );
+
+            expect( result ).toEqual( {
+                foo: data_foo,
+                bar: data_bar,
+            } );
+            expect( result.foo ).toBe( data_foo );
+            expect( result.bar ).toBe( data_bar );
+        } );
+
+    } );
+
 } );
 
