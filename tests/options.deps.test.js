@@ -48,6 +48,50 @@ describe( 'options.deps', () => {
         }
     } );
 
+    it( 'block with invalid deps id #1', async () => {
+        const data = {
+            foo: 42,
+        };
+        const id = Symbol( 'block' );
+        const block = get_result_block( data, 50 )( {
+            options: {
+                deps: id,
+            },
+        } );
+
+        expect.assertions( 2 );
+        try {
+            await de.run( block );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.INVALID_DEPS_ID );
+        }
+    } );
+
+    it( 'block with invalid deps id #2', async () => {
+        const data = {
+            foo: 42,
+        };
+        const block = () => {
+            const id = Symbol( 'block' );
+            return get_result_block( data, 50 )( {
+                options: {
+                    deps: id,
+                },
+            } );
+        };
+
+        expect.assertions( 2 );
+        try {
+            await de.run( block );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.INVALID_DEPS_ID );
+        }
+    } );
+
     it( 'block depends on block #1 (deps is id)', async () => {
         const spy = jest.fn();
 

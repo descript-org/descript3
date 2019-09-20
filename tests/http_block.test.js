@@ -254,6 +254,24 @@ describe( 'http', () => {
 
         describe( 'inheritance', () => {
 
+            it( 'child block is undefined', async () => {
+                const path = get_path();
+
+                const RESPONSE = 'Привет!';
+                fake.add( path, ( req, res ) => res.end( RESPONSE ) );
+
+                const parent = base_block( {
+                    block: {
+                        path: path,
+                    },
+                } );
+                const child = parent();
+
+                const result = await de.run( child );
+
+                expect( result.result ).toBe( RESPONSE );
+            } );
+
             it( 'child is a function and it gets { headers }', async () => {
                 const path = get_path();
 
@@ -637,6 +655,28 @@ describe( 'http', () => {
 
             const body = spy.mock.calls[ 0 ][ 2 ];
             expect( body.toString() ).toBe( BODY );
+        } );
+
+        it( 'is a number', async () => {
+            const path = get_path();
+
+            const spy = jest.fn( ( req, res ) => res.end() );
+
+            fake.add( path, spy );
+
+            const BODY = 42;
+            const block = base_block( {
+                block: {
+                    path: path,
+                    method: 'POST',
+                    body: BODY,
+                },
+            } );
+
+            await de.run( block );
+
+            const body = spy.mock.calls[ 0 ][ 2 ];
+            expect( body.toString() ).toBe( String( BODY ) );
         } );
 
         it( 'is a Buffer', async () => {
@@ -1045,6 +1085,33 @@ describe( 'http', () => {
             expect( result.request_options.extra ).toEqual( {
                 name: NAME,
             } );
+        } );
+
+        it( 'prepare_request_options', async () => {
+            const path_1 = get_path();
+            const path_2 = get_path();
+
+            const spy_1 = jest.fn( ( req, res ) => res.end() );
+            const spy_2 = jest.fn( ( req, res ) => res.end() );
+            fake.add( path_1, spy_1 );
+            fake.add( path_2, spy_2 );
+
+            const block = base_block( {
+                block: {
+                    path: path_1,
+                    prepare_request_options: ( request_options ) => {
+                        return {
+                            ...request_options,
+                            path: path_2,
+                        };
+                    },
+                },
+            } );
+
+            await de.run( block );
+
+            expect( spy_1.mock.calls.length ).toBe( 0 );
+            expect( spy_2.mock.calls.length ).toBe( 1 );
         } );
 
     } );

@@ -40,7 +40,7 @@ describe( 'de.error', () => {
 
     //  https://github.com/facebook/jest/issues/2549
     //
-    it.skip( 'from nodejs exception', () => {
+    it( 'from nodejs exception', () => {
         const filename = 'some_nonexistance_filename';
 
         expect.assertions( 4 );
