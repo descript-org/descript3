@@ -3,6 +3,7 @@
 ```js
 //  Создаем какой-то блок.
 //  Вместо de.block должно быть что-то конкретное: de.http, de.array, ...
+//
 const block = de.block( {
 
     //  Описание блока, специфичное для каждого типа блока.
@@ -21,7 +22,9 @@ const block = de.block( {
 
 ```js
 de.block( {
+
     block: ...,
+
     options: {
         //  Название блока, для логов.
         name: 'my_api.my_method',
@@ -47,7 +50,7 @@ de.block( {
         maxage: ...,
         cache: ...,
 
-        //  Блок является обязательным.
+        //  Флаг о том, что блок является обязательным.
         //  Ошибка в нем приводит к ошибке родительского блока (de.array или de.object).
         required: true,
 
@@ -59,9 +62,9 @@ de.block( {
 
 ## `options.name`
 
-Используется для логгирования [./http_block.md](http-блоков).
+Используется для логгирования [http-блоков](./http_block.md).
 
-Приходит в [./logger.md](логгер) в поле `request_params`:
+Приходит в [логгер](./logger.md) в поле `request_params`:
 
 ```js
 const logger = function( event ) {
@@ -84,7 +87,7 @@ const block = de.http( {
 
 ## `options.id` и `options.deps`
 
-См. [./deps.md](Работа с зависимостями).
+См. [Работа с зависимостями](./deps.md).
 
 
 ## `options.params`
@@ -99,6 +102,7 @@ const orig_params = {
 const block = de.block( {
     options: {
         //  Вот сюда в params придет orig_params.
+        //
         params: ( { params } ) => {
             console.log( params, params === orig_params );
             //  { foo: 42 }, true
@@ -111,6 +115,7 @@ const block = de.block( {
 
         //  Дальше во все остальные колбэки, где используются params
         //  будет приходить уже новые объект. Например, в before:
+        //
         before: ( { params } ) => {
             console.log( params );
             //  { foo: 42, bar: 24 }
@@ -119,6 +124,7 @@ const block = de.block( {
 } );
 
 //  Запускаем блок с какими-то параметрами:
+//
 const result = await de.run( block, {
     params: orig_params,
 } );
@@ -132,7 +138,14 @@ options: {
 
     },
 },
+
+options: {
+    params: {
+        foo: ( { params, context, deps } ) => ...,
+    },
+},
 ```
+
 
 ### `options.params` — объект
 
@@ -143,7 +156,7 @@ options: {
     params: {
         foo: null,
         bar: 42,
-        quu: ( { params } ) => params.quu + 1,
+        quu: ( { params, context, deps } ) => params.quu + 1,
     },
 },
 ```
@@ -180,6 +193,7 @@ options: {
 const parent = de.block( {
     options: {
         //  Сперва вызовется эта функция, в params придет orig_params.
+        //
         params: ( { params } ) => {
             return {
                 ...params,
@@ -193,10 +207,12 @@ const child = parent( {
     options: {
         //  Затем уже вызовется эта функция и сюда в params придет результат
         //  работы первой функции. Т.е. `{ foo: 42, parent: true }`.
+        //
         params: ( { params } ) => {
 
             //  И дальше везде в работе блока будет использоваться этот объект.
             //  Т.е. `{ foo: 42, parent: true, child: true }`.
+            //
             return {
                 ...params,
                 child: true,
