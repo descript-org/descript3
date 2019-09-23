@@ -51,6 +51,54 @@ class Cache {
 
 describe( 'options.cache, options.key, options.maxage', () => {
 
+    it( 'key is garbage #1', async () => {
+        const cache = new Cache();
+
+        const block_value = Symbol();
+        const spy = jest.fn( () => block_value );
+        const block = get_result_block( spy, 50 )( {
+            options: {
+                cache: cache,
+                //  Все, что не строка и не функция, должно игнорироваться.
+                key: 42,
+                maxage: 10000,
+            },
+        } );
+
+        const result_1 = await de.run( block );
+        await wait_for_value( null, 100 );
+        const result_2 = await de.run( block );
+
+        expect( result_1 ).toBe( block_value );
+        expect( result_2 ).toBe( block_value );
+        expect( spy.mock.calls.length ).toBe( 2 );
+
+    } );
+
+    it( 'key is garbage #2', async () => {
+        const cache = new Cache();
+
+        const block_value = Symbol();
+        const spy = jest.fn( () => block_value );
+        const block = get_result_block( spy, 50 )( {
+            options: {
+                cache: cache,
+                //  Все, что не строка и не функция, должно игнорироваться.
+                key: () => 42,
+                maxage: 10000,
+            },
+        } );
+
+        const result_1 = await de.run( block );
+        await wait_for_value( null, 100 );
+        const result_2 = await de.run( block );
+
+        expect( result_1 ).toBe( block_value );
+        expect( result_2 ).toBe( block_value );
+        expect( spy.mock.calls.length ).toBe( 2 );
+
+    } );
+
     it( 'key is a function, second run from cache', async () => {
         const cache = new Cache();
 

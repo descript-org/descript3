@@ -10,7 +10,7 @@ const de = require( '../lib' );
 const request = require( '../lib/request' );
 const Server = require( './server' );
 
-const { get_path } = require( './helpers' );
+const { get_path, wait_for_value } = require( './helpers' );
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -497,6 +497,35 @@ describe( 'request', () => {
                 expect( result.body.toString() ).toBe( CONTENT );
             } );
 
+            it( '5xx, max_retries=1, retry_timeout=100', async () => {
+                const path = get_path();
+
+                let end;
+
+                fake.add( path, [
+                    {
+                        status_code: 503,
+                    },
+                    ( req, res ) => {
+                        end = Date.now();
+
+                        res.statusCode = 200;
+                        res.end();
+                    },
+                ] );
+
+                const RETRY_TIMEOUT = 100;
+
+                const start = Date.now();
+                await do_request( {
+                    path: path,
+                    max_retries: 1,
+                    retry_timeout: RETRY_TIMEOUT,
+                } );
+
+                expect( end - start > RETRY_TIMEOUT ).toBe( true );
+            } );
+
             it.each( [ 'POST', 'PATCH' ] )( '5xx, %j, max_retries=1, no retry', async ( method ) => {
                 const path = get_path();
                 const status_code = 503;
@@ -529,14 +558,41 @@ describe( 'request', () => {
 
                 fake.add( path, {
                     status_code: 200,
-                    wait: 200,
+                    //  Тут wait работает так: сперва 100 мс таймаут, а потом уже ответ.
+                    //  Следующий пример про наборот, когда сразу statusCode = 200 и res.write(),
+                    //  а через таймаут только res.end().
+                    //
+                    wait: 100,
                 } );
 
                 expect.assertions( 2 );
                 try {
                     await do_request( {
                         path: path,
-                        timeout: 100,
+                        timeout: 50,
+                    } );
+
+                } catch ( error ) {
+                    expect( de.is_error( error ) ).toBe( true );
+                    expect( error.error.id ).toBe( de.ERROR_ID.REQUEST_TIMEOUT );
+                }
+            } );
+
+            it( '200, timeout, incomplete response', async () => {
+                const path = get_path();
+
+                fake.add( path, async ( req, res ) => {
+                    res.statusCode = 200;
+                    res.write( 'Привет!' );
+                    await wait_for_value( null, 100 );
+                    res.end();
+                } );
+
+                expect.assertions( 2 );
+                try {
+                    await do_request( {
+                        path: path,
+                        timeout: 50,
                     } );
 
                 } catch ( error ) {

@@ -28,6 +28,21 @@ describe( 'options.deps', () => {
         expect( result ).toBe( data );
     } );
 
+    it( 'empty deps', async () => {
+        const data = {
+            foo: 42,
+        };
+        const block = get_result_block( data, 50 )( {
+            options: {
+                deps: [],
+            },
+        } );
+
+        const result = await de.run( block );
+
+        expect( result ).toBe( data );
+    } );
+
     it( 'failed block with id and without deps', async () => {
         const error = de.error( {
             id: 'ERROR',
@@ -370,6 +385,32 @@ describe( 'options.deps', () => {
         //  Поэтому в reason будет error_bar.
         expect( result.quu.error.reason ).toBe( error_bar );
         expect( body_quu ).toHaveBeenCalledTimes( 0 );
+    } );
+
+    it( 'deps not resolved #1', async () => {
+        const block_foo = get_result_block( null, 50 );
+        const block_bar = get_result_block( null, 100 );
+
+        const block = ( { generate_id } ) => {
+            const id_foo = generate_id();
+
+            return de.object( {
+                block: {
+                    foo: block_foo,
+
+                    bar: block_bar( {
+                        options: {
+                            deps: id_foo,
+                        },
+                    } ),
+                },
+            } );
+        };
+
+        const result = await de.run( block );
+
+        expect( de.is_error( result.bar ) ).toBe( true );
+        expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
     } );
 
     it( 'before( { deps } ) has deps results #1', async () => {
