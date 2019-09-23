@@ -130,16 +130,12 @@ describe( 'de.object', () => {
         expect( result.bar ).toBe( error_bar );
     } );
 
-    it( 'two subblocks, one required failed', async () => {
+    it( 'two subblocks, one required failed #1', async () => {
         const error_foo = de.error( {
             id: 'SOME_ERROR',
         } );
         const block_foo = get_error_block( error_foo, get_timeout( 50, 100 ) );
-
-        const data_bar = {
-            bar: 24,
-        };
-        const block_bar = get_result_block( data_bar, get_timeout( 50, 100 ) );
+        const block_bar = get_result_block( null, get_timeout( 50, 100 ) );
 
         const block = de.object( {
             block: {
@@ -152,7 +148,7 @@ describe( 'de.object', () => {
             },
         } );
 
-        expect.assertions( 3 );
+        expect.assertions( 4 );
         try {
             await de.run( block );
 
@@ -160,6 +156,45 @@ describe( 'de.object', () => {
             expect( de.is_error( e ) ).toBe( true );
             expect( e.error.id ).toBe( de.ERROR_ID.REQUIRED_BLOCK_FAILED );
             expect( e.error.reason ).toBe( error_foo );
+            expect( e.error.path ).toBe( '.foo' );
+        }
+    } );
+
+    it( 'two subblocks, one required failed #1', async () => {
+        const error_foo = de.error( {
+            id: 'SOME_ERROR',
+        } );
+        const block_foo = get_error_block( error_foo, get_timeout( 50, 100 ) );
+        const block_bar = get_result_block( null, get_timeout( 50, 100 ) );
+        const block_quu = get_result_block( null, get_timeout( 50, 100 ) );
+
+        const block = de.object( {
+            block: {
+                foo: de.array( {
+                    block: [
+                        block_foo( {
+                            options: {
+                                required: true,
+                            },
+                        } ),
+                        block_bar,
+                    ],
+                    options: {
+                        required: true,
+                    },
+                } ),
+                quu: block_quu,
+            },
+        } );
+
+        expect.assertions( 3 );
+        try {
+            await de.run( block );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.REQUIRED_BLOCK_FAILED );
+            expect( e.error.path ).toBe( '.foo[ 0 ]' );
         }
     } );
 

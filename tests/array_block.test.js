@@ -131,7 +131,7 @@ describe( 'de.array', () => {
         expect( result[ 1 ] ).toBe( error_bar );
     } );
 
-    it( 'two subblocks, one required failed', async () => {
+    it( 'two subblocks, one required failed #1', async () => {
         const error_foo = de.error( {
             id: 'SOME_ERROR',
         } );
@@ -153,7 +153,7 @@ describe( 'de.array', () => {
             ],
         } );
 
-        expect.assertions( 3 );
+        expect.assertions( 4 );
         try {
             await de.run( block );
 
@@ -161,6 +161,46 @@ describe( 'de.array', () => {
             expect( de.is_error( e ) ).toBe( true );
             expect( e.error.id ).toBe( de.ERROR_ID.REQUIRED_BLOCK_FAILED );
             expect( e.error.reason ).toBe( error_foo );
+            expect( e.error.path ).toBe( '[ 0 ]' );
+        }
+    } );
+
+    it( 'two subblocks, one required failed #2', async () => {
+        const error_foo = de.error( {
+            id: 'SOME_ERROR',
+        } );
+        const block_foo = get_error_block( error_foo, get_timeout( 50, 100 ) );
+        const block_bar = get_result_block( null, get_timeout( 50, 100 ) );
+        const block_quu = get_result_block( null, get_timeout( 50, 100 ) );
+
+        const block = de.array( {
+            block: [
+                de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                required: true,
+                            },
+                        } ),
+                        bar: block_bar,
+                    },
+
+                    options: {
+                        required: true,
+                    },
+                } ),
+                block_quu,
+            ],
+        } );
+
+        expect.assertions( 3 );
+        try {
+            await de.run( block );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.REQUIRED_BLOCK_FAILED );
+            expect( e.error.path ).toBe( '[ 0 ].foo' );
         }
     } );
 
