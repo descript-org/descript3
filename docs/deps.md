@@ -179,7 +179,7 @@ const block = ( { generate_id } ) => {
 
             bar: block_bar( {
                 options: {
-                    //  А с таки id никто не запущен!
+                    //  А с таким id никто не запущен!
                     //
                     deps: foo_id,
                 },
