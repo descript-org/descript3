@@ -722,14 +722,16 @@ describe( 'request', () => {
                     cancel.cancel( error );
                 }, 50 );
 
-                expect.assertions( 1 );
+                expect.assertions( 3 );
                 try {
                     await do_request( {
                         path: path,
                     }, undefined, cancel );
 
                 } catch ( e ) {
-                    expect( e ).toBe( error );
+                    expect( de.is_error( e ) ).toBe( true );
+                    expect( e.error.id ).toBe( de.ERROR_ID.HTTP_REQUEST_ABORTED );
+                    expect( e.error.reason ).toBe( error );
                 }
             } );
 
@@ -927,12 +929,14 @@ describe( 'request', () => {
                     cancel.cancel( error );
                 }, 50 );
 
-                expect.assertions( 1 );
+                expect.assertions( 3 );
                 try {
                     await do_request( {}, undefined, cancel );
 
                 } catch ( e ) {
-                    expect( e ).toBe( error );
+                    expect( de.is_error( e ) ).toBe( true );
+                    expect( e.error.id ).toBe( de.ERROR_ID.HTTP_REQUEST_ABORTED );
+                    expect( e.error.reason ).toBe( error );
                 }
             } );
 
