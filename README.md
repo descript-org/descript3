@@ -1,15 +1,15 @@
 # descript
 
-  * [options](./options.md)
+  * [options](./docs/options.md)
 
-  * [Зависимости](./deps.md)
+  * [Зависимости](./docs/deps.md)
 
   * Типы блоков:
 
-      * [de.http](./http_block.md)
+      * [de.http](./docs/http_block.md)
 
-      * [de.func](./function_block.md)
+      * [de.func](./docs/function_block.md)
 
-      * [de.array](./array_block.md)
+      * [de.array](./docs/array_block.md)
 
-      * [de.object](./object_block.md)
+      * [de.object](./docs/object_block.md)
