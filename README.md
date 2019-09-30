@@ -1,6 +1,6 @@
 # descript
   
-  * [Типы блоков](./blocks.md):
+  * [Типы блоков](./docs/blocks.md):
 
       * [de.http](./docs/http_block.md)
 
@@ -14,8 +14,8 @@
 
   * [Зависимости](./docs/deps.md)
 
-  * [Запуск блоков](./run.md)
+  * [Запуск блоков](./docs/run.md)
 
-  * [Контекст](./context.md)
+  * [Контекст](./docs/context.md)
 
-  * [Отмена выполнения](./cancel.md)
+  * [Отмена выполнения](./docs/cancel.md)
