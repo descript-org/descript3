@@ -1,5 +1,7 @@
 # descript
-  
+
+  * [Миграция с v2 на v3](./docs/v2-v3.md).
+
   * [Типы блоков](./docs/blocks.md):
 
       * [de.http](./docs/http_block.md)
