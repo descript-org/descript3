@@ -60,6 +60,7 @@ const block = de.func( {
 } );
 ```
 
+
 ## Сокращенная версия
 
 Если нам не нужно менять `options`, можно использовать не `de.func`,
@@ -70,6 +71,7 @@ const block = ( { params } ) => {
     return ( params.foo ) ? block_foo : block_bar;
 };
 ```
+
 
 ## `generate_id`
 
