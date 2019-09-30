@@ -69,4 +69,4 @@ de.block( {
   * [options.timeout](./options_timeout.md).
   * options.key, options.maxage, options.cache. См. [кэширование](./cache.md).
   * [options.required](./options_required.md).
-  * options.logger. См. (./логирование.md).
+  * options.logger. См. [логирование](./logs.md).
