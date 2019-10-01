@@ -34,9 +34,9 @@ describe( 'request', () => {
 
         const do_request = get_do_request( {
             protocol: 'http:',
-            host: '127.0.0.1',
+            hostname: '127.0.0.1',
             port: PORT,
-            path: '/',
+            pathname: '/',
         } );
 
         const fake = new Server( {
@@ -59,7 +59,7 @@ describe( 'request', () => {
 
             const result = await do_request( {
                 method: method,
-                path: path,
+                pathname: path,
             } );
 
             expect( result.status_code ).toBe( 200 );
@@ -75,7 +75,7 @@ describe( 'request', () => {
             fake.add( path, spy );
 
             await do_request( {
-                path: path,
+                pathname: path,
             } );
 
             const [ req ] = spy.mock.calls[ 0 ];
@@ -91,7 +91,7 @@ describe( 'request', () => {
             fake.add( path, spy );
 
             await do_request( {
-                path: path,
+                pathname: path,
                 headers: {
                     'accept-encoding': 'compress',
                 },
@@ -110,7 +110,7 @@ describe( 'request', () => {
             fake.add( path, spy );
 
             await do_request( {
-                path: path,
+                pathname: path,
                 headers: {
                     'x-request-foo': 'Foo',
                     'X-REQUEST-BAR': 'bAr',
@@ -138,7 +138,7 @@ describe( 'request', () => {
             };
 
             await do_request( {
-                path: path,
+                pathname: path,
                 query: QUERY,
             } );
 
@@ -157,7 +157,7 @@ describe( 'request', () => {
             fake.add( path, spy );
 
             await do_request( {
-                path: path,
+                pathname: path,
                 auth: AUTH,
             } );
 
@@ -181,7 +181,7 @@ describe( 'request', () => {
             try {
                 await do_request( {
                     protocol: 'http',
-                    path: path,
+                    pathname: path,
                 } );
 
             } catch ( error ) {
@@ -200,7 +200,7 @@ describe( 'request', () => {
 
             await do_request( {
                 method: method,
-                path: path,
+                pathname: path,
                 body: BODY,
             } );
 
@@ -223,7 +223,7 @@ describe( 'request', () => {
 
             await do_request( {
                 method: method,
-                path: path,
+                pathname: path,
                 body: BODY,
             } );
 
@@ -246,7 +246,7 @@ describe( 'request', () => {
 
             await do_request( {
                 method: method,
-                path: path,
+                pathname: path,
                 body: BODY,
                 headers: {
                     'content-type': 'text/css',
@@ -275,7 +275,7 @@ describe( 'request', () => {
 
             await do_request( {
                 method: method,
-                path: path,
+                pathname: path,
                 body: BODY,
             } );
 
@@ -302,7 +302,7 @@ describe( 'request', () => {
 
             await do_request( {
                 method: method,
-                path: path,
+                pathname: path,
                 body: BODY,
                 headers: {
                     'content-type': 'application/json',
@@ -331,7 +331,7 @@ describe( 'request', () => {
                 expect.assertions( 2 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                         is_error: () => true,
                     } );
 
@@ -357,7 +357,7 @@ describe( 'request', () => {
                 expect.assertions( 3 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                         max_retries: 1,
                     } );
 
@@ -384,7 +384,7 @@ describe( 'request', () => {
                 ] );
 
                 const result = await do_request( {
-                    path: path,
+                    pathname: path,
                     max_retries: 1,
                     is_retry_allowed: () => true,
                 } );
@@ -409,7 +409,7 @@ describe( 'request', () => {
                 expect.assertions( 3 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                         max_retries: 0,
                     } );
 
@@ -436,7 +436,7 @@ describe( 'request', () => {
                 expect.assertions( 3 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                         max_retries: 1,
                         is_retry_allowed: () => false,
                     } );
@@ -464,7 +464,7 @@ describe( 'request', () => {
                 ] );
 
                 const result = await do_request( {
-                    path: path,
+                    pathname: path,
                     max_retries: 1,
                 } );
 
@@ -488,7 +488,7 @@ describe( 'request', () => {
                 ] );
 
                 const result = await do_request( {
-                    path: path,
+                    pathname: path,
                     max_retries: 1,
                     retry_timeout: 0,
                 } );
@@ -518,7 +518,7 @@ describe( 'request', () => {
 
                 const start = Date.now();
                 await do_request( {
-                    path: path,
+                    pathname: path,
                     max_retries: 1,
                     retry_timeout: RETRY_TIMEOUT,
                 } );
@@ -542,7 +542,7 @@ describe( 'request', () => {
                 expect.assertions( 2 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                         method: method,
                         max_retries: 1,
                     } );
@@ -568,7 +568,7 @@ describe( 'request', () => {
                 expect.assertions( 2 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                         timeout: 50,
                     } );
 
@@ -591,7 +591,7 @@ describe( 'request', () => {
                 expect.assertions( 2 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                         timeout: 50,
                     } );
 
@@ -619,7 +619,7 @@ describe( 'request', () => {
                 } );
 
                 const result = await do_request( {
-                    path: path,
+                    pathname: path,
                 } );
 
                 expect( result.body.toString() ).toBe( CONTENT );
@@ -642,7 +642,7 @@ describe( 'request', () => {
                 expect.assertions( 3 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                     } );
 
                 } catch ( error ) {
@@ -668,11 +668,11 @@ describe( 'request', () => {
                 };
 
                 await do_request( {
-                    path: path,
+                    pathname: path,
                     agent: agent,
                 } );
                 const result2 = await do_request( {
-                    path: path,
+                    pathname: path,
                     agent: agent,
                 } );
 
@@ -691,11 +691,11 @@ describe( 'request', () => {
                 } );
 
                 await do_request( {
-                    path: path,
+                    pathname: path,
                     agent: agent,
                 } );
                 const result2 = await do_request( {
-                    path: path,
+                    pathname: path,
                     agent: agent,
                 } );
 
@@ -725,7 +725,7 @@ describe( 'request', () => {
                 expect.assertions( 3 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                     }, undefined, cancel );
 
                 } catch ( e ) {
@@ -754,7 +754,7 @@ describe( 'request', () => {
                 }, 100 );
 
                 const result = await do_request( {
-                    path: path,
+                    pathname: path,
                 }, undefined, cancel );
 
                 expect( result.body.toString() ).toBe( CONTENT );
@@ -770,9 +770,9 @@ describe( 'request', () => {
 
         const do_request = get_do_request( {
             protocol: 'https:',
-            host: '127.0.0.1',
+            hostname: '127.0.0.1',
             port: PORT,
-            path: '/',
+            pathname: '/',
         } );
 
         let server_key;
@@ -812,7 +812,7 @@ describe( 'request', () => {
             } );
 
             const result = await do_request( {
-                path: path,
+                pathname: path,
             } );
 
             expect( Buffer.isBuffer( result.body ) ).toBe( true );
@@ -871,9 +871,9 @@ describe( 'request', () => {
             it( '', async () => {
                 const do_request = get_do_request( {
                     protocol: 'http:',
-                    host: '127.0.0.1',
+                    hostname: '127.0.0.1',
                     port: PORT,
-                    path: '/',
+                    pathname: '/',
                 } );
 
                 const path = get_path();
@@ -881,7 +881,7 @@ describe( 'request', () => {
                 expect.assertions( 2 );
                 try {
                     await do_request( {
-                        path: path,
+                        pathname: path,
                     } );
 
                 } catch ( error ) {
@@ -902,7 +902,7 @@ describe( 'request', () => {
 
             const do_request = get_do_request( {
                 protocol: 'http:',
-                host: '127.0.0.1',
+                hostname: '127.0.0.1',
                 port: PORT,
             } );
 
@@ -950,7 +950,7 @@ describe( 'request', () => {
 
             const do_request = get_do_request( {
                 protocol: 'http:',
-                host: '127.0.0.1',
+                hostname: '127.0.0.1',
                 port: PORT,
             } );
 

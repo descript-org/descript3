@@ -17,7 +17,7 @@ describe( 'http', () => {
     const base_block = de.http( {
         block: {
             protocol: 'http:',
-            host: '127.0.0.1',
+            hostname: '127.0.0.1',
             port: PORT,
         },
         options: {
@@ -40,8 +40,8 @@ describe( 'http', () => {
             [ 'method', 'POST' ],
             [ 'protocol', 'http:' ],
             [ 'port', PORT ],
-            [ 'host', '127.0.0.1' ],
-            [ 'path', path ],
+            [ 'hostname', '127.0.0.1' ],
+            [ 'pathname', path ],
             [ 'max_retries', 0 ],
             [ 'timeout', 100 ],
             [ 'headers', {} ],
@@ -56,7 +56,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     //  Чтобы body отработал.
                     method: 'POST',
                     [ name ]: spy,
@@ -100,7 +100,7 @@ describe( 'http', () => {
 
                         bar: base_block( {
                             block: {
-                                path: path,
+                                pathname: path,
                                 method: 'POST',
                                 [ name ]: spy,
                             },
@@ -134,7 +134,7 @@ describe( 'http', () => {
 
         const block = base_block( {
             block: {
-                path: path,
+                pathname: path,
             },
         } );
 
@@ -156,7 +156,7 @@ describe( 'http', () => {
 
         const block = base_block( {
             block: {
-                path: () => path,
+                pathname: () => path,
             },
         } );
 
@@ -179,7 +179,7 @@ describe( 'http', () => {
             let block_headers;
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     headers: () => {
                         block_headers = {
                             'x-a': 'a',
@@ -207,7 +207,7 @@ describe( 'http', () => {
             const header_spy = jest.fn( () => 'c' );
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     headers: {
                         'x-a': 'a',
                         'X-B': 'B',
@@ -232,7 +232,7 @@ describe( 'http', () => {
             const spy = jest.fn( () => 'a' );
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     headers: {
                         'x-a': spy,
                     },
@@ -262,7 +262,7 @@ describe( 'http', () => {
 
                 const parent = base_block( {
                     block: {
-                        path: path,
+                        pathname: path,
                     },
                 } );
                 const child = parent();
@@ -282,7 +282,7 @@ describe( 'http', () => {
                 let parent_headers;
                 const parent = base_block( {
                     block: {
-                        path: path,
+                        pathname: path,
                         headers: () => {
                             parent_headers = {
                                 'x-a': 'a',
@@ -314,7 +314,7 @@ describe( 'http', () => {
                 let parent_headers;
                 const parent = base_block( {
                     block: {
-                        path: path,
+                        pathname: path,
                         headers: () => {
                             parent_headers = {
                                 'x-a': 'a',
@@ -360,7 +360,7 @@ describe( 'http', () => {
             };
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     query: () => query,
                 },
             } );
@@ -378,7 +378,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     query: {
                         a: null,
                         b: null,
@@ -421,7 +421,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     query: {
                         a: undefined,
                         b: undefined,
@@ -456,7 +456,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     query: {
                         a: 0,
                         b: '',
@@ -488,7 +488,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     query: {
                         a: 'foo',
                         b: 'foo',
@@ -526,7 +526,7 @@ describe( 'http', () => {
             const spy = jest.fn();
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     query: spy,
                 },
             } );
@@ -554,7 +554,7 @@ describe( 'http', () => {
                 let parent_query;
                 const parent = base_block( {
                     block: {
-                        path: path,
+                        pathname: path,
                         query: () => {
                             parent_query = {
                                 foo: 42,
@@ -584,7 +584,7 @@ describe( 'http', () => {
                 let parent_query;
                 const parent = base_block( {
                     block: {
-                        path: path,
+                        pathname: path,
                         query: () => {
                             parent_query = {
                                 foo: 42,
@@ -624,7 +624,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     method: 'POST',
                 },
             } );
@@ -645,7 +645,7 @@ describe( 'http', () => {
             const BODY = 'Привет!';
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     method: 'POST',
                     body: BODY,
                 },
@@ -667,7 +667,7 @@ describe( 'http', () => {
             const BODY = 42;
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     method: 'POST',
                     body: BODY,
                 },
@@ -689,7 +689,7 @@ describe( 'http', () => {
             const BODY = Buffer.from( 'Привет!' );
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     method: 'POST',
                     body: BODY,
                 },
@@ -711,7 +711,7 @@ describe( 'http', () => {
             const BODY = 'Привет!';
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     method: 'POST',
                     body: () => BODY,
                 },
@@ -733,7 +733,7 @@ describe( 'http', () => {
             const BODY = Buffer.from( 'Привет!' );
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     method: 'POST',
                     body: () => BODY,
                 },
@@ -757,7 +757,7 @@ describe( 'http', () => {
             };
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     method: 'POST',
                     body: () => BODY,
                 },
@@ -785,7 +785,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                 },
             } );
 
@@ -809,7 +809,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                 },
             } );
 
@@ -833,7 +833,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                 },
             } );
 
@@ -857,7 +857,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     is_json: true,
                 },
             } );
@@ -879,7 +879,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                 },
             } );
 
@@ -905,7 +905,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     is_json: true,
                 },
             } );
@@ -934,7 +934,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                 },
             } );
 
@@ -961,7 +961,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                 },
             } );
 
@@ -990,7 +990,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                 },
             } );
 
@@ -1017,7 +1017,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                     is_json: true,
                 },
             } );
@@ -1045,7 +1045,7 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                 },
             } );
 
@@ -1072,7 +1072,7 @@ describe( 'http', () => {
             const NAME = 'resource_name';
             const block = base_block( {
                 block: {
-                    path: path,
+                    pathname: path,
                 },
 
                 options: {
@@ -1098,11 +1098,11 @@ describe( 'http', () => {
 
             const block = base_block( {
                 block: {
-                    path: path_1,
+                    pathname: path_1,
                     prepare_request_options: ( request_options ) => {
                         return {
                             ...request_options,
-                            path: path_2,
+                            pathname: path_2,
                         };
                     },
                 },
