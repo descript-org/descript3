@@ -413,6 +413,34 @@ describe( 'options.deps', () => {
         expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
     } );
 
+    it( 'deps not resolved #2', async () => {
+        const block_foo = get_result_block( null, 50 );
+        const block_bar = get_result_block( null, 100 );
+
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
+
+                return de.object( {
+                    block: {
+                        foo: block_foo,
+
+                        bar: block_bar( {
+                            options: {
+                                deps: id_foo,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
+
+        const result = await de.run( block );
+
+        expect( de.is_error( result.bar ) ).toBe( true );
+        expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
+    } );
+
     it( 'before( { deps } ) has deps results #1', async () => {
         const data_foo = {
             foo: 42,
