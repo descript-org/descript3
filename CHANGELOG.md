@@ -1,5 +1,9 @@
 # Changelog
 
+## `3.0.10`
+
+  * Bugfix. Не срабатывала ошибка `DEPS_NOT_RESOLVED` внутри `de.func`.
+
 ## `3.0.9`
 
   * [http] `path` и `host` переименованы в `pathname` и `hostname` соответственно.
