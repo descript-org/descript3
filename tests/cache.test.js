@@ -9,7 +9,7 @@ describe( 'cache', () => {
 
         const key = 'KEY';
 
-        const result = cache.get( key );
+        const result = cache.get( { key } );
         expect( result ).toBe( undefined );
     } );
 
@@ -20,9 +20,9 @@ describe( 'cache', () => {
         const value = {
             foo: 42,
         };
-        cache.set( key, value );
+        cache.set( { key, value } );
 
-        const result = cache.get( key );
+        const result = cache.get( { key } );
         expect( result ).toBe( value );
     } );
 
@@ -33,11 +33,12 @@ describe( 'cache', () => {
         const value = {
             foo: 42,
         };
-        cache.set( key, value, 100 );
+        const maxage = 100;
+        cache.set( { key, value, maxage } );
 
         await wait_for_value( null, 50 );
 
-        const result = cache.get( key );
+        const result = cache.get( { key } );
         expect( result ).toBe( value );
     } );
 
@@ -48,11 +49,12 @@ describe( 'cache', () => {
         const value = {
             foo: 42,
         };
-        cache.set( key, value, 50 );
+        const maxage = 50;
+        cache.set( { key, value, maxage } );
 
         await wait_for_value( null, 100 );
 
-        const result = cache.get( key );
+        const result = cache.get( { key } );
         expect( result ).toBe( undefined );
     } );
 
@@ -63,11 +65,12 @@ describe( 'cache', () => {
         const value = {
             foo: 42,
         };
-        cache.set( key, value, 0 );
+        const maxage = 0;
+        cache.set( { key, value, maxage } );
 
         await wait_for_value( null, 100 );
 
-        const result = cache.get( key );
+        const result = cache.get( { key } );
         expect( result ).toBe( value );
     } );
 

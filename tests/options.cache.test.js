@@ -16,7 +16,7 @@ class Cache {
         this.cache = {};
     }
 
-    get( key ) {
+    get( { key, context } ) {
         return new Promise( ( resolve ) => {
             const timeout = get_timeout( 0, 10 );
 
@@ -31,7 +31,7 @@ class Cache {
         } );
     }
 
-    set( key, value, maxage ) {
+    set( { key, value, maxage, context } ) {
         return new Promise( ( resolve ) => {
             const timeout = get_timeout( 0, 10 );
             setTimeout( () => {
@@ -192,6 +192,93 @@ describe( 'options.cache, options.key, options.maxage', () => {
         expect( result_1 ).toBe( block_value );
         expect( result_2 ).toBe( block_value );
         expect( spy.mock.calls.length ).toBe( 1 );
+    } );
+
+    it( 'cache.get throws', async () => {
+        const cache = {
+            get: () => {
+                throw de.error( {
+                    id: 'SOME_ERROR',
+                } );
+            },
+            set: () => undefined,
+        };
+        const spy = jest.fn( () => null );
+        const block = get_result_block( spy, 50 )( {
+            options: {
+                cache: cache,
+                key: 'KEY',
+                maxage: 10000,
+            },
+        } );
+
+        await de.run( block );
+
+        expect( spy.mock.calls.length ).toBe( 1 );
+    } );
+
+
+    it( 'cache.set throws', async () => {
+        const cache = {
+            get: () => undefined,
+            set: () => {
+                throw de.error( {
+                    id: 'SOME_ERROR',
+                } );
+            },
+        };
+        const block = get_result_block( null, 50 )( {
+            options: {
+                cache: cache,
+                key: 'KEY',
+                maxage: 10000,
+            },
+        } );
+
+        await de.run( block );
+    } );
+
+    it( 'cache.get returns rejected promise', async () => {
+        const cache = {
+            get: () => {
+                return Promise.reject( de.error( {
+                    id: 'SOME_ERROR',
+                } ) );
+            },
+            set: () => undefined,
+        };
+        const spy = jest.fn( () => null );
+        const block = get_result_block( spy, 50 )( {
+            options: {
+                cache: cache,
+                key: 'KEY',
+                maxage: 10000,
+            },
+        } );
+
+        await de.run( block );
+
+        expect( spy.mock.calls.length ).toBe( 1 );
+    } );
+
+    it( 'cache.set returns rejected promise', async () => {
+        const cache = {
+            get: () => undefined,
+            set: () => {
+                return Promise.reject( de.error( {
+                    id: 'SOME_ERROR',
+                } ) );
+            },
+        };
+        const block = get_result_block( null, 50 )( {
+            options: {
+                cache: cache,
+                key: 'KEY',
+                maxage: 10000,
+            },
+        } );
+
+        await de.run( block );
     } );
 
 } );

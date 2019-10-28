@@ -9,8 +9,8 @@
 
 ```js
 const cache = {
-    get: function( key ) { ... },
-    set: function( key, value, maxage ) { ... },
+    get: function( { key, context } ) { ... },
+    set: function( { key, value, maxage, context } ) { ... },
 };
 ```
 
@@ -40,7 +40,7 @@ const block = de.block( {
 ```
 
 
-## `options.key`, `options.maxage`, 
+## `options.key`, `options.maxage`
 
 Параметры `key` и `maxage` задают ключ и срок хранения:
 
