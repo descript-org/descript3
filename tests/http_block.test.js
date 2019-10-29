@@ -545,6 +545,43 @@ describe( 'http', () => {
             expect( call.context ).toBe( context );
         } );
 
+        it( 'is an array of object and function', async () => {
+            const path = get_path();
+            const spy = jest.fn( ( req, res ) => res.end() );
+            fake.add( path, spy );
+
+            const block = base_block( {
+                block: {
+                    pathname: path,
+                    query: [
+                        {
+                            foo: null,
+                        },
+                        ( { query, params } ) => {
+                            return {
+                                ...query,
+                                bar: params.bar,
+                            };
+                        },
+                    ],
+                },
+            } );
+
+            const params = {
+                foo: 'foo',
+                bar: 'bar',
+                quu: 'quu',
+            };
+            await de.run( block, { params } );
+
+            const req = spy.mock.calls[ 0 ][ 0 ];
+            const query = url_.parse( req.url, true ).query;
+            expect( { ...query } ).toStrictEqual( {
+                foo: 'foo',
+                bar: 'bar',
+            } );
+        } );
+
         describe( 'inheritance', () => {
 
             it( 'child is a function and it gets { query }', async () => {
