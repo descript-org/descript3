@@ -177,29 +177,44 @@ describe( 'options.params', () => {
             expect( params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
         } );
 
-        it( 'child is a function', async () => {
-            const params_spy = jest.fn();
-
+        it( 'child first, then parent', async () => {
             let parent_params;
-            const parent = get_result_block()( {
+            const parent_spy = jest.fn( () => {
+                parent_params = {
+                    foo: 42,
+                };
+                return parent_params;
+            } );
+
+            let child_params;
+            const child_spy = jest.fn( () => {
+                child_params = {
+                    bar: 24,
+                };
+                return child_params;
+            } );
+
+            const action_spy = jest.fn();
+
+            const parent = get_result_block( action_spy )( {
                 options: {
-                    params: () => {
-                        parent_params = {
-                            foo: 42,
-                        };
-                        return parent_params;
-                    },
+                    params: parent_spy,
                 },
             } );
             const child = parent( {
                 options: {
-                    params: params_spy,
+                    params: child_spy,
                 },
             } );
 
-            await de.run( child );
+            const params = {
+                quu: 66,
+            };
+            await de.run( child, { params } );
 
-            expect( params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( parent_params );
+            expect( child_spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
+            expect( parent_spy.mock.calls[ 0 ][ 0 ].params ).toBe( child_params );
+            expect( action_spy.mock.calls[ 0 ][ 0 ].params ).toBe( parent_params );
         } );
 
     } );
