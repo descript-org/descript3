@@ -88,14 +88,16 @@ describe( 'options.deps', () => {
         const data = {
             foo: 42,
         };
-        const block = () => {
-            const id = Symbol( 'block' );
-            return get_result_block( data, 50 )( {
-                options: {
-                    deps: id,
-                },
-            } );
-        };
+        const block = de.func( {
+            block: () => {
+                const id = Symbol( 'block' );
+                return get_result_block( data, 50 )( {
+                    options: {
+                        deps: id,
+                    },
+                } );
+            },
+        } );
 
         expect.assertions( 2 );
         try {
@@ -113,24 +115,26 @@ describe( 'options.deps', () => {
         const block_foo = get_result_block( () => spy( 'FOO' ), 50 );
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
 
-        const block = ( { generate_id } ) => {
-            const id_foo = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
-                    bar: block_bar( {
-                        options: {
-                            deps: id_foo,
-                        },
-                    } ),
-                },
-            } );
-        };
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
+                        bar: block_bar( {
+                            options: {
+                                deps: id_foo,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         await de.run( block );
 
@@ -147,24 +151,26 @@ describe( 'options.deps', () => {
         const block_foo = get_result_block( () => spy( 'FOO' ), 50 );
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
 
-        const block = ( { generate_id } ) => {
-            const id_foo = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
-                    bar: block_bar( {
-                        options: {
-                            deps: [ id_foo ],
-                        },
-                    } ),
-                },
-            } );
-        };
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
+                        bar: block_bar( {
+                            options: {
+                                deps: [ id_foo ],
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         await de.run( block );
 
@@ -182,31 +188,33 @@ describe( 'options.deps', () => {
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
         const block_quu = get_result_block( () => spy( 'QUU' ), 50 );
 
-        const block = ( { generate_id } ) => {
-            const id_foo = generate_id();
-            const id_bar = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
+                const id_bar = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
-                    bar: block_bar( {
-                        options: {
-                            id: id_bar,
-                            deps: id_foo,
-                        },
-                    } ),
-                    quu: block_quu( {
-                        options: {
-                            deps: id_bar,
-                        },
-                    } ),
-                },
-            } );
-        };
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
+                        bar: block_bar( {
+                            options: {
+                                id: id_bar,
+                                deps: id_foo,
+                            },
+                        } ),
+                        quu: block_quu( {
+                            options: {
+                                deps: id_bar,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         await de.run( block );
 
@@ -225,30 +233,32 @@ describe( 'options.deps', () => {
         const block_bar = get_result_block( () => spy( 'BAR' ), get_timeout( 50, 100 ) );
         const block_quu = get_result_block( () => spy( 'QUU' ), 50 );
 
-        const block = ( { generate_id } ) => {
-            const id_foo = generate_id();
-            const id_bar = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
+                const id_bar = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
-                    bar: block_bar( {
-                        options: {
-                            id: id_bar,
-                        },
-                    } ),
-                    quu: block_quu( {
-                        options: {
-                            deps: [ id_foo, id_bar ],
-                        },
-                    } ),
-                },
-            } );
-        };
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
+                        bar: block_bar( {
+                            options: {
+                                id: id_bar,
+                            },
+                        } ),
+                        quu: block_quu( {
+                            options: {
+                                deps: [ id_foo, id_bar ],
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         await de.run( block );
 
@@ -265,29 +275,31 @@ describe( 'options.deps', () => {
         const block_bar = get_result_block( () => spy( 'BAR' ), 50 );
         const block_quu = get_result_block( () => spy( 'QUU' ), 100 );
 
-        const block = ( { generate_id } ) => {
-            const id_foo = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
-                    bar: block_bar( {
-                        options: {
-                            deps: id_foo,
-                        },
-                    } ),
-                    quu: block_quu( {
-                        options: {
-                            deps: id_foo,
-                        },
-                    } ),
-                },
-            } );
-        };
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
+                        bar: block_bar( {
+                            options: {
+                                deps: id_foo,
+                            },
+                        } ),
+                        quu: block_quu( {
+                            options: {
+                                deps: id_foo,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         await de.run( block );
 
@@ -308,25 +320,27 @@ describe( 'options.deps', () => {
         const body_bar = jest.fn();
         const block_bar = get_result_block( body_bar, 50 );
 
-        const block = ( { generate_id } ) => {
-            const id_foo = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
 
-                    bar: block_bar( {
-                        options: {
-                            deps: id_foo,
-                        },
-                    } ),
-                },
-            } );
-        };
+                        bar: block_bar( {
+                            options: {
+                                deps: id_foo,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         const result = await de.run( block );
 
@@ -350,32 +364,34 @@ describe( 'options.deps', () => {
         const body_quu = jest.fn();
         const block_quu = get_result_block( body_quu, 50 );
 
-        const block = ( { generate_id } ) => {
-            const id_foo = generate_id();
-            const id_bar = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
+                const id_bar = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
 
-                    bar: block_bar( {
-                        options: {
-                            id: id_bar,
-                        },
-                    } ),
+                        bar: block_bar( {
+                            options: {
+                                id: id_bar,
+                            },
+                        } ),
 
-                    quu: block_quu( {
-                        options: {
-                            deps: [ id_foo, id_bar ],
-                        },
-                    } ),
-                },
-            } );
-        };
+                        quu: block_quu( {
+                            options: {
+                                deps: [ id_foo, id_bar ],
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         const result = await de.run( block );
 
@@ -391,21 +407,23 @@ describe( 'options.deps', () => {
         const block_foo = get_result_block( null, 50 );
         const block_bar = get_result_block( null, 100 );
 
-        const block = ( { generate_id } ) => {
-            const id_foo = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo,
+                return de.object( {
+                    block: {
+                        foo: block_foo,
 
-                    bar: block_bar( {
-                        options: {
-                            deps: id_foo,
-                        },
-                    } ),
-                },
-            } );
-        };
+                        bar: block_bar( {
+                            options: {
+                                deps: id_foo,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         const result = await de.run( block );
 
@@ -451,27 +469,29 @@ describe( 'options.deps', () => {
         const before_bar = jest.fn();
 
         let id_foo;
-        const block = ( { generate_id } ) => {
-            id_foo = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                id_foo = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
 
-                    bar: block_bar( {
-                        options: {
-                            deps: id_foo,
+                        bar: block_bar( {
+                            options: {
+                                deps: id_foo,
 
-                            before: before_bar,
-                        },
-                    } ),
-                },
-            } );
-        };
+                                before: before_bar,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         await de.run( block );
 
@@ -496,34 +516,36 @@ describe( 'options.deps', () => {
 
         let id_foo;
         let id_bar;
-        const block = ( { generate_id } ) => {
-            id_foo = generate_id();
-            id_bar = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                id_foo = generate_id();
+                id_bar = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
 
-                    bar: block_bar( {
-                        options: {
-                            id: id_bar,
-                        },
-                    } ),
+                        bar: block_bar( {
+                            options: {
+                                id: id_bar,
+                            },
+                        } ),
 
-                    quu: block_quu( {
-                        options: {
-                            deps: [ id_foo, id_bar ],
+                        quu: block_quu( {
+                            options: {
+                                deps: [ id_foo, id_bar ],
 
-                            before: before_quu,
-                        },
-                    } ),
-                },
-            } );
-        };
+                                before: before_quu,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         await de.run( block );
 
@@ -549,34 +571,36 @@ describe( 'options.deps', () => {
 
         let id_foo;
         let id_bar;
-        const block = ( { generate_id } ) => {
-            id_foo = generate_id();
-            id_bar = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                id_foo = generate_id();
+                id_bar = generate_id();
 
-            return de.object( {
-                block: {
-                    foo: block_foo( {
-                        options: {
-                            id: id_foo,
-                        },
-                    } ),
+                return de.object( {
+                    block: {
+                        foo: block_foo( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
 
-                    bar: block_bar( {
-                        options: {
-                            id: id_bar,
-                        },
-                    } ),
+                        bar: block_bar( {
+                            options: {
+                                id: id_bar,
+                            },
+                        } ),
 
-                    quu: block_quu( {
-                        options: {
-                            deps: id_bar,
+                        quu: block_quu( {
+                            options: {
+                                deps: id_bar,
 
-                            before: before_quu,
-                        },
-                    } ),
-                },
-            } );
-        };
+                                before: before_quu,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
 
         await de.run( block );
 
@@ -591,34 +615,36 @@ describe( 'options.deps', () => {
         let data_foo;
         let id_foo;
 
-        const block = ( { generate_id } ) => {
-            id_foo = generate_id();
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                id_foo = generate_id();
 
-            data_foo = {
-                foo: 42,
-            };
+                data_foo = {
+                    foo: 42,
+                };
 
-            const block_foo = get_result_block( data_foo, 50 )( {
-                options: {
-                    id: id_foo,
-                },
-            } );
+                const block_foo = get_result_block( data_foo, 50 )( {
+                    options: {
+                        id: id_foo,
+                    },
+                } );
 
-            return de.object( {
-                block: {
-                    bar: get_result_block( block_foo, 50 ),
+                return de.object( {
+                    block: {
+                        bar: get_result_block( block_foo, 50 ),
 
-                    quu: get_result_block( null, 50 )( {
-                        options: {
-                            deps: id_foo,
+                        quu: get_result_block( null, 50 )( {
+                            options: {
+                                deps: id_foo,
 
-                            before: before_quu,
-                        },
-                    } ),
+                                before: before_quu,
+                            },
+                        } ),
 
-                },
-            } );
-        };
+                    },
+                } );
+            },
+        } );
 
         await de.run( block );
 

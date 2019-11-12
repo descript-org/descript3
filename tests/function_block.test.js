@@ -52,6 +52,37 @@ describe( 'de.func', () => {
         expect( result ).toBe( data );
     } );
 
+    //  Самый простой способ вычислить факториал!
+    test( 'recursion', async () => {
+        const block = de.func( {
+            block: ( { params } ) => {
+                if ( params.n === 1 ) {
+                    return 1;
+
+                } else {
+                    return block( {
+                        options: {
+                            params: ( { params } ) => {
+                                return {
+                                    n: params.n - 1,
+                                };
+                            },
+                            after: ( { result, params } ) => {
+                                return ( params.n + 1 ) * result;
+                            },
+                        },
+                    } );
+                }
+            },
+        } );
+
+        const params = {
+            n: 5,
+        };
+        const result = await de.run( block, { params } );
+        expect( result ).toBe( 120 );
+    } );
+
     test( 'rejects with de.error', async () => {
         const error = de.error( {
             id: 'SOME_ERROR',

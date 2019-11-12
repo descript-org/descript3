@@ -82,36 +82,38 @@ describe( 'http', () => {
 
             let foo_result;
             let id;
-            const block = ( { generate_id } ) => {
-                id = generate_id();
+            const block = de.func( {
+                block: ( { generate_id } ) => {
+                    id = generate_id();
 
-                return de.object( {
-                    block: {
-                        foo: get_result_block( () => {
-                            foo_result = {
-                                foo: 42,
-                            };
-                            return foo_result;
-                        } )( {
-                            options: {
-                                id: id,
-                            },
-                        } ),
+                    return de.object( {
+                        block: {
+                            foo: get_result_block( () => {
+                                foo_result = {
+                                    foo: 42,
+                                };
+                                return foo_result;
+                            } )( {
+                                options: {
+                                    id: id,
+                                },
+                            } ),
 
-                        bar: base_block( {
-                            block: {
-                                pathname: path,
-                                method: 'POST',
-                                [ name ]: spy,
-                            },
+                            bar: base_block( {
+                                block: {
+                                    pathname: path,
+                                    method: 'POST',
+                                    [ name ]: spy,
+                                },
 
-                            options: {
-                                deps: id,
-                            },
-                        } ),
-                    },
-                } );
-            };
+                                options: {
+                                    deps: id,
+                                },
+                            } ),
+                        },
+                    } );
+                },
+            } );
 
             await de.run( block );
 

@@ -119,6 +119,43 @@ describe( 'options.before', () => {
         expect( result ).toBe( block_result );
     } );
 
+    it( 'before returns recursive block', async () => {
+        const factorial = de.func( {
+            block: ( { params } ) => {
+                if ( params.n === 1 ) {
+                    return 1;
+
+                } else {
+                    return factorial( {
+                        options: {
+                            params: ( { params } ) => {
+                                return {
+                                    n: params.n - 1,
+                                };
+                            },
+                            after: ( { result, params } ) => {
+                                return ( params.n + 1 ) * result;
+                            },
+                        },
+                    } );
+                }
+            },
+        } );
+
+        const block = de.object( {
+            block: {},
+            options: {
+                before: () => factorial,
+            },
+        } );
+
+        const params = {
+            n: 5,
+        };
+        const result = await de.run( block, { params } );
+        expect( result ).toBe( 120 );
+    } );
+
     describe( 'inheritance', () => {
 
         it( 'child\'s first, parent\'s second', async () => {

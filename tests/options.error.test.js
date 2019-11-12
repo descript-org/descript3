@@ -150,16 +150,11 @@ describe( 'options.error', () => {
             },
         } );
 
-        expect.assertions( 1 );
-        try {
-            await de.run( block );
-
-        } catch ( e ) {
-            expect( e ).toBe( error );
-        }
+        const result = await de.run( block );
+        expect( result ).toBe( undefined );
     } );
 
-    it.each( [ { foo: 42 }, 0, '', null, false ] )( 'first returns %j, second never called', async ( value ) => {
+    it.each( [ { foo: 42 }, 0, '', null, false, undefined ] )( 'first returns %j, second never called', async ( value ) => {
         const error = de.error( {
             id: 'ERROR',
         } );
@@ -179,51 +174,6 @@ describe( 'options.error', () => {
 
         expect( result ).toBe( value );
         expect( spy.mock.calls.length ).toBe( 0 );
-    } );
-
-    it( 'first returns undefined, second gets original error', async () => {
-        const error = de.error( {
-            id: 'ERROR',
-        } );
-        const spy = jest.fn( () => null );
-        const block_1 = get_error_block( error, 50 )( {
-            options: {
-                error: () => undefined,
-            },
-        } );
-        const block_2 = block_1( {
-            options: {
-                error: spy,
-            },
-        } );
-
-        await de.run( block_2 );
-
-        expect( spy.mock.calls[ 0 ][ 0 ].error ).toBe( error );
-    } );
-
-    it( 'first returns undefined, second returns undefined', async () => {
-        const error = de.error( {
-            id: 'ERROR',
-        } );
-        const block_1 = get_error_block( error, 50 )( {
-            options: {
-                error: () => undefined,
-            },
-        } );
-        const block_2 = block_1( {
-            options: {
-                error: () => undefined,
-            },
-        } );
-
-        expect.assertions( 1 );
-        try {
-            await de.run( block_2 );
-
-        } catch ( e ) {
-            expect( e ).toBe( error );
-        }
     } );
 
     it( 'first throws, second gets error from first', async () => {

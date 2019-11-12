@@ -1,5 +1,29 @@
 # Changelog
 
+## `3.0.14`
+
+  * `options.params`, `options.before`, `options.after` и `options.error` выполняются "послойно"
+    при наследовании. Т.е. примерно так:
+
+        child.params
+        child.before
+        parent.params
+        parent.before
+        action
+        parent.after / parent.error
+        child.after /child.error
+
+  * Результат выполнения `options.error` финальный.
+    Раньше, если `options.error` возвращал что-то (не кидал ошибку), то это что-то попадало в `options.after`.
+    Теперь это окончательный результат выполнения блока.
+
+  * [options.after] Раньше если `options.after` возвращал `undefined`, то вместо `undefined` брался
+    предыдущий результат. Теперь результат `options.after` всегда учитывается.
+
+  * Из `de.func`, `options.before`, `options.after` теперь можно вернуть блок.
+
+  * Убрана сокращенная версия `de.func`.
+
 ## `3.0.13`
 
   * [options.params] При наследовании `options.params` теперь вычисляются в обратном порядке.

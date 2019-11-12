@@ -19,7 +19,7 @@ describe( 'options.params', () => {
     describe( 'params is a function', () => {
 
         it( 'params gets { params, context }', async () => {
-            const spy = jest.fn();
+            const spy = jest.fn( () => ( {} ) );
             const block = get_result_block( null )( {
                 options: {
                     params: spy,
@@ -45,29 +45,31 @@ describe( 'options.params', () => {
             let data_foo;
             let id_foo;
 
-            const block = function( { generate_id } ) {
-                data_foo = {
-                    foo: 42,
-                };
-                id_foo = generate_id( 'foo' );
+            const block = de.func( {
+                block: ( { generate_id } ) => {
+                    data_foo = {
+                        foo: 42,
+                    };
+                    id_foo = generate_id( 'foo' );
 
-                return de.object( {
-                    block: {
-                        foo: get_result_block( data_foo )( {
-                            options: {
-                                id: id_foo,
-                            },
-                        } ),
+                    return de.object( {
+                        block: {
+                            foo: get_result_block( data_foo )( {
+                                options: {
+                                    id: id_foo,
+                                },
+                            } ),
 
-                        bar: get_result_block( null )( {
-                            options: {
-                                deps: id_foo,
-                                params: spy,
-                            },
-                        } ),
-                    },
-                } );
-            };
+                            bar: get_result_block( null )( {
+                                options: {
+                                    deps: id_foo,
+                                    params: spy,
+                                },
+                            } ),
+                        },
+                    } );
+                },
+            } );
 
             await de.run( block );
 
@@ -83,10 +85,15 @@ describe( 'options.params', () => {
                 },
             } );
 
-            await de.run( block );
+            expect.assertions( 3 );
+            try {
+                await de.run( block );
 
-            const calls = spy.mock.calls;
-            expect( calls[ 0 ][ 0 ].params ).toStrictEqual( {} );
+            } catch ( e ) {
+                expect( de.is_error( e ) ).toBe( true );
+                expect( e.error.id ).toBe( de.ERROR_ID.INVALID_OPTIONS_PARAMS );
+                expect( spy.mock.calls.length ).toBe( 0 );
+            }
         } );
 
         it( 'params returns object, action gets it as { params }', async () => {
@@ -154,28 +161,6 @@ describe( 'options.params', () => {
     } );
 
     describe( 'inheritance', () => {
-
-        it.each( [ undefined, null, 42 ] )( 'parent returns %j', async ( value ) => {
-            const params_spy = jest.fn();
-
-            const parent = get_result_block()( {
-                options: {
-                    params: () => value,
-                },
-            } );
-            const child = parent( {
-                options: {
-                    params: params_spy,
-                },
-            } );
-
-            const params = {
-                foo: 42,
-            };
-            await de.run( child, { params } );
-
-            expect( params_spy.mock.calls[ 0 ][ 0 ].params ).toBe( params );
-        } );
 
         it( 'child first, then parent', async () => {
             let parent_params;
