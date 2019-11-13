@@ -121,39 +121,35 @@ describe( 'options.before', () => {
 
     it( 'before returns recursive block', async () => {
         const factorial = de.func( {
-            block: ( { params } ) => {
-                if ( params.n === 1 ) {
-                    return 1;
-
-                } else {
-                    return factorial( {
-                        options: {
-                            params: ( { params } ) => {
-                                return {
-                                    n: params.n - 1,
-                                };
-                            },
-                            after: ( { result, params } ) => {
-                                return ( params.n + 1 ) * result;
-                            },
-                        },
-                    } );
-                }
-            },
-        } );
-
-        const block = de.object( {
-            block: {},
+            block: () => 1,
             options: {
-                before: () => factorial,
+                before: ( { params } ) => {
+                    if ( params.n === 1 ) {
+                        return {
+                            r: params.r,
+                        };
+
+                    } else {
+                        return factorial( {
+                            options: {
+                                params: ( { params } ) => {
+                                    return {
+                                        n: params.n - 1,
+                                        r: ( params.r || 1 ) * params.n,
+                                    };
+                                },
+                            },
+                        } );
+                    }
+                },
             },
         } );
 
         const params = {
             n: 5,
         };
-        const result = await de.run( block, { params } );
-        expect( result ).toBe( 120 );
+        const result = await de.run( factorial, { params } );
+        expect( result.r ).toBe( 120 );
     } );
 
     describe( 'inheritance', () => {
