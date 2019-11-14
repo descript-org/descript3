@@ -8,6 +8,8 @@
       * [de.func](./function_block.md)
       * [de.array](./array_block.md)
       * [de.object](./object_block.md)
+      * [de.pipe](./pipe_block.md)
+      * [de.first](./first_block.md)
 
   * [options](./options.md):
 

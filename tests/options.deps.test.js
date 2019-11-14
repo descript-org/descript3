@@ -28,6 +28,16 @@ describe( 'options.deps', () => {
         expect( result ).toBe( data );
     } );
 
+    it( 'no options.deps, deps is empty object', async () => {
+        const spy = jest.fn();
+        const block = de.func( {
+            block: spy,
+        } );
+
+        await de.run( block );
+        expect( spy.mock.calls[ 0 ][ 0 ].deps ).toEqual( {} );
+    } );
+
     it( 'empty deps', async () => {
         const data = {
             foo: 42,

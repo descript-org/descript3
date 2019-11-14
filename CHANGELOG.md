@@ -1,5 +1,9 @@
 # Changelog
 
+## `3.0.15`
+
+  * Новые блоки: [de.pipe](./docs/pipe_block.md) и [de.first](./docs/first_block.md).
+
 ## `3.0.14`
 
   * `options.params`, `options.before`, `options.after` и `options.error` выполняются "послойно"
