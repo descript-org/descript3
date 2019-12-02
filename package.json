@@ -6,16 +6,17 @@
     },
     "name": "descript",
     "description": "descript",
-    "version": "3.0.15",
+    "version": "3.0.16",
     "homepage": "https://github.com/pasaran/descript3",
     "repository": {
         "type": "git",
         "url": "git://github.com/pasaran/descript3.git"
     },
-    "dependencies": {
-        "nommon": "0.0.56"
+    "peerDependencies": {
+        "nommon": ">=0.0.57"
     },
     "devDependencies": {
+        "nommon": ">=0.0.57",
         "eslint": "5.15.1",
         "eslint-plugin-nop": "0.0.1",
         "jest": "^24.9.0"

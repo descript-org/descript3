@@ -1,5 +1,9 @@
 # Changelog
 
+## `3.0.16`
+
+  * `nommon` обновлен до версии `0.0.57`.
+
 ## `3.0.15`
 
   * Новые блоки: [de.pipe](./docs/pipe_block.md) и [de.first](./docs/first_block.md).
