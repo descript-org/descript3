@@ -12,6 +12,30 @@ const {
 
 describe( 'de.array', () => {
 
+    it( 'block is undefined #1', () => {
+        expect.assertions( 2 );
+        try {
+            de.array( {
+                block: undefined,
+            } );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.INVALID_BLOCK );
+        }
+    } );
+
+    it( 'block is undefined #2', () => {
+        expect.assertions( 2 );
+        try {
+            de.array();
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.INVALID_BLOCK );
+        }
+    } );
+
     it( 'empty array', async () => {
         const block = de.array( {
             block: [],
