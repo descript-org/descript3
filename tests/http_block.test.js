@@ -8,6 +8,8 @@ const Server = require( './server' );
 
 const { get_path, get_result_block } = require( './helpers' );
 
+const strip_null_and_undefined_values = require( '../lib/strip_null_and_undefined_values' );
+
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 describe( 'http', () => {
@@ -356,21 +358,33 @@ describe( 'http', () => {
             const spy = jest.fn( ( req, res ) => res.end() );
             fake.add( path, spy );
 
-            const query = {
-                b: 'b',
-                a: 'a',
-            };
             const block = base_block( {
                 block: {
                     pathname: path,
-                    query: () => query,
+                    query: () => {
+                        return {
+                            b: 'b',
+                            a: 'a',
+                            c: undefined,
+                            d: '',
+                            e: null,
+                            f: 0,
+                            g: false,
+                        };
+                    },
                 },
             } );
 
             await de.run( block );
 
             const req = spy.mock.calls[ 0 ][ 0 ];
-            expect( url_.parse( req.url, true ).query ).toEqual( query );
+            expect( url_.parse( req.url, true ).query ).toEqual( {
+                b: 'b',
+                a: 'a',
+                d: '',
+                f: '0',
+                g: 'false',
+            } );
         } );
 
         it( 'is an object and value is null', async () => {
@@ -596,7 +610,12 @@ describe( 'http', () => {
                         pathname: path,
                         query: () => {
                             parent_query = {
-                                foo: 42,
+                                a: 'a',
+                                b: undefined,
+                                c: null,
+                                d: 0,
+                                e: '',
+                                f: false,
                             };
                             return parent_query;
                         },
@@ -613,7 +632,7 @@ describe( 'http', () => {
                 await de.run( child );
 
                 const call = spy.mock.calls[ 0 ][ 0 ];
-                expect( call.query ).toBe( parent_query );
+                expect( call.query ).toStrictEqual( strip_null_and_undefined_values( parent_query ) );
             } );
 
             it( 'child is an object and value function gets { query }', async () => {
@@ -626,7 +645,12 @@ describe( 'http', () => {
                         pathname: path,
                         query: () => {
                             parent_query = {
-                                foo: 42,
+                                a: 'a',
+                                b: undefined,
+                                c: null,
+                                d: 0,
+                                e: '',
+                                f: false,
                             };
                             return parent_query;
                         },
@@ -645,7 +669,7 @@ describe( 'http', () => {
                 await de.run( child );
 
                 const call = spy.mock.calls[ 0 ][ 0 ];
-                expect( call.query ).toBe( parent_query );
+                expect( call.query ).toStrictEqual( strip_null_and_undefined_values( parent_query ) );
             } );
 
         } );
