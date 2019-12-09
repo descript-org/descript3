@@ -56,7 +56,7 @@ function get_result_block( value, timeout = 0, options = {} ) {
 }
 
 function get_error_block( error, timeout ) {
-    if ( !de.is_block( error ) && ( typeof value === 'function' ) ) {
+    if ( !de.is_block( error ) && ( typeof error === 'function' ) ) {
         return de.func( {
             block: async function() {
                 await wait_for_value( null, timeout );

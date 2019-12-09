@@ -2,7 +2,7 @@ const de = require( '../lib' );
 
 const {
     get_timeout,
-    //  wait_for_value,
+    wait_for_value,
     //  wait_for_error,
     get_result_block,
     get_error_block,
@@ -687,15 +687,15 @@ describe( 'options.deps', () => {
                     foo: 42,
                 };
 
-                const block_foo = get_result_block( data_foo, 50 )( {
-                    options: {
-                        id: id_foo,
-                    },
-                } );
-
                 return de.object( {
                     block: {
-                        bar: get_result_block( block_foo, 50 ),
+                        bar: get_result_block( () => {
+                            return get_result_block( data_foo, 50 )( {
+                                options: {
+                                    id: id_foo,
+                                },
+                            } );
+                        }, 50 ),
 
                         quu: get_result_block( null, 50 )( {
                             options: {
@@ -704,7 +704,6 @@ describe( 'options.deps', () => {
                                 before: before_quu,
                             },
                         } ),
-
                     },
                 } );
             },
@@ -714,6 +713,90 @@ describe( 'options.deps', () => {
 
         const deps = before_quu.mock.calls[ 0 ][ 0 ].deps;
         expect( deps[ id_foo ] ).toBe( data_foo );
+    } );
+
+    it( 'result of de.func has deps #1', async () => {
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
+
+                return de.object( {
+                    block: {
+                        foo: get_result_block( null, 50 )( {
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
+
+                        bar: de.func( {
+                            block: () => {
+                                return new Promise( ( resolve ) => {
+                                    setTimeout( () => {
+                                        resolve( get_result_block( null, 50 )( {
+                                            options: {
+                                                deps: id_foo,
+                                            },
+                                        } ) );
+                                    }, 100 );
+                                } );
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
+
+        const result = await de.run( block );
+
+        expect( result ).toEqual( { foo: null, bar: null } );
+
+    } );
+
+    it( 'result of de.func has deps #2', async () => {
+        let error_foo;
+
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_foo = generate_id();
+
+                return de.object( {
+                    block: {
+                        foo: de.func( {
+                            block: async () => {
+                                await wait_for_value( null, 50 );
+
+                                error_foo = de.error( {
+                                    id: 'ERROR',
+                                } );
+                                throw error_foo;
+                            },
+                            options: {
+                                id: id_foo,
+                            },
+                        } ),
+
+                        bar: de.func( {
+                            block: async () => {
+                                await wait_for_value( null, 50 );
+
+                                return get_result_block( null, 50 )( {
+                                    options: {
+                                        deps: id_foo,
+                                    },
+                                } );
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
+
+        const result = await de.run( block );
+
+        expect( result.foo ).toBe( error_foo );
+        expect( de.is_error( result.bar ) ).toBe( true );
+        expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_ERROR );
+        expect( result.bar.error.reason ).toBe( error_foo );
     } );
 
     it.each( [ 'foo', Symbol( 'foo' ) ] )( 'unresolved deps #1, id is %p', async ( id ) => {
@@ -753,6 +836,73 @@ describe( 'options.deps', () => {
 
         expect( de.is_error( result.bar ) ).toBe( true );
         expect( result.bar.error.id ).toBe( de.ERROR_ID.INVALID_DEPS_ID );
+    } );
+
+    describe( 'de.pipe', () => {
+
+        it( 'second block in pipe depends of the first one', async () => {
+            let result_bar;
+            const block = de.func( {
+                block: ( { generate_id } ) => {
+                    const id_foo = generate_id();
+                    const block_foo = get_result_block( null, 50 )( {
+                        options: {
+                            id: id_foo,
+                        },
+                    } );
+
+                    result_bar = {
+                        bar: 24,
+                    };
+                    const block_bar = get_result_block( result_bar, 50 )( {
+                        options: {
+                            deps: id_foo,
+                        },
+                    } );
+
+                    return de.pipe( {
+                        block: [ block_foo, block_bar ],
+                    } );
+                },
+            } );
+
+            const result = await de.run( block );
+
+            expect( result ).toBe( result_bar );
+        } );
+
+        it( 'first block in pipe depends of the second one', async () => {
+            const block = de.func( {
+                block: ( { generate_id } ) => {
+                    const id_bar = generate_id();
+
+                    const block_foo = get_result_block( null, 50 )( {
+                        options: {
+                            deps: id_bar,
+                        },
+                    } );
+                    const block_bar = get_result_block( null, 50 )( {
+                        options: {
+                            deps: id_bar,
+                        },
+                    } );
+
+                    return de.pipe( {
+                        block: [ block_foo, block_bar ],
+                    } );
+                },
+            } );
+
+            expect.assertions( 2 );
+            try {
+                await de.run( block );
+
+            } catch ( e ) {
+                expect( de.is_error( e ) ).toBe( true );
+                expect( e.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
+            }
+        } );
+
     } );
 
 } );
