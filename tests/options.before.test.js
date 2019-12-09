@@ -87,6 +87,46 @@ describe( 'options.before', () => {
         }
     } );
 
+    it( 'before returns promise that resolves, block has deps', async () => {
+        let bar_result;
+
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id = generate_id();
+
+                return de.object( {
+                    block: {
+                        foo: get_result_block( null, 50 )( {
+                            options: {
+                                id: id,
+                            },
+                        } ),
+
+                        bar: get_result_block( null, 50 )( {
+                            options: {
+                                deps: id,
+                                before: () => {
+                                    return new Promise( ( resolve ) => {
+                                        setTimeout( () => {
+                                            bar_result = {
+                                                bar: 24,
+                                            };
+                                            resolve( bar_result );
+                                        }, 50 );
+                                    } );
+                                },
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
+
+        const r = await de.run( block );
+
+        expect( r.bar ).toBe( bar_result );
+    } );
+
     it( 'before returns promise that resolves, action never called', async () => {
         const spy = jest.fn();
         const before_result = {

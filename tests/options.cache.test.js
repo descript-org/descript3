@@ -217,6 +217,50 @@ describe( 'options.cache, options.key, options.maxage', () => {
         expect( spy.mock.calls.length ).toBe( 1 );
     } );
 
+    it( 'cache.get returns promise that rejects, block has deps', async () => {
+        const cache = {
+            get: () => {
+                return new Promise( ( resolve, reject ) => {
+                    setTimeout( () => {
+                        reject( de.error( {
+                            id: 'SOME_ERROR',
+                        } ) );
+                    }, 50 );
+                } );
+            },
+            set: () => undefined,
+        };
+        const spy = jest.fn( () => null );
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id = generate_id();
+
+                return de.object( {
+                    block: {
+                        foo: get_result_block( null, 50 )( {
+                            options: {
+                                id: id,
+                            },
+                        } ),
+
+                        bar: get_result_block( spy, 50 )( {
+                            options: {
+                                deps: id,
+                                cache: cache,
+                                key: 'KEY',
+                                maxage: 10000,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
+
+        const r = await de.run( block );
+
+        expect( r ).toEqual( { foo: null, bar: null } );
+        expect( spy.mock.calls.length ).toBe( 1 );
+    } );
 
     it( 'cache.set throws', async () => {
         const cache = {

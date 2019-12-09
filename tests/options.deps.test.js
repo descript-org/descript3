@@ -469,6 +469,60 @@ describe( 'options.deps', () => {
         expect( result.bar.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
     } );
 
+    it( 'one block with deps', async () => {
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id = generate_id();
+
+                return get_result_block( null, 50 )( {
+                    options: {
+                        deps: id,
+                    },
+                } );
+            },
+        } );
+
+        expect.assertions( 2 );
+        try {
+            await de.run( block );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
+        }
+    } );
+
+    it( 'block returns another block that depends on parent block', async () => {
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id = generate_id();
+
+                const child = get_result_block( null, 50 )( {
+                    options: {
+                        deps: id,
+                    },
+                } );
+
+                return get_result_block( child, 50 )( {
+                    options: {
+                        id: id,
+                    },
+                } );
+            },
+        } );
+
+        expect.assertions( 2 );
+        try {
+            await de.run( block );
+
+        } catch ( e ) {
+            expect( de.is_error( e ) ).toBe( true );
+            expect( e.error.id ).toBe( de.ERROR_ID.DEPS_NOT_RESOLVED );
+        }
+
+
+    } );
+
     it( 'before( { deps } ) has deps results #1', async () => {
         const data_foo = {
             foo: 42,
