@@ -1,5 +1,9 @@
 # Changelog
 
+## `3.0.18`
+
+  * Еще фиксы про `DEPS_NOT_RESOLVED`.
+
 ## `3.0.17`
 
   * Fixed #1. Фильтрация в query для значений `null` / `undefined`.
