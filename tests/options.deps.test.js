@@ -838,6 +838,57 @@ describe( 'options.deps', () => {
         expect( result.bar.error.id ).toBe( de.ERROR_ID.INVALID_DEPS_ID );
     } );
 
+    it( 'fix 3.0.19', async () => {
+        const block = de.func( {
+            block: ( { generate_id } ) => {
+                const id_a = generate_id();
+                const id_c = generate_id();
+
+                return de.object( {
+                    block: {
+                        A: get_error_block( () => de.error( {
+                            id: 'ERROR_A',
+                        } ), 50 )( {
+                            options: {
+                                id: id_a,
+                            },
+                        } ),
+
+                        //  Вот этот блок падает из-за A, n_active_blocks при этом не инкрементился,
+                        //  но в конце декрементился. В итоге n_active_blocks разъезжался и уходил в минус.
+                        //
+                        B: get_result_block( null, 50 )( {
+                            options: {
+                                deps: id_a,
+                            },
+                        } ),
+
+                        C: get_result_block( null, 200 )( {
+                            options: {
+                                id: id_c,
+                            },
+                        } ),
+
+                        //  Этот блок зависит от C, но когда B падает из-за блока A,
+                        //  неправильно декрементился счетчик n_active_blocks и D решал, что
+                        //  зависимости не сходятся. Короче, какая-то Санта Барбара.
+                        //
+                        D: get_result_block( null, 50 )( {
+                            options: {
+                                deps: id_c,
+                                required: true,
+                            },
+                        } ),
+                    },
+                } );
+            },
+        } );
+
+        const r = await de.run( block );
+
+        expect( r.D ).toBe( null );
+    } );
+
     describe( 'de.pipe', () => {
 
         it( 'second block in pipe depends of the first one', async () => {
