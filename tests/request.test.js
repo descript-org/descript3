@@ -67,6 +67,22 @@ describe( 'request', () => {
             expect( result.body.toString() ).toBe( CONTENT );
         } );
 
+        it( 'pathname always starts with /', async () => {
+            const path = get_path();
+
+            const spy = jest.fn( ( req, res ) => res.end() );
+
+            fake.add( path, spy );
+
+            await do_request( {
+                pathname: path.replace( /^\//, '' ),
+            } );
+
+            const [ req ] = spy.mock.calls[ 0 ];
+
+            expect( url_.parse( req.url ).pathname ).toBe( path );
+        } );
+
         it( 'sets accept-encoding to gzip,deflate', async () => {
             const path = get_path();
 
