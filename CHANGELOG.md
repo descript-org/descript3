@@ -1,5 +1,9 @@
 # Changelog
 
+## `3.0.21`
+
+  * [http] Body может быть `Buffer`-ом.
+
 ## `3.0.20`
 
   * [request] Fixed #4. Всегда добавляем / в начале pathname, если его нет.
