@@ -16,14 +16,16 @@ describe( 'http', () => {
 
     const PORT = 10000;
 
-    const base_block = de.http( {
+    const base_block = ( args = {} ) => de.http( {
         block: {
             protocol: 'http:',
             hostname: '127.0.0.1',
             port: PORT,
+            ...args.block,
         },
         options: {
             logger: new de.Logger(),
+            ...args.options,
         },
     } );
 
