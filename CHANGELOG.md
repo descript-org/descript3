@@ -2,7 +2,7 @@
 
 ## `3.0.21`
 
-  * [http] Body может быть `Buffer`-ом.
+  * [http] `http_block.parse_body( result, context )` для кастомного парсинга body ответа (дефолт `String(result.body)`.
 
 ## `3.0.20`
 
