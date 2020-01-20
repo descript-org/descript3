@@ -1177,6 +1177,59 @@ describe( 'http', () => {
             expect( spy_2.mock.calls.length ).toBe( 1 );
         } );
 
+        it( 'default parse_body', async () => {
+            const path = get_path();
+
+            const CONTENT = 'Привет!';
+
+            fake.add( path, {
+                status_code: 200,
+                content: CONTENT,
+            } );
+
+            const block = base_block( {
+                block: {
+                    pathname: path,
+                },
+            } );
+
+            const result = await de.run( block );
+
+            expect( result.status_code ).toBe( 200 );
+            expect( result.result ).toBe( CONTENT );
+        } );
+
+        it( 'custom parse_body', async () => {
+            const path = get_path();
+
+            const CONTENT = 'Привет!';
+
+            fake.add( path, {
+                status_code: 200,
+                content: CONTENT,
+            } );
+
+            const BODY = 'Пока!';
+            const spy = jest.fn( () => {
+                return BODY;
+            } );
+
+            const block = base_block( {
+                block: {
+                    pathname: path,
+                    parse_body: spy,
+                },
+            } );
+
+            const context = {};
+            const result = await de.run( block, { context } );
+
+            const [ a_result, a_context ] = spy.mock.calls[ 0 ];
+            expect( result.result ).toBe( BODY );
+            expect( Buffer.compare( a_result.body, Buffer.from( CONTENT ) ) ).toBe( 0 );
+            expect( a_context ).toBe( context );
+        } );
+
     } );
 
 } );
