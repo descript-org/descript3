@@ -138,7 +138,7 @@ class Server {
 
     start() {
         return new Promise( ( resolve ) => {
-            this.server.listen( this.config.port, resolve );
+            this.server.listen( this.config.listen_options, resolve );
         } );
     }
 

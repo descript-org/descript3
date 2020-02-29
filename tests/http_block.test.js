@@ -31,7 +31,9 @@ describe( 'http', () => {
 
     const fake = new Server( {
         module: http_,
-        port: PORT,
+        listen_options: {
+            port: PORT,
+        },
     } );
 
     beforeAll( () => fake.start() );

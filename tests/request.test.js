@@ -31,6 +31,7 @@ describe( 'request', () => {
     describe( 'http', () => {
 
         const PORT = 9000;
+        const PORT_IPV6 = 9006;
 
         const do_request = get_do_request( {
             protocol: 'http:',
@@ -41,11 +42,28 @@ describe( 'request', () => {
 
         const fake = new Server( {
             module: http_,
-            port: PORT,
+            listen_options: {
+                port: PORT,
+            },
         } );
 
-        beforeAll( () => fake.start() );
-        afterAll( () => fake.stop() );
+        const fake_ipv6 = new Server( {
+            module: http_,
+            listen_options: {
+                host: '::1',
+                port: PORT_IPV6,
+                ipv6Only: true,
+            },
+        } );
+
+        beforeAll( () => Promise.all( [
+            fake.start(),
+            fake_ipv6.start(),
+        ] ) );
+        afterAll( () => Promise.all( [
+            fake.stop(),
+            fake_ipv6.stop(),
+        ] ) );
 
         it.each( [ 'GET', 'DELETE' ] )( '%j', async ( method ) => {
             const path = get_path();
@@ -720,6 +738,33 @@ describe( 'request', () => {
 
         } );
 
+        describe( 'family', () => {
+
+            it( 'respest option family:6', async () => {
+                const path = get_path();
+
+                const CONTENT = 'Привет!';
+
+                fake_ipv6.add( path, {
+                    status_code: 200,
+                    content: CONTENT,
+                } );
+
+                const result = await do_request( {
+                    family: 6,
+                    hostname: 'localhost',
+                    method: 'GET',
+                    pathname: path,
+                    port: PORT_IPV6,
+                } );
+
+                expect( result.status_code ).toBe( 200 );
+                expect( Buffer.isBuffer( result.body ) ).toBe( true );
+                expect( result.body.toString() ).toBe( CONTENT );
+            } );
+
+        } );
+
         describe( 'cancel', () => {
 
             it( 'cancel before request ended', async () => {
@@ -807,7 +852,9 @@ describe( 'request', () => {
 
         const fake = new Server( {
             module: https_,
-            port: PORT,
+            listen_options: {
+                port: PORT,
+            },
             options: {
                 key: server_key,
                 cert: server_cert,
