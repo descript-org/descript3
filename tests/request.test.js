@@ -740,7 +740,7 @@ describe( 'request', () => {
 
         describe( 'family', () => {
 
-            it( 'respest option family:6', async () => {
+            it( 'family: 6', async () => {
                 const path = get_path();
 
                 const CONTENT = 'Привет!';
