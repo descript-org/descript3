@@ -1,5 +1,9 @@
 # Changelog
 
+## `3.0.22`
+
+  * [request] Merged pr #6. `family: 6` fixed.
+
 ## `3.0.21`
 
   * [http] `http_block.parse_body( result, context )` для кастомного парсинга body ответа (дефолт `String(result.body)`.
