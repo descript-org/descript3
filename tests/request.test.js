@@ -246,7 +246,7 @@ describe( 'request', () => {
             expect( Buffer.compare( BODY, body ) ).toBe( 0 );
         } );
 
-        it.each( [ 'POST', 'PUT', 'PATCH' ] )( '%j, body is a string', async ( method ) => {
+        it.each( [ 'POST', 'PUT', 'PATCH', 'DELETE' ] )( '%j, body is a string', async ( method ) => {
             const path = get_path();
 
             const BODY = 'Привет!';
@@ -269,7 +269,7 @@ describe( 'request', () => {
             expect( body.toString() ).toBe( BODY );
         } );
 
-        it.each( [ 'POST', 'PUT', 'PATCH' ] )( '%j, body is a string, custom content-type', async ( method ) => {
+        it.each( [ 'POST', 'PUT', 'PATCH', 'DELETE' ] )( '%j, body is a string, custom content-type', async ( method ) => {
             const path = get_path();
 
             const BODY = 'div { color: red; }';
@@ -295,7 +295,7 @@ describe( 'request', () => {
             expect( body.toString() ).toBe( BODY );
         } );
 
-        it.each( [ 'POST', 'PUT', 'PATCH' ] )( '%j, body is an object', async ( method ) => {
+        it.each( [ 'POST', 'PUT', 'PATCH', 'DELETE' ] )( '%j, body is an object', async ( method ) => {
             const path = get_path();
 
             const BODY = {
@@ -322,7 +322,7 @@ describe( 'request', () => {
             expect( body.toString() ).toBe( body_string );
         } );
 
-        it.each( [ 'POST', 'PUT', 'PATCH' ] )( '%j, body is an object, content-type is application/json', async ( method ) => {
+        it.each( [ 'POST', 'PUT', 'PATCH', 'DELETE' ] )( '%j, body is an object, content-type is application/json', async ( method ) => {
             const path = get_path();
 
             const BODY = {
