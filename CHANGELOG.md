@@ -1,5 +1,9 @@
 # Changelog
 
+## `3.0.23`
+
+  * [request] Merged pr #7. Разрешаем body для DELETE-запросов.
+
 ## `3.0.22`
 
   * [request] Merged pr #6. `family: 6` fixed.
