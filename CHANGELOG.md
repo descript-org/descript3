@@ -1,5 +1,9 @@
 # Changelog
 
+## `3.0.24`
+
+  * Добавлен `index.d.ts`.
+
 ## `3.0.23`
 
   * [request] Merged pr #7. Разрешаем body для DELETE-запросов.
