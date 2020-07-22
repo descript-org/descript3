@@ -4,6 +4,8 @@ export type First< T > =
 export type Tail< T > =
     T extends readonly [ infer First, ...infer Rest ] | [ infer First, ...infer Rest ] ? Rest : never;
 
+type Equal< A, B > = A extends B ? ( B extends A ? A : never ) : never;
+
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 import {
@@ -245,7 +247,7 @@ interface DescriptHttpBlock<
     Context,
     Result,
 > {
-    < ExtendedParamsIn, ExtendedResultOut >( args: {
+    < ExtendedParamsIn = Params, ExtendedResultOut = Result>( args: {
         block?: DescriptHttpBlockDescription< Params, Context >,
         options?: DescriptBlockOptions< ExtendedParamsIn, Params, Context, Result, ExtendedResultOut >,
     } ): DescriptHttpBlock< ExtendedParamsIn, Context, ExtendedResultOut >;
@@ -321,6 +323,12 @@ export type GetArrayBlockParams< T > = {
     2: GetDescriptBlockParams< First< T > > & GetArrayBlockParams< Tail< T > >,
 }[ T extends [] ? 0 : T extends ( ( readonly [ any ] ) | [ any ] ) ? 1 : 2 ];
 
+export type GetArrayBlockContext< T > = {
+    0: never,
+    1: GetDescriptBlockContext< First< T > >,
+    2: Equal< GetDescriptBlockContext< First< T > >, GetArrayBlockContext< Tail< T > > >,
+}[ T extends [] ? 0 : T extends ( ( readonly [ any ] ) | [ any ] ) ? 1 : 2 ];
+
 type DescriptArrayBlockDescription< T extends ReadonlyArray< any > | Array< any > > = {
     [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Params, infer Context, infer Result > ? T[ P ] : never
 }
@@ -330,14 +338,14 @@ interface DescriptArrayBlock<
     Context,
     Result,
 > {
-    < ExtendedParamsIn, ExtendedResultOut >( args: {
+    < ExtendedParamsIn = Params, ExtendedResultOut = Result >( args: {
         options?: DescriptBlockOptions< ExtendedParamsIn, Params, Context, Result, ExtendedResultOut >,
     } ): DescriptArrayBlock< ExtendedParamsIn, Context, ExtendedResultOut >;
 }
 
 declare function array<
-Context,
-Block extends ReadonlyArray< any >,
+    Block extends ReadonlyArray< any >,
+    Context = GetArrayBlockContext< Block >,
     ParamsOut = GetArrayBlockParams< Block >,
     ResultIn = GetArrayBlockResult< Block >,
     ResultOut = ResultIn,
@@ -407,19 +415,22 @@ type DescriptBlock<
 export type GetDescriptBlockResult< T > =
     T extends DescriptBlock< infer Params, infer Context, infer Result > ? Result : never;
 
-type GetDescriptBlockParams< T > =
+export type GetDescriptBlockParams< T > =
     T extends DescriptBlock< infer Params, infer Context, infer Result > ? Params : never;
 
-//  ---------------------------------------------------------------------------------------------------------------  //
+export type GetDescriptBlockContext< T > =
+    T extends DescriptBlock< infer Params, infer Context, infer Result > ? Context : never;
+
+    //  ---------------------------------------------------------------------------------------------------------------  //
 
 declare function run<
     Params,
     Context,
-    Block,
+    Result,
 > (
-    block: Block,
+    block: DescriptBlock< Params, Context, Result >,
     args: Partial< DescriptBlockBaseCallbackArgs< Params, Context > >,
-): Promise< GetDescriptBlockResult< Block > >;
+): Promise< Result >;
 
 declare function is_block( block: any ): boolean;
 
