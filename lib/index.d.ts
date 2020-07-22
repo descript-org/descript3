@@ -346,22 +346,23 @@ interface DescriptArrayBlock<
 declare function array<
     Block extends ReadonlyArray< any >,
     Context = GetArrayBlockContext< Block >,
-    ParamsOut = GetArrayBlockParams< Block >,
+    ParamsIn = GetArrayBlockParams< Block >,
+    ParamsOut = ParamsIn,
     ResultIn = GetArrayBlockResult< Block >,
     ResultOut = ResultIn,
 > (
     args: {
-        //  block: DescriptArrayBlockDescription< Block >,
-        block: Block,
+        block: DescriptArrayBlockDescription< Block >,
+        //  block: Block,
         options?: DescriptBlockOptions<
-            GetArrayBlockParams< Block >,
+            ParamsIn,
             ParamsOut,
             Context,
             ResultIn,
             ResultOut
         >,
     },
-): DescriptArrayBlock< GetArrayBlockParams< Block >, Context, ResultOut >;
+): DescriptArrayBlock< ParamsIn, Context, ResultOut >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 /*
