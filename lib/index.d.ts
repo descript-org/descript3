@@ -248,7 +248,7 @@ declare function http<
     ParamsIn,
     ResultIn,
     ParamsOut = ParamsIn,
-    ResultOut = ParamsOut,
+    ResultOut = ResultIn,
 > (
     args: {
         block: DescriptHttpBlockDescription< ParamsOut, Context >,
