@@ -106,15 +106,6 @@ type DescriptBlockGenerateId = () => DescriptBlockId;
 
 type DescriptBlockDeps = Record< DescriptBlockId, any >;
 
-interface DescriptBlockBaseCallbackArgs<
-    Params,
-    Context,
-> {
-    params?: Params;
-    context?: Context;
-    deps?: DescriptBlockDeps;
-}
-
 interface DescriptBlockOptions<
     Context,
     ParamsIn,
@@ -127,25 +118,42 @@ interface DescriptBlockOptions<
     id?: DescriptBlockId;
     deps?: DescriptBlockId | Array< DescriptBlockId >;
 
-    params?: ( args: DescriptBlockBaseCallbackArgs< ParamsIn, Context > ) => ParamsOut;
+    params?: ( args: {
+        params: ParamsIn,
+        context: Context,
+        deps: DescriptBlockDeps,
+    } ) => ParamsOut;
 
-    before?: ( args: DescriptBlockBaseCallbackArgs< ParamsOut, Context > & {
-        cancel?: Cancel,
+    before?: ( args: {
+        params: ParamsOut,
+        context: Context,
+        deps: DescriptBlockDeps,
+        cancel: Cancel,
     } ) => ResultOut | Promise< ResultOut > | void;
 
-    after?: ( args: DescriptBlockBaseCallbackArgs< ParamsOut, Context > & {
-        cancel?: Cancel,
-        result?: ResultIn,
+    after?: ( args: {
+        params: ParamsOut,
+        context: Context,
+        deps: DescriptBlockDeps,
+        cancel: Cancel,
+        result: ResultIn,
     } ) => ResultOut | Promise< ResultOut >;
 
-    error?: ( args: DescriptBlockBaseCallbackArgs< ParamsOut, Context > & {
-        cancel?: Cancel,
-        error?: DescriptError,
+    error?: ( args: {
+        params: ParamsOut,
+        context: Context,
+        deps: DescriptBlockDeps,
+        cancel: Cancel,
+        error: DescriptError,
     } ) => ResultOut | void;
 
     timeout?: number;
 
-    key?: string | ( ( args: DescriptBlockBaseCallbackArgs< ParamsOut, Context > ) => string );
+    key?: string | ( ( args: {
+        params: ParamsOut,
+        context: Context,
+        deps: DescriptBlockDeps,
+    } ) => string );
     maxage?: number;
     cache?: Cache< ResultOut, Context >;
 
@@ -157,7 +165,11 @@ interface DescriptBlockOptions<
 //  ---------------------------------------------------------------------------------------------------------------  //
 //  HttpBlock
 
-type DescriptHttpBlockDescriptionCallback< T, Params, Context > = T | ( ( args: DescriptBlockBaseCallbackArgs< Params, Context > ) => T );
+type DescriptHttpBlockDescriptionCallback< T, Params, Context > = T | ( ( args: {
+    params: Params,
+    context: Context,
+    deps: DescriptBlockDeps,
+ } ) => T );
 
 type DescriptHttpBlockQueryValue = string | number | boolean;
 type DescriptHttpBlockQuery = Record< string, DescriptHttpBlockQueryValue >;
@@ -175,12 +187,18 @@ interface DescriptHttpBlockDescription< Params, Context > {
         Record< string,
             DescriptHttpBlockQueryValue |
             null |
-            ( ( args: DescriptBlockBaseCallbackArgs< Params, Context > & {
+            ( ( args: {
+                params: Params,
+                context: Context,
+                deps: DescriptBlockDeps,
                 query: DescriptHttpBlockQuery,
             } ) => DescriptHttpBlockQueryValue )
         > |
         (
-            ( args: DescriptBlockBaseCallbackArgs< Params, Context > & {
+            ( args: {
+                params: Params,
+                context: Context,
+                deps: DescriptBlockDeps,
                 query: DescriptHttpBlockQuery,
             } ) => DescriptHttpBlockQuery
         );
@@ -188,12 +206,18 @@ interface DescriptHttpBlockDescription< Params, Context > {
     headers?:
         Record< string,
             string |
-            ( ( args: DescriptBlockBaseCallbackArgs< Params, Context > & {
+            ( ( args: {
+                params: Params,
+                context: Context,
+                deps: DescriptBlockDeps,
                 headers: DescriptHttpBlockHeaders,
             } ) => string )
         > |
         (
-            ( args: DescriptBlockBaseCallbackArgs< Params, Context > & {
+            ( args: {
+                params: Params,
+                context: Context,
+                deps: DescriptBlockDeps,
                 headers: DescriptHttpBlockHeaders,
             } ) => DescriptHttpBlockHeaders
         );
@@ -201,7 +225,11 @@ interface DescriptHttpBlockDescription< Params, Context > {
     body?:
         string |
         Buffer |
-        ( ( args: DescriptBlockBaseCallbackArgs< Params, Context > ) => string | Buffer | DescriptJSON );
+        ( ( args: {
+            params: Params,
+            context: Context,
+            deps: DescriptBlockDeps,
+        } ) => string | Buffer | DescriptJSON );
 
     is_json?: boolean;
 
@@ -263,7 +291,10 @@ type DescriptFuncBlockDescription<
     Context,
     Params,
     Result,
-> = ( args?: DescriptBlockBaseCallbackArgs< Params, Context > & {
+> = ( args: {
+    params: Params,
+    context: Context,
+    deps: DescriptBlockDeps,
     generate_id: DescriptBlockGenerateId,
     cancel: Cancel,
 } ) =>
@@ -449,7 +480,10 @@ declare function run<
     Result,
 > (
     block: DescriptBlock< Context, Params, Result >,
-    args: Partial< DescriptBlockBaseCallbackArgs< Params, Context > >,
+    args: {
+        params?: Params,
+        context?: Context,
+    },
 ): Promise< Result >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
