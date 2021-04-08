@@ -71,6 +71,27 @@ describe( 'options.error', () => {
         expect( result ).toBe( error_2 );
     } );
 
+    it( 'returns error with custom params', async () => {
+        const error_1 = de.error( {
+            id: 'ERROR_1',
+        } );
+        const error_custom_params = de.error( {
+            id: 'ERROR_CUSTOM',
+            details: {
+                retryAfter: 3000,
+            },
+        } );
+        const block = get_error_block( error_1 )( {
+            options: {
+                error: () => error_custom_params,
+            },
+        } );
+
+        const result = await de.run( block );
+
+        expect( result ).toBe( error_custom_params );
+    } );
+
     it( 'throws ReferenceError', async () => {
         const error_1 = de.error( {
             id: 'ERROR_1',
