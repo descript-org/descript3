@@ -298,9 +298,9 @@ type DescriptFuncBlockDescription<
     generate_id: DescriptBlockGenerateId,
     cancel: Cancel,
 } ) =>
-    Result;
+    Result |
+    Promise< Result >;
     //  DescriptBlock< Context, Params, Result > |
-    // Promise< Result >;
 
 interface DescriptFuncBlock<
     Context,
