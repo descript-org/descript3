@@ -492,7 +492,7 @@ declare function is_block( block: any ): boolean;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-declare function error( error: { id: string; message?: string } ): DescriptError;
+declare function error( error: { id: string; [ key: string ]: any } ): DescriptError;
 declare function is_error( error: any ): boolean;
 
 declare enum ERROR_ID {
