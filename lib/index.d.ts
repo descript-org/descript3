@@ -230,6 +230,8 @@ interface DescriptHttpBlockDescription< Params, Context > {
             context: Context,
             deps: DescriptBlockDeps,
         } ) => string | Buffer | DescriptJSON );
+    
+    parse_body?: (result: { body: string | Buffer }, context: Context) => any;
 
     is_json?: boolean;
 
