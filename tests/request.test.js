@@ -846,7 +846,7 @@ describe( 'request', () => {
             throw Error(
                 'Generate https keys:\n' +
                 '    cd tests\n' +
-                '    ./gen-certs.sh\n'
+                '    ./gen-certs.sh\n',
             );
         }
 
@@ -972,6 +972,7 @@ describe( 'request', () => {
             beforeAll( () => server_listen( server, PORT ) );
             afterAll( () => server_close( server ) );
 
+            //  FIXME: Этот тест падает в 16-й ноде :(
             it( '', async () => {
                 expect.assertions( 2 );
                 try {
