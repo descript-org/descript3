@@ -36,7 +36,9 @@ class Answer {
         const answer = this.answer;
 
         if ( typeof answer === 'function' ) {
-            return answer( req, res, data );
+            answer( req, res, data );
+
+            return;
         }
 
         if ( answer.wait > 0 ) {
@@ -46,6 +48,7 @@ class Answer {
         let content = ( typeof answer.content === 'function' ) ? answer.content( req, res, data ) : answer.content;
         content = await content;
 
+        //  eslint-disable-next-line require-atomic-updates
         res.statusCode = answer.status_code;
         for ( const header_name in answer.headers ) {
             res.setHeader( header_name, answer.headers[ header_name ] );
