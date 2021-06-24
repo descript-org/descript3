@@ -65,6 +65,13 @@ interface DescriptRequestOptions {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
+interface DescriptHttpResult {
+    status_code: number;
+    headers: Record< string, string >;
+    request_options: HttpsRequestOptions;
+    body: Buffer;
+}
+
 interface LoggerEvent {
     type: Logger.EVENT;
 
@@ -77,12 +84,7 @@ interface LoggerEvent {
         end: number;
     };
 
-    result?: {
-        status_code: number;
-        headers: Record< string, string >;
-        request_options: HttpsRequestOptions;
-        body: Buffer;
-    };
+    result?: DescriptHttpResult;
 
     error?: DescriptError;
 }
@@ -242,6 +244,7 @@ interface DescriptHttpBlockDescription< Params, Context > {
     retry_timeout?: number;
 
     prepare_request_options?: ( options: HttpsRequestOptions ) => HttpsRequestOptions;
+    parse_body?: (result: DescriptHttpResult, context: Context) => {};
 
     family?: DescriptHttpBlockDescriptionCallback< number, Params, Context >;
 
