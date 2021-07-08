@@ -13,6 +13,7 @@
         "url": "git://github.com/pasaran/descript3.git"
     },
     "scripts": {
+        "eslint": "npx eslint .",
         "test": "cd tests && ./gen-certs.sh && npx jest"
     },
     "dependencies": {
