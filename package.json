@@ -12,6 +12,9 @@
         "type": "git",
         "url": "git://github.com/pasaran/descript3.git"
     },
+    "scripts": {
+        "test": "cd tests && ./gen-certs.sh && npx jest"
+    },
     "dependencies": {
         "@types/node": "^14.0.24"
     },
