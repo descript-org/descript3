@@ -58,3 +58,23 @@ de.run( block_1, {
         console.log( result );
     });
 
+interface Block2ResultIn {
+    foo: string;
+}
+
+const block_2 = de.func({
+    block: () => {
+        const result: Block2ResultIn = { foo: 'bar' };
+        return Promise.resolve(result);
+    },
+    options: {
+        after: ({ result }): string => {
+            return result.foo;
+        },
+    },
+});
+
+de.run( block_2, {} )
+    .then( ( result ) => {
+        console.log( result );
+    });
