@@ -1,6 +1,6 @@
+.idea
 node_modules
 *.swp
-package-lock.json
 tests/server.key
 tests/server.crt
 coverage
