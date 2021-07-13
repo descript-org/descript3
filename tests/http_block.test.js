@@ -1234,6 +1234,41 @@ describe( 'http', () => {
             expect( a_context ).toBe( context );
         } );
 
+        it( 'custom parse_body for error', async () => {
+            const path = get_path();
+
+            const CONTENT = 'Привет!';
+
+            fake.add( path, {
+                status_code: 500,
+                content: CONTENT,
+            } );
+
+            const BODY = 'Пока!';
+            const spy = jest.fn( () => {
+                return BODY;
+            } );
+
+            const block = base_block( {
+                block: {
+                    pathname: path,
+                    parse_body: spy,
+                },
+            } );
+
+            expect.assertions( 3 );
+
+            const context = {};
+            try {
+                await de.run( block, { context } );
+            } catch ( e ) {
+                const [ a_result, a_context ] = spy.mock.calls[ 0 ];
+                expect( e.error.body ).toBe( BODY );
+                expect( Buffer.compare( a_result.body, Buffer.from( CONTENT ) ) ).toBe( 0 );
+                expect( a_context ).toBe( context );
+            }
+        } );
+
     } );
 
 } );
