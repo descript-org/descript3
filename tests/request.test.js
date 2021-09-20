@@ -875,6 +875,7 @@ describe( 'request', () => {
             } );
 
             const result = await do_request( {
+                rejectUnauthorized: false,
                 pathname: path,
             } );
 
