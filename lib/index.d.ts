@@ -10,6 +10,7 @@ type UnionToIntersection< U > = ( U extends any ? ( k: U ) => void : never ) ext
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
+import { OutgoingHttpHeaders } from 'http';
 import {
     RequestOptions as HttpsRequestOptions,
     Agent as HttpsAgent,
@@ -33,6 +34,10 @@ interface DescriptError {
     error: {
         id: string;
         message?: string;
+        // для http-ошибок
+        body?: Buffer | null;
+        headers?: OutgoingHttpHeaders;
+        status_code?: number;
     }
 }
 
@@ -237,9 +242,9 @@ interface DescriptHttpBlockDescription< Params, Context > {
 
     timeout?: number;
 
-    is_error?: ( error: DescriptError, request_options: HttpsRequestOptions ) => boolean;
+    is_error?: ( error: DescriptError, request_options: DescriptRequestOptions ) => boolean;
 
-    is_retry_allowed?: ( error: DescriptError, request_options: HttpsRequestOptions ) => boolean;
+    is_retry_allowed?: ( error: DescriptError, request_options: DescriptRequestOptions ) => boolean;
     max_retries?: number;
     retry_timeout?: number;
 
@@ -516,4 +521,13 @@ declare enum ERROR_ID {
     TCP_CONNECTION_TIMEOUT = 'TCP_CONNECTION_TIMEOUT',
     TOO_MANY_AFTERS_OR_ERRORS = 'TOO_MANY_AFTERS_OR_ERRORS',
     UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+}
+
+//  ---------------------------------------------------------------------------------------------------------------  //
+
+declare namespace request {
+    export const DEFAULT_OPTIONS = {
+        is_error: ( error: DescriptError, request_options: DescriptRequestOptions ) => boolean,
+        is_retry_allowed: ( error: DescriptError, request_options: DescriptRequestOptions ) => boolean,
+    }
 }
