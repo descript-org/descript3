@@ -526,8 +526,11 @@ declare enum ERROR_ID {
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 declare namespace request {
-    export const DEFAULT_OPTIONS = {
+    interface DefaultOptions {
         is_error: ( error: DescriptError, request_options: DescriptRequestOptions ) => boolean,
         is_retry_allowed: ( error: DescriptError, request_options: DescriptRequestOptions ) => boolean,
     }
+
+    export const DEFAULT_OPTIONS: DefaultOptions;
 }
+
