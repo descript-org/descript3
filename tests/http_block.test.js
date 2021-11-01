@@ -987,6 +987,50 @@ describe( 'http', () => {
             }
         } );
 
+        describe( 'empty body', () => {
+            it( 'text/plain', async () => {
+                const path = get_path();
+
+                const RESPONSE = Buffer.from( [] );
+                fake.add( path, ( req, res ) => {
+                    res.setHeader( 'content-length', Buffer.byteLength( RESPONSE ) );
+                    res.setHeader( 'content-type', 'text/plain' );
+                    res.end( RESPONSE );
+                } );
+
+                const block = base_block( {
+                    block: {
+                        pathname: path,
+                    },
+                } );
+
+                const result = await de.run( block );
+
+                expect( result.result ).toBeNull();
+            } );
+
+            it( 'application/json', async () => {
+                const path = get_path();
+
+                const RESPONSE = Buffer.from( [] );
+                fake.add( path, ( req, res ) => {
+                    res.setHeader( 'content-length', Buffer.byteLength( RESPONSE ) );
+                    res.setHeader( 'content-type', 'application/json' );
+                    res.end( RESPONSE );
+                } );
+
+                const block = base_block( {
+                    block: {
+                        pathname: path,
+                    },
+                } );
+
+                const result = await de.run( block );
+
+                expect( result.result ).toBeNull();
+            } );
+        } );
+
     } );
 
     describe( 'parse error', () => {
@@ -1234,6 +1278,36 @@ describe( 'http', () => {
             expect( a_context ).toBe( context );
         } );
 
+        it( 'custom parse_body should process empty body', async () => {
+            const path = get_path();
+
+            const RESPONSE = Buffer.from( [] );
+            fake.add( path, ( req, res ) => {
+                res.setHeader( 'content-length', Buffer.byteLength( RESPONSE ) );
+                res.setHeader( 'content-type', 'application/protobuf' );
+                res.end( RESPONSE );
+            } );
+
+            const block = base_block( {
+                block: {
+                    pathname: path,
+                    parse_body: ( { body } ) => {
+                        if ( !body || Buffer.byteLength( body ) === 0 ) {
+                            return {};
+
+                        } else {
+                            return null;
+                        }
+                    },
+                },
+            } );
+
+            const context = {};
+            const result = await de.run( block, { context } );
+
+            expect( result.result ).toEqual( {} );
+        } );
+
         it( 'custom parse_body for error', async () => {
             const path = get_path();
 
@@ -1272,4 +1346,3 @@ describe( 'http', () => {
     } );
 
 } );
-

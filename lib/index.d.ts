@@ -249,7 +249,7 @@ interface DescriptHttpBlockDescription< Params, Context > {
     retry_timeout?: number;
 
     prepare_request_options?: ( options: HttpsRequestOptions ) => HttpsRequestOptions;
-    parse_body?: (result: { headers: Record< string, string >; body: Buffer }, context: Context) => {};
+    parse_body?: (result: { headers: Record< string, string >; body?: Buffer }, context: Context) => {};
 
     family?: DescriptHttpBlockDescriptionCallback< number, Params, Context >;
 
@@ -533,4 +533,3 @@ declare namespace request {
 
     export const DEFAULT_OPTIONS: DefaultOptions;
 }
-
