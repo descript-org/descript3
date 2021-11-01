@@ -6,6 +6,10 @@ import { DescriptRequestOptions } from '../../lib';
 const block1 = de.http( {
     block: {
         parse_body({ body, headers}) {
+            if (!body) {
+                return null;
+            }
+
             if (headers['content-type'].startsWith('application/json')) {
                 return JSON.parse(body.toString('utf-8'));
             } else {
