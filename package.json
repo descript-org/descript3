@@ -32,5 +32,6 @@
     "main": "lib/index.js",
     "engines": {
         "node": "*"
-    }
+    },
+    "license": "MIT"
 }
