@@ -501,7 +501,7 @@ declare function is_block( block: any ): boolean;
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 declare function error( error: { id: string; [ key: string ]: any } ): DescriptError;
-declare function is_error( error: any ): boolean;
+declare function is_error( error: any ): error is DescriptError;
 
 declare enum ERROR_ID {
     ALL_BLOCKS_FAILED = 'ALL_BLOCKS_FAILED',
