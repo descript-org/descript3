@@ -17,10 +17,8 @@
         "test": "cd tests && ./gen-certs.sh && npx jest",
         "ts-compile": "npx tsc --noEmit"
     },
-    "dependencies": {
-        "@types/node": "^14.17.34"
-    },
     "devDependencies": {
+        "@types/node": "^18.7.6",
         "eslint": "^7.32.0",
         "eslint-plugin-nop": "0.0.3",
         "jest": "^27.3.1",
