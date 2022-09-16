@@ -21,7 +21,7 @@ const block_1 = de.http( {
             };
         },
 
-        after: ( { params, context } ) => {
+        after: ( { params } ) => {
             return {
                 a: params.s1,
             };
@@ -38,7 +38,7 @@ interface ParamsIn2 {
 const block_2 = de.http( {
     block: {},
     options: {
-        params: ( { params, context }: { params: ParamsIn2, context: Context } ) => {
+        params: ( { params }: { params: ParamsIn2, context: Context } ) => {
             return params;
         },
 
