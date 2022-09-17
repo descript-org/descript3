@@ -408,7 +408,7 @@ type GetObjectBlockContextMap< T extends {} > = {
 type GetObjectBlockContext< T extends {}, M = GetObjectBlockContextMap< T > > = UnionToIntersection< M[ keyof M ] >;
 
 type DescriptObjectBlockDescription< T extends {} > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer Result > ? T[ P ] : never
+    [ P in keyof T ]: T[ P ] extends DescriptBlock ? T[ P ] : never
 }
 
 interface DescriptObjectBlock<
