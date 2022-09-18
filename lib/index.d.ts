@@ -355,8 +355,8 @@ type GetArrayBlockContext< T > = {
     2: Equal< GetDescriptBlockContext< First< T > >, GetArrayBlockContext< Tail< T > > >,
 }[ T extends [] ? 0 : T extends ( ( readonly [ any ] ) | [ any ] ) ? 1 : 2 ];
 
-type DescriptArrayBlockDescription< T extends ReadonlyArray< unknown > > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock ? T[ P ] : never
+type DescriptArrayBlockDescription< T > = {
+    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer Result > ? T[ P ] : never
 }
 
 interface DescriptArrayBlock<
@@ -408,7 +408,7 @@ type GetObjectBlockContextMap< T extends {} > = {
 type GetObjectBlockContext< T extends {}, M = GetObjectBlockContextMap< T > > = UnionToIntersection< M[ keyof M ] >;
 
 type DescriptObjectBlockDescription< T extends {} > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock ? T[ P ] : never
+    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer Result > ? T[ P ] : never
 }
 
 interface DescriptObjectBlock<
