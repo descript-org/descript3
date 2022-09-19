@@ -355,7 +355,7 @@ type GetArrayBlockContext< T > = {
     2: Equal< GetDescriptBlockContext< First< T > >, GetArrayBlockContext< Tail< T > > >,
 }[ T extends [] ? 0 : T extends ( ( readonly [ any ] ) | [ any ] ) ? 1 : 2 ];
 
-type DescriptArrayBlockDescription< T extends ReadonlyArray< any > | Array< any > > = {
+type DescriptArrayBlockDescription< T > = {
     [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer Result > ? T[ P ] : never
 }
 
@@ -370,7 +370,7 @@ interface DescriptArrayBlock<
 }
 
 declare function array<
-    Block extends ReadonlyArray< any >,
+    Block extends ReadonlyArray< unknown >,
     Context = GetArrayBlockContext< Block >,
     ParamsIn = GetArrayBlockParams< Block >,
     ResultIn = GetArrayBlockResult< Block >,
