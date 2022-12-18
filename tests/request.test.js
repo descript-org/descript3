@@ -5,6 +5,8 @@ const fs_ = require( 'fs' );
 const http_ = require( 'http' );
 const https_ = require( 'https' );
 const zlib_ = require( 'zlib' );
+const { ZSTDCompress: zstdCompress } = require( 'simple-zstd' );
+const { Duplex } = require( 'stream' );
 
 const de = require( '../lib' );
 const request = require( '../lib/request' );
@@ -639,51 +641,98 @@ describe( 'request', () => {
 
         describe( 'content-encoding', () => {
 
-            it( 'gzip', async () => {
-                const path = get_path();
+            describe( 'zlib', () => {
+                it( 'decompress', async () => {
+                    const path = get_path();
 
-                const CONTENT = 'Привет!';
+                    const CONTENT = 'Привет!';
 
-                fake.add( path, function( req, res ) {
-                    const buffer = zlib_.gzipSync( Buffer.from( CONTENT ) );
+                    fake.add( path, function( req, res ) {
+                        const buffer = zlib_.gzipSync( Buffer.from( CONTENT ) );
 
-                    res.setHeader( 'content-encoding', 'gzip' );
-                    res.setHeader( 'content-length', Buffer.byteLength( buffer ) );
-                    res.end( buffer );
-                } );
+                        res.setHeader( 'content-encoding', 'gzip' );
+                        res.setHeader( 'content-length', Buffer.byteLength( buffer ) );
+                        res.end( buffer );
+                    } );
 
-                const result = await do_request( {
-                    pathname: path,
-                } );
-
-                expect( result.body.toString() ).toBe( CONTENT );
-            } );
-
-            it( 'gzip with error', async () => {
-                const path = get_path();
-
-                const CONTENT = 'Привет!';
-
-                fake.add( path, function( req, res ) {
-                    //  Шлем контент, не являющийся gzip'ом.
-                    const buffer = Buffer.from( CONTENT );
-
-                    res.setHeader( 'content-encoding', 'gzip' );
-                    res.setHeader( 'content-length', Buffer.byteLength( buffer ) );
-                    res.end( buffer );
-                } );
-
-                expect.assertions( 3 );
-                try {
-                    await do_request( {
+                    const result = await do_request( {
                         pathname: path,
                     } );
 
-                } catch ( error ) {
-                    expect( de.is_error( error ) ).toBe( true );
-                    expect( error.error.id ).toBe( 'UNKNOWN_ERROR' );
-                    expect( error.error.code ).toBe( 'Z_DATA_ERROR' );
-                }
+                    expect( result.body.toString() ).toBe( CONTENT );
+                } );
+
+                it( 'decompress with error', async () => {
+                    const path = get_path();
+
+                    const CONTENT = 'Привет!';
+
+                    fake.add( path, function( req, res ) {
+                        //  Шлем контент, не являющийся gzip'ом.
+                        const buffer = Buffer.from( CONTENT );
+
+                        res.setHeader( 'content-encoding', 'gzip' );
+                        res.setHeader( 'content-length', Buffer.byteLength( buffer ) );
+                        res.end( buffer );
+                    } );
+
+                    expect.assertions( 3 );
+                    try {
+                        await do_request( {
+                            pathname: path,
+                        } );
+
+                    } catch ( error ) {
+                        expect( de.is_error( error ) ).toBe( true );
+                        expect( error.error.id ).toBe( 'UNKNOWN_ERROR' );
+                        expect( error.error.code ).toBe( 'Z_DATA_ERROR' );
+                    }
+                } );
+            } );
+
+            describe( 'zstd', () => {
+                it( 'decompress', async () => {
+                    const path = get_path();
+
+                    const CONTENT = 'Привет!';
+
+                    fake.add( path, function( req, res ) {
+                        const buffer = Buffer.from( CONTENT );
+                        const stream = new Duplex();
+                        stream.push( buffer );
+                        stream.push( null );
+                        const compressed = stream.pipe( zstdCompress() );
+
+                        res.setHeader( 'content-encoding', 'zstd' );
+
+                        compressed.pipe( res );
+                    } );
+
+                    const result = await do_request( {
+                        pathname: path,
+                    } );
+
+                    expect( result.body.toString() ).toBe( CONTENT );
+                } );
+
+                it( 'decompress with error', async () => {
+                    const path = get_path();
+
+                    const CONTENT = 'Привет!';
+
+                    fake.add( path, function( req, res ) {
+                        const buffer = Buffer.from( CONTENT );
+
+                        res.setHeader( 'content-encoding', 'zstd' );
+                        res.end( buffer );
+                    } );
+
+                    //  There is should be error but zstd quietly skips it
+                    const result = await do_request( {
+                        pathname: path,
+                    } );
+                    expect( result.body ).toBe( null );
+                } );
             } );
 
         } );
