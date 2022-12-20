@@ -33,6 +33,6 @@
     },
     "license": "MIT",
     "dependencies": {
-        "simple-zstd": "^1.4.2"
+        "@fengkx/zstd-napi": "^0.1.0"
     }
 }
