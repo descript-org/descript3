@@ -5,7 +5,7 @@ const fs_ = require( 'fs' );
 const http_ = require( 'http' );
 const https_ = require( 'https' );
 const zlib_ = require( 'zlib' );
-const { ZSTDCompress: zstdCompress } = require( 'simple-zstd' );
+const { compress } = require( '@fengkx/zstd-napi' );
 const { Duplex } = require( 'stream' );
 
 const de = require( '../lib' );
@@ -695,17 +695,15 @@ describe( 'request', () => {
                     const path = get_path();
 
                     const CONTENT = 'Привет!';
+                    const buffer = Buffer.from( CONTENT );
+                    const stream = new Duplex();
+                    stream.push( await compress( buffer ) );
+                    stream.push( null );
 
                     fake.add( path, function( req, res ) {
-                        const buffer = Buffer.from( CONTENT );
-                        const stream = new Duplex();
-                        stream.push( buffer );
-                        stream.push( null );
-                        const compressed = stream.pipe( zstdCompress() );
-
                         res.setHeader( 'content-encoding', 'zstd' );
 
-                        compressed.pipe( res );
+                        stream.pipe( res );
                     } );
 
                     const result = await do_request( {
@@ -727,11 +725,17 @@ describe( 'request', () => {
                         res.end( buffer );
                     } );
 
-                    //  There is should be error but zstd quietly skips it
-                    const result = await do_request( {
-                        pathname: path,
-                    } );
-                    expect( result.body ).toBe( null );
+                    expect.assertions( 3 );
+                    try {
+                        await do_request( {
+                            pathname: path,
+                        } );
+
+                    } catch ( error ) {
+                        expect( de.is_error( error ) ).toBe( true );
+                        expect( error.error.id ).toBe( 'UNKNOWN_ERROR' );
+                        expect( error.error.code ).toBe( 'GenericFailure' );
+                    }
                 } );
             } );
 
