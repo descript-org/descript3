@@ -8,6 +8,26 @@ type Equal< A, B > = A extends B ? ( B extends A ? A : never ) : never;
 
 type UnionToIntersection< U > = ( U extends any ? ( k: U ) => void : never ) extends ( ( k: infer I ) => void ) ? I : never;
 
+type InferContext<Type> = Type extends DescriptBlock< infer Context, infer Params, infer Result > ? Context : never;
+type InferParams<Type> = Type extends DescriptBlock< infer Context, infer Params, infer Result > ? Params : never;
+type InferResult<Type> = Type extends DescriptBlock< infer Context, infer Params, infer Result > ? Result : never;
+type InferResultIn<Type> = Type extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ResultOut > ? ResultIn : never;
+type InferResultOut<Type> = Type extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ResultOut > ? ResultOut : never;
+
+
+type DescriptBlockParams<BlockParams, ParamsFnIn = BlockParams, ParamsFnOut = ParamsFnIn> = {
+    s: 2 // что тут написать?))
+};
+type GetDescriptBlockParamsBlock<T> = T extends DescriptBlockParams<infer BlockParams, infer ParamsFnIn, infer ParamsFnOut> ? BlockParams : T;
+type GetDescriptBlockParamsFnIn<T> = T extends DescriptBlockParams<infer BlockParams, infer ParamsFnIn, infer ParamsFnOut> ? ParamsFnIn : T;
+type GetDescriptBlockParamsFnOut<T> = T extends DescriptBlockParams<infer BlockParams, infer ParamsFnIn, infer ParamsFnOut> ? ParamsFnOut : T;
+
+type DescriptBlockResult<ResultIn, ResultOut = ResultIn> = {
+    x: 5 // что тут написать?))
+};
+type GetDescriptBlockResultIn<T> = T extends DescriptBlockResult<infer ResultIn, infer ResultOut> ? ResultIn : T;
+type GetDescriptBlockResultOut<T> = T extends DescriptBlockResult<infer ResultIn, infer ResultOut> ? ResultOut : T;
+
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 import { OutgoingHttpHeaders } from 'http';
@@ -30,12 +50,12 @@ type DescriptJSON =
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-interface DescriptError {
+interface DescriptError<Error = Buffer | null | unknown> {
     error: {
         id: string;
         message?: string;
         // для http-ошибок
-        body?: Buffer | null;
+        body?: Error;
         headers?: OutgoingHttpHeaders;
         status_code?: number;
     }
@@ -69,6 +89,10 @@ interface DescriptRequestOptions {
 }
 
 //  ---------------------------------------------------------------------------------------------------------------  //
+
+interface DescriptBlockResultJSON<Result> {
+    result: Result;
+}
 
 interface DescriptHttpResult {
     status_code: number;
@@ -115,9 +139,9 @@ type DescriptBlockDeps = Record< DescriptBlockId, any >;
 
 interface DescriptBlockOptions<
     Context,
-    ParamsIn,
+    Params,
     ResultIn,
-    ParamsOut = ParamsIn,
+    ParamsOut = Params,
     ResultOut = ResultIn,
 > {
     name?: string;
@@ -126,7 +150,7 @@ interface DescriptBlockOptions<
     deps?: DescriptBlockId | Array< DescriptBlockId >;
 
     params?: ( args: {
-        params: ParamsIn,
+        params: Params,
         context: Context,
         deps: DescriptBlockDeps,
     } ) => ParamsOut;
@@ -146,12 +170,12 @@ interface DescriptBlockOptions<
         result: ResultIn,
     } ) => ResultOut | Promise< ResultOut >;
 
-    error?: ( args: {
+    error?: <E extends object>( args: {
         params: ParamsOut,
         context: Context,
         deps: DescriptBlockDeps,
         cancel: Cancel,
-        error: DescriptError,
+        error: DescriptError<E>,
     } ) => ResultOut | void;
 
     timeout?: number;
@@ -178,7 +202,7 @@ type DescriptHttpBlockDescriptionCallback< T, Params, Context > = T | ( ( args: 
     deps: DescriptBlockDeps,
  } ) => T );
 
-type DescriptHttpBlockQueryValue = string | number | boolean;
+type DescriptHttpBlockQueryValue = string | number | boolean | undefined;
 type DescriptHttpBlockQuery = Record< string, DescriptHttpBlockQueryValue >;
 
 type DescriptHttpBlockHeaders = Record< string, string >;
@@ -273,24 +297,25 @@ interface DescriptHttpBlock<
     Params,
     Result,
 > {
-    < ExtendedParamsIn = Params, ExtendedResultOut = Result>( args: {
-        block?: DescriptHttpBlockDescription< Params, Context >,
-        options?: DescriptBlockOptions< Context, ExtendedParamsIn, Result, Params, ExtendedResultOut >,
-    } ): DescriptHttpBlock< Context, ExtendedParamsIn, ExtendedResultOut >;
+    <
+        ExtendedParams = Params,
+        ExtendedResult = Result,
+    >( args: {
+        block?: DescriptHttpBlockDescription< GetDescriptBlockParamsFnOut<ExtendedParams>, Context >,
+        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, GetDescriptBlockResultIn<ExtendedResult>, GetDescriptBlockParamsFnOut<ExtendedParams>, GetDescriptBlockResultOut<ExtendedResult> >,
+    } ): DescriptHttpBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnIn<ExtendedParams>>, GetDescriptBlockResultOut<ExtendedResult> >;
 }
 
 declare function http<
     Context,
-    ParamsIn,
-    ResultIn,
-    ParamsOut = ParamsIn,
-    ResultOut = ResultIn,
+    Params,
+    Result,
 > (
     args: {
-        block: DescriptHttpBlockDescription< ParamsOut, Context >,
-        options?: DescriptBlockOptions< Context, ParamsIn, ResultIn, ParamsOut, ResultOut >,
+        block: DescriptHttpBlockDescription< GetDescriptBlockParamsFnOut<Params>, Context >,
+        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<Params>, GetDescriptBlockResultIn<Result>, GetDescriptBlockParamsFnOut<Params>, GetDescriptBlockResultOut<Result> >,
     },
-): DescriptHttpBlock< Context, ParamsIn, ResultOut >;
+): DescriptHttpBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnIn<Params>>, GetDescriptBlockResultOut<Result> >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 //  FuncBlock
@@ -315,24 +340,25 @@ interface DescriptFuncBlock<
     Params,
     Result,
 > {
-    < ExtendedParamsIn, ExtendedResultOut >( args: {
-        block?: DescriptFuncBlockDescription< Context, Params, Result >,
-        options?: DescriptBlockOptions< Context, ExtendedParamsIn, Result, Params, ExtendedResultOut >,
-    } ): DescriptFuncBlock< Context, ExtendedParamsIn, ExtendedResultOut >;
+    <
+        ExtendedParams = Params,
+        ExtendedResult = Result,
+    >( args: {
+        block?: DescriptFuncBlockDescription< Context, GetDescriptBlockParamsFnOut<ExtendedParams>, GetDescriptBlockResultOut<ExtendedResult>>,
+        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, GetDescriptBlockResultIn<ExtendedResult>, GetDescriptBlockParamsFnOut<ExtendedParams>, GetDescriptBlockResultOut<ExtendedResult> >,
+    } ): DescriptFuncBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnIn<ExtendedParams>>, GetDescriptBlockResultOut<ExtendedResult> >;
 }
 
 declare function func<
     Context,
-    ParamsIn,
-    ResultIn,
-    ParamsOut = ParamsIn,
-    ResultOut = ResultIn,
+    Params,
+    Result,
 > (
     args: {
-        block: DescriptFuncBlockDescription< Context, ParamsOut, ResultIn >,
-        options?: DescriptBlockOptions< Context, ParamsIn, ResultIn, ParamsOut, ResultOut >,
+        block: DescriptFuncBlockDescription< Context, GetDescriptBlockParamsFnOut<Params>, GetDescriptBlockResultIn<Result> >,
+        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<Params>, GetDescriptBlockResultIn<Result>, GetDescriptBlockParamsFnOut<Params>, GetDescriptBlockResultOut<Result> >,
     },
-): DescriptFuncBlock< Context, ParamsIn, ResultOut >;
+): DescriptFuncBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnIn<Params>>, GetDescriptBlockResultOut<Result> >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 //  ArrayBlock
@@ -362,47 +388,53 @@ type DescriptArrayBlockDescription< T > = {
 interface DescriptArrayBlock<
     Context,
     Params,
-    Result,
+    ResultIn,
+    ResultOut = ResultIn,
 > {
-    < ExtendedParamsIn = Params, ExtendedResultOut = Result >( args: {
-        options?: DescriptBlockOptions< Context, ExtendedParamsIn, Result, Params, ExtendedResultOut >,
-    } ): DescriptArrayBlock< Context, ExtendedParamsIn, ExtendedResultOut >;
+    <
+        ExtendedParams = Params,
+        ExtendedResultIn = ResultIn,
+        ExtendedResultOut = ResultOut,
+    >( args: {
+        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, ExtendedResultIn, GetDescriptBlockParamsFnOut<ExtendedParams>, ExtendedResultOut >,
+    } ): DescriptArrayBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnIn<ExtendedParams>>, ExtendedResultOut >;
 }
 
 declare function array<
     Block extends ReadonlyArray< unknown >,
     Context = GetArrayBlockContext< Block >,
-    ParamsIn = GetArrayBlockParams< Block >,
+    Params = GetArrayBlockParams< Block >,
     ResultIn = GetArrayBlockResult< Block >,
-    ParamsOut = ParamsIn,
     ResultOut = ResultIn,
 > (
     args: {
         block: DescriptArrayBlockDescription< Block >,
         options?: DescriptBlockOptions<
             Context,
-            ParamsIn,
+            GetDescriptBlockParamsFnIn<Params>,
             ResultIn,
-            ParamsOut,
+            GetDescriptBlockParamsFnOut<Params>,
             ResultOut
         >,
     },
-): DescriptArrayBlock< Context, ParamsIn, ResultOut >;
+): DescriptArrayBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnIn<Params>>, ResultOut >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 //  ObjectBlock
 
-type GetObjectBlockResult< T > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer Result > ? Result : never;
+type GetObjectBlockResultIn< T > = {
+    [ P in keyof T ]: InferResultIn<T[P]>
 }
-
+type GetObjectBlockResultOut< T > = {
+    [ P in keyof T ]: InferResultOut<T[P]>
+}
 type GetObjectBlockParamsMap< T extends {} > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer Result > ? Params : never;
+    [ P in keyof T ]: InferParams<T[ P ]>;
 }
 type GetObjectBlockParams< T extends {}, M = GetObjectBlockParamsMap< T > > = UnionToIntersection< M[ keyof M ] >;
 
 type GetObjectBlockContextMap< T extends {} > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer Result > ? Context : never;
+    [ P in keyof T ]: InferContext<T[ P ]>;
 }
 //  Тут не совсем правда, но лучше пока непонятно как сделать.
 type GetObjectBlockContext< T extends {}, M = GetObjectBlockContextMap< T > > = UnionToIntersection< M[ keyof M ] >;
@@ -414,32 +446,36 @@ type DescriptObjectBlockDescription< T extends {} > = {
 interface DescriptObjectBlock<
     Context,
     Params,
-    Result,
+    ResultIn,
+    ResultOut = ResultIn,
 > {
-    < ExtendedParamsIn = Params, ExtendedResultOut = Result >( args: {
-        options?: DescriptBlockOptions< Context, ExtendedParamsIn, Result, Params, ExtendedResultOut >,
-    } ): DescriptObjectBlock< Context, ExtendedParamsIn, ExtendedResultOut >;
+    <
+        ExtendedParams = Params,
+        ExtendedResultIn = ResultIn,
+        ExtendedResultOut = ResultOut,
+    >( args: {
+        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, ExtendedResultIn, GetDescriptBlockParamsFnOut<ExtendedParams>, ExtendedResultOut >,
+    } ): DescriptObjectBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnIn<ExtendedParams>>, ExtendedResultOut >;
 }
 
 declare function object<
     Block extends {},
     Context = GetObjectBlockContext< Block >,
-    ParamsIn = GetObjectBlockParams< Block >,
-    ResultIn = GetObjectBlockResult< Block >,
-    ParamsOut = ParamsIn,
+    Params = GetObjectBlockParams< Block >,
+    ResultIn = GetObjectBlockResultIn< Block >,
     ResultOut = ResultIn,
 > (
     args: {
         block: DescriptObjectBlockDescription< Block >,
         options?: DescriptBlockOptions<
             Context,
-            ParamsIn,
-            ResultIn,
-            ParamsOut,
-            ResultOut
+            GetDescriptBlockParamsFnIn<Params>,
+            GetDescriptBlockResultIn<ResultIn>,
+            GetDescriptBlockParamsFnOut<Params>,
+            GetDescriptBlockResultOut<ResultOut>
         >,
     },
-): DescriptObjectBlock< Context, ParamsIn, ResultOut >;
+): DescriptObjectBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnIn<Params>>, ResultOut >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 /*
@@ -463,11 +499,11 @@ interface DescriptFirstBlock {
 
 */
 
-type DescriptBlock< Context, Params, Result > =
+type DescriptBlock< Context, Params, Result, ResultOut = Result > =
     DescriptHttpBlock< Context, Params, Result > |
     DescriptFuncBlock< Context, Params, Result > |
-    DescriptArrayBlock< Context, Params, Result > |
-    DescriptObjectBlock< Context, Params, Result >;
+    DescriptArrayBlock< Context, Params, Result, ResultOut > |
+    DescriptObjectBlock< Context, Params, Result, ResultOut >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -487,12 +523,12 @@ declare function run<
     Params,
     Result,
 > (
-    block: DescriptBlock< Context, Params, Result >,
+    block: DescriptBlock< Context, Params, GetDescriptBlockResultIn<Result> >,
     args: {
-        params?: Params,
+        params?: GetDescriptBlockParamsBlock<Params>,
         context?: Context,
     },
-): Promise< Result >;
+): Promise< GetDescriptBlockResultOut<Result> >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 

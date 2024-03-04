@@ -1,3 +1,4 @@
+import {DescriptBlockParams, DescriptBlockResult, GetDescriptBlockParamsFnIn} from '../../lib';
 import * as de from '../../lib';
 
 //  ---------------------------------------------------------------------------------------------------------------  //
@@ -8,14 +9,14 @@ interface Context {
 
 //  Это параметры, которые приходят в блок извне.
 //
-interface ParamsExt {
+interface ParamsIn {
     id: string;
 }
 
 //  Это вычисленные параметры, которые блок использует внутри.
 //  В колбэки before, after и т.д. будут приходить вот эти параметры.
 //
-interface ParamsInt {
+interface ParamsOut {
     foo: string;
 }
 
@@ -33,7 +34,7 @@ interface ResultRaw {
 //  * Обрабатываем результат.
 //  * Используем вычисленные параметры.
 
-const block1 = de.http( {
+const block1 = de.http<Context, DescriptBlockParams<ParamsIn, ParamsIn, ParamsOut>, DescriptBlockResult<ResultRaw, string>>( {
     block: {},
     options: {
         //  Имеет смысл сделать явный интерфейс для вычисленных параметров.
@@ -43,13 +44,13 @@ const block1 = de.http( {
         //
         //  Если нам где-то вообще понадобится context, то лучше всего задать его тип здесь.
         //
-        params: ( { params, context }: { params: ParamsExt, context: Context } ): ParamsInt => {
+        params: ( { params, context }) => {
             return {
                 foo: params.id,
             };
         },
 
-        //  Тут тип params уже ParamsInt.
+        //  Тут тип params уже ParamsOut.
         //
         before: ( { params, context } ) => {
             if ( !params.foo ) {
@@ -64,7 +65,7 @@ const block1 = de.http( {
         //  Если мы здесь хотим использовать params, то нам приходится прописать тип явно.
         //  Typescript не позволяет частично задавать тип при destructure.
         //
-        after: ( { params, result }: { params: ParamsInt, result: ResultRaw } ) => {
+        after: ( { params, result }) => {
             //  Тип для обработанного результата нам в принципе не нужен.
             //  Он выведется из того, что мы вернули.
             //
@@ -89,12 +90,13 @@ de.run( block1, {
 //  * Вычисляем новые параметры.
 //  * Обрабатываем результат, но params нам в after не нужны.
 
-const block2 = de.http( {
+const block2 = de.http<Context, DescriptBlockParams<ParamsIn, ParamsIn, ParamsOut>, DescriptBlockResult<ResultRaw, string>>( {
     block: {},
     options: {
-        //  Не объявляем тип ParamsInt, он выведется из того, что мы вернем из options.params.
-        //
-        params: ( { params, context }: { params: ParamsExt, context: Context } ) => {
+        //  Не объявляем тип ParamsOut, он выведется из того, что мы вернем из options.params.
+        // этот кейс я сломал. автовыведение магии работать не будет пока что
+        //params: ( { params, context }: { params: ParamsIn, context: Context } ) => {
+        params: ( { params, context }) => {
             return {
                 foo: params.id,
             };
@@ -106,7 +108,7 @@ const block2 = de.http( {
             }
         },
 
-        after: ( { result }: { result: ResultRaw } ) => {
+        after: ( { result } ) => {
             return result.a;
         },
     },
@@ -139,8 +141,8 @@ const block3 = de.http( {
         //  Где-то нужно объявить тип входящих params.
         //  Например, в after. Или же в before. В зависимости от того, что есть.
         //
-        after: ( { params, result }: { params: ParamsExt, result: ResultRaw } ) => {
-            return result.a;
+        after: ( { params, result }: { params: ParamsIn, result?: string } ) => {
+            return result;
         },
     },
 } );
