@@ -18,10 +18,10 @@
         "ts-compile": "npx tsc --noEmit"
     },
     "devDependencies": {
-        "@types/node": "^18.11.18",
-        "eslint": "^8.31.0",
+        "@types/node": "^20.11.24",
+        "eslint": "^8.57.0",
         "eslint-plugin-nop": "0.0.3",
-        "jest": "^29.3.1",
+        "jest": "^29.7.0",
         "typescript": "^5.3.3"
     },
     "files": [
