@@ -1,3 +1,4 @@
+import {DescriptBlockParams} from '../../lib';
 import * as de from '../../lib';
 
 //  ---------------------------------------------------------------------------------------------------------------  //
@@ -12,10 +13,18 @@ interface ParamsIn1 {
     id_1: string;
 }
 
-const block_1 = de.http( {
+interface ParamsOut1 {
+    s1: string;
+}
+
+interface ResultOut1 {
+    a: string;
+}
+
+const block_1 = de.http<Context, DescriptBlockParams<ParamsIn1, ParamsIn1, ParamsOut1>, ResultOut1>( {
     block: {},
     options: {
-        params: ( { params }: { params: ParamsIn1, context: Context } ) => {
+        params: ( { params }) => {
             return {
                 s1: params.id_1,
             };
@@ -35,10 +44,14 @@ interface ParamsIn2 {
     id_2: number;
 }
 
-const block_2 = de.http( {
+interface ResultOut2 {
+    b: number;
+}
+
+const block_2 = de.http<Context, ParamsIn2, ResultOut2>( {
     block: {},
     options: {
-        params: ( { params }: { params: ParamsIn2, context: Context } ) => {
+        params: ( { params }) => {
             return params;
         },
 
