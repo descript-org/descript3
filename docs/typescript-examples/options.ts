@@ -34,7 +34,7 @@ interface ResultRaw {
 //  * Обрабатываем результат.
 //  * Используем вычисленные параметры.
 
-const block1 = de.http<Context, DescriptBlockParams<ParamsIn, ParamsIn, ParamsOut>, DescriptBlockResult<ResultRaw, string>>( {
+const block1 = de.http( {
     block: {},
     options: {
         //  Имеет смысл сделать явный интерфейс для вычисленных параметров.
@@ -44,7 +44,7 @@ const block1 = de.http<Context, DescriptBlockParams<ParamsIn, ParamsIn, ParamsOu
         //
         //  Если нам где-то вообще понадобится context, то лучше всего задать его тип здесь.
         //
-        params: ( { params, context }) => {
+        params: ( { params, context }:{ params: ParamsIn, context: Context } ): ParamsOut => {
             return {
                 foo: params.id,
             };
@@ -65,7 +65,7 @@ const block1 = de.http<Context, DescriptBlockParams<ParamsIn, ParamsIn, ParamsOu
         //  Если мы здесь хотим использовать params, то нам приходится прописать тип явно.
         //  Typescript не позволяет частично задавать тип при destructure.
         //
-        after: ( { params, result }) => {
+        after: ( { params, result }: { params: ParamsOut, result: ResultRaw }) => {
             //  Тип для обработанного результата нам в принципе не нужен.
             //  Он выведется из того, что мы вернули.
             //
@@ -90,13 +90,10 @@ de.run( block1, {
 //  * Вычисляем новые параметры.
 //  * Обрабатываем результат, но params нам в after не нужны.
 
-const block2 = de.http<Context, DescriptBlockParams<ParamsIn, ParamsIn, ParamsOut>, DescriptBlockResult<ResultRaw, string>>( {
+const block2 = de.http( {
     block: {},
     options: {
-        //  Не объявляем тип ParamsOut, он выведется из того, что мы вернем из options.params.
-        // этот кейс я сломал. автовыведение магии работать не будет пока что
-        //params: ( { params, context }: { params: ParamsIn, context: Context } ) => {
-        params: ( { params, context }) => {
+        params: ( { params, context }: { params: ParamsIn, context: Context }) => {
             return {
                 foo: params.id,
             };
@@ -108,7 +105,7 @@ const block2 = de.http<Context, DescriptBlockParams<ParamsIn, ParamsIn, ParamsOu
             }
         },
 
-        after: ( { result } ) => {
+        after: ( { result }: { result: ResultRaw } ) => {
             return result.a;
         },
     },
