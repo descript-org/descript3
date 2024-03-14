@@ -24,7 +24,7 @@ interface ResultOut1 {
     b: string;
 }
 
-const block1 = de.http<Context, DescriptBlockParams<ParamsIn1, ParamsIn1, ParamsOut1>, DescriptBlockResult<DescriptBlockResultJSON<ResultIn1>, ResultOut1>>( {
+const block1 = de.http( {
     block: {
         parse_body({ body, headers}) {
             if (!body) {
@@ -45,7 +45,7 @@ const block1 = de.http<Context, DescriptBlockParams<ParamsIn1, ParamsIn1, Params
 
             return de.request.DEFAULT_OPTIONS.is_error(error, request_options);
         },
-        is_retry_allowed: (error: de.DescriptError, request_options: DescriptRequestOptions) => {
+        is_retry_allowed: (error, request_options) => {
             // POST-запросы по умолчанию не ретраются
             const method = request_options.http_options.method;
             if ( method === 'POST' ) {
@@ -66,13 +66,13 @@ const block1 = de.http<Context, DescriptBlockParams<ParamsIn1, ParamsIn1, Params
     },
 
     options: ({
-        params: ( { params }) => {
+        params: ( { params }: { params: ParamsIn1 }) => {
             return {
                 s1: params.id_1,
             };
         },
 
-        after: ( { params, result } ) => {
+        after: ( { params, result }: { params: { s1: ParamsIn1['id_1']}; result: DescriptBlockResultJSON<ResultIn1>  } ) => {
             return {
                 a: params.s1,
                 b: result.result.foo,

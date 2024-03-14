@@ -21,7 +21,7 @@ interface ResultOut {
     foo: string;
 }
 
-const block_1 = de.func<Context, DescriptBlockParams<ParamsIn1, ParamsIn1, ParamsOut>, DescriptBlockResult<DescriptBlockResultJSON<ResultIn>, ResultOut>>( {
+const block_1 = de.func( {
     block: ( { params, context, generate_id } ) => {
         //  Здесь нужно вернуть тот же тип, что указан в after в качестве входящего результата.
         //  Если after нет, то можно ничего не указывать, все выведется.
@@ -30,7 +30,7 @@ const block_1 = de.func<Context, DescriptBlockParams<ParamsIn1, ParamsIn1, Param
         };
     },
     options: {
-        params: ( { params } ) => {
+        params: ( { params }: { params: ParamsIn1 } ) => {
             return {
                 s1: params.id,
             };
@@ -58,7 +58,7 @@ de.run( block_1, {
         console.log( result );
     });
 
-const block_2 = de.func<Context, never, DescriptBlockResult<ResultOut, string>>({
+const block_2 = de.func({
     block: () => {
         const result = { foo: 'bar' };
         return Promise.resolve(result);

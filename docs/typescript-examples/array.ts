@@ -13,18 +13,10 @@ interface ParamsIn1 {
     id_1: string;
 }
 
-interface ParamsOut1 {
-    s1: string;
-}
-
-interface ResultOut1 {
-    a: string;
-}
-
-const block_1 = de.http<Context, DescriptBlockParams<ParamsIn1, ParamsIn1, ParamsOut1>, ResultOut1>( {
+const block_1 = de.http( {
     block: {},
     options: {
-        params: ( { params }) => {
+        params: ( { params }: { params: ParamsIn1 } ) => {
             return {
                 s1: params.id_1,
             };
@@ -44,14 +36,10 @@ interface ParamsIn2 {
     id_2: number;
 }
 
-interface ResultOut2 {
-    b: number;
-}
-
-const block_2 = de.http<Context, ParamsIn2, ResultOut2>( {
+const block_2 = de.http( {
     block: {},
     options: {
-        params: ( { params }) => {
+        params: ( { params }: { params: ParamsIn2 }) => {
             return params;
         },
 
