@@ -46,7 +46,6 @@ const block1 = de.http( {
             return de.request.DEFAULT_OPTIONS.is_error(error, request_options);
         },
         is_retry_allowed: (error, request_options) => {
-            // POST-запросы по умолчанию не ретраются
             const method = request_options.http_options.method;
             if ( method === 'POST' ) {
                 const id = error.error.id;
@@ -130,5 +129,5 @@ de.run( block2, {
     }
 } )
     .then( ( result ) => {
-        console.log( result );
+        console.log( result.c );
     } );
