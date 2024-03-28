@@ -6,27 +6,49 @@ type Tail< T > =
 
 type Equal< A, B > = A extends B ? ( B extends A ? A : never ) : never;
 
-type UnionToIntersection< U > = ( U extends any ? ( k: U ) => void : never ) extends ( ( k: infer I ) => void ) ? I : never;
+type UnionToIntersection< U > = (
+    U extends any ?
+        ( k: U ) => void :
+        never
+    ) extends (
+    ( k: infer I ) => void
+    ) ? I : never;
 
-type InferContext<Type> = Type extends DescriptBlock< infer Context, infer Params, infer Result > ? Context : never;
-type InferParams<Type> = Type extends DescriptBlock< infer Context, infer Params, infer Result > ? Params : never;
-type InferResult<Type> = Type extends DescriptBlock< infer Context, infer Params, infer Result > ? Result : never;
-type InferResultIn<Type> = Type extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ResultOut > ? ResultIn : never;
-type InferResultOut<Type> = Type extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ResultOut > ? ResultOut : never;
+type InferContext<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? Context : never;
+type InferParamsIn<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? ParamsIn : never;
+type InferParamsOut<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? ParamsOut : never;
+type InferResultIn<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? ResultIn : never;
+type InferResultOut<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? ResultOut : never;
 
 
 type DescriptBlockParams<BlockParams, ParamsFnIn = BlockParams, ParamsFnOut = ParamsFnIn> = {
-    s: 2 // что тут написать?))
+    b: BlockParams;
+    i: ParamsFnIn;
+    o: ParamsFnOut;
 };
 type GetDescriptBlockParamsBlock<T> = T extends DescriptBlockParams<infer BlockParams, infer ParamsFnIn, infer ParamsFnOut> ? BlockParams : T;
 type GetDescriptBlockParamsFnIn<T> = T extends DescriptBlockParams<infer BlockParams, infer ParamsFnIn, infer ParamsFnOut> ? ParamsFnIn : T;
 type GetDescriptBlockParamsFnOut<T> = T extends DescriptBlockParams<infer BlockParams, infer ParamsFnIn, infer ParamsFnOut> ? ParamsFnOut : T;
 
 type DescriptBlockResult<ResultIn, ResultOut = ResultIn> = {
-    x: 5 // что тут написать?))
+    i: ResultIn;
+    o: ResultOut;
 };
 type GetDescriptBlockResultIn<T> = T extends DescriptBlockResult<infer ResultIn, infer ResultOut> ? ResultIn : T;
 type GetDescriptBlockResultOut<T> = T extends DescriptBlockResult<infer ResultIn, infer ResultOut> ? ResultOut : T;
+
+type InferResultInFromBlockOrReturnResultIn<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ? Result : Type;
+type InferResultOutFromBlockOrReturnResultOut<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ? ResultOut : Type;
+type InferParamsFromBlockOrReturnParams<Block, Params> = Block extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ? ParamsIn : Params;
+
+type InferResultInFromBlocks<Block> = Block extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ?
+    { [ K in keyof Result ]: InferResultInFromBlocks<Result[K]> } :
+    Block;
+
+
+type InferResultOutFromBlocks<Block> = Block extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ?
+    { [ K in keyof ResultOut ]: InferResultOutFromBlocks<ResultOut[K]> } :
+    Block;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -64,7 +86,7 @@ interface DescriptError<Error = Buffer | null | unknown> {
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 declare class Cancel {
-    cancel( reason: DescriptError ): undefined;
+    cancel( reason: DescriptError ): void;
 }
 
 //  ---------------------------------------------------------------------------------------------------------------  //
@@ -160,7 +182,7 @@ interface DescriptBlockOptions<
         context: Context,
         deps: DescriptBlockDeps,
         cancel: Cancel,
-    } ) => ResultOut | Promise< ResultOut > | undefined;
+    } ) => ResultOut | Promise<ResultOut> | undefined | void;
 
     after?: ( args: {
         params: ParamsOut,
@@ -200,7 +222,7 @@ type DescriptHttpBlockDescriptionCallback< T, Params, Context > = T | ( ( args: 
     params: Params,
     context: Context,
     deps: DescriptBlockDeps,
- } ) => T );
+} ) => T );
 
 type DescriptHttpBlockQueryValue = string | number | boolean | undefined | Array<string | number | boolean | object>;
 type DescriptHttpBlockQuery = Record< string, DescriptHttpBlockQueryValue >;
@@ -232,7 +254,7 @@ interface DescriptHttpBlockDescription< Params, Context > {
                 deps: DescriptBlockDeps,
                 query: DescriptHttpBlockQuery,
             } ) => DescriptHttpBlockQuery
-        );
+            );
 
     headers?:
         Record< string,
@@ -251,7 +273,7 @@ interface DescriptHttpBlockDescription< Params, Context > {
                 deps: DescriptBlockDeps,
                 headers: DescriptHttpBlockHeaders,
             } ) => DescriptHttpBlockHeaders
-        );
+            );
 
     body?:
         string |
@@ -307,7 +329,11 @@ interface DescriptHttpBlock<
     >( args: {
         block?: DescriptHttpBlockDescription< GetDescriptBlockParamsFnOut<ExtendedParamsOut>, Context >,
         options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, GetDescriptBlockResultIn<ExtendedResult>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>, GetDescriptBlockResultOut<ExtendedResultOut> >,
-    } ): DescriptHttpBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>, GetDescriptBlockResultOut<ExtendedResultOut> >;
+    } ): DescriptHttpBlock<
+        Context,
+        DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>,
+        GetDescriptBlockResultOut<InferResultOutFromBlockOrReturnResultOut<ExtendedResultOut>>
+    >;
 }
 
 declare function http<
@@ -321,7 +347,11 @@ declare function http<
         block: DescriptHttpBlockDescription< GetDescriptBlockParamsFnOut<ParamsOut>, Context >,
         options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<Params>, GetDescriptBlockResultIn<Result>, GetDescriptBlockParamsFnOut<ParamsOut>, GetDescriptBlockResultOut<ResultOut> >,
     },
-): DescriptHttpBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnOut<ParamsOut>>, GetDescriptBlockResultOut<ResultOut> >;
+): DescriptHttpBlock<
+    Context,
+    DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnOut<ParamsOut>>,
+    GetDescriptBlockResultOut<ResultOut>
+>;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 //  FuncBlock
@@ -338,8 +368,7 @@ type DescriptFuncBlockDescription<
     cancel: Cancel,
 } ) =>
     Result |
-    Promise< Result >;
-    //  DescriptBlock< Context, Params, Result > |
+    Promise<Result>;
 
 interface DescriptFuncBlock<
     Context,
@@ -354,9 +383,18 @@ interface DescriptFuncBlock<
         ExtendedParamsOut = ExtendedParams,
         ExtendedResultOut = ExtendedResult,
     >( args: {
-        block?: DescriptFuncBlockDescription< Context, GetDescriptBlockParamsFnOut<ExtendedParamsOut>, GetDescriptBlockResultOut<ExtendedResultOut>>,
-        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, GetDescriptBlockResultIn<ExtendedResult>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>, GetDescriptBlockResultOut<ExtendedResultOut> >,
-    } ): DescriptFuncBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>, GetDescriptBlockResultOut<ExtendedResultOut> >;
+        block?: DescriptFuncBlockDescription< Context, GetDescriptBlockParamsFnOut<ExtendedParamsOut>, GetDescriptBlockResultIn<ExtendedResult>>,
+        options?: DescriptBlockOptions<
+            Context,
+            GetDescriptBlockParamsFnIn<ExtendedParams>,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<ExtendedResult>>,
+            GetDescriptBlockParamsFnOut<ExtendedParamsOut>,
+            GetDescriptBlockResultOut<ExtendedResultOut>
+        >,
+    } ): DescriptFuncBlock< Context,
+        DescriptBlockParams<GetDescriptBlockParamsBlock<InferParamsFromBlockOrReturnParams<ExtendedResult, ExtendedParams>>, GetDescriptBlockParamsFnOut<InferParamsFromBlockOrReturnParams<ExtendedResult, ExtendedParamsOut>>>,
+        GetDescriptBlockResultOut<InferResultOutFromBlocks<ExtendedResultOut>>
+    >;
 }
 
 declare function func<
@@ -368,9 +406,18 @@ declare function func<
 > (
     args: {
         block: DescriptFuncBlockDescription< Context, GetDescriptBlockParamsFnOut<ParamsOut>, GetDescriptBlockResultIn<Result> >,
-        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<Params>, GetDescriptBlockResultIn<Result>, GetDescriptBlockParamsFnOut<ParamsOut>, GetDescriptBlockResultOut<ResultOut> >,
+        options?: DescriptBlockOptions<
+            Context,
+            GetDescriptBlockParamsFnIn<Params>,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<Result>>,
+            GetDescriptBlockParamsFnOut<ParamsOut>,
+            GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
+        >,
     },
-): DescriptFuncBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnOut<ParamsOut>>, GetDescriptBlockResultOut<ResultOut> >;
+): DescriptFuncBlock< Context,
+    DescriptBlockParams<GetDescriptBlockParamsBlock<InferParamsFromBlockOrReturnParams<Result, Params>>, GetDescriptBlockParamsFnOut<InferParamsFromBlockOrReturnParams<Result, ParamsOut>>>,
+    GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
+>;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 //  ArrayBlock
@@ -411,7 +458,11 @@ interface DescriptArrayBlock<
         ExtendedResultOut = ResultOut,
     >( args: {
         options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, ExtendedResultIn, GetDescriptBlockParamsFnOut<ExtendedParamsOut>, ExtendedResultOut >,
-    } ): DescriptArrayBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>, ExtendedResultOut >;
+    } ): DescriptArrayBlock<
+        Context,
+        DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>,
+        GetDescriptBlockResultOut<InferResultOutFromBlockOrReturnResultOut<ExtendedResultOut>>
+    >;
 }
 
 declare function array<
@@ -432,7 +483,11 @@ declare function array<
             ResultOut
         >,
     },
-): DescriptArrayBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnOut<ParamsOut>>, ResultOut >;
+): DescriptArrayBlock<
+    Context,
+    DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnOut<ParamsOut>>,
+    GetDescriptBlockResultOut<InferResultOutFromBlockOrReturnResultOut<ResultOut>>
+>;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 //  ObjectBlock
@@ -444,9 +499,31 @@ type GetObjectBlockResultOut< T > = {
     [ P in keyof T ]: InferResultOut<T[P]>
 }
 type GetObjectBlockParamsMap< T extends {} > = {
-    [ P in keyof T ]: InferParams<T[ P ]>;
+    [ P in keyof T ]: InferParamsIn<T[ P ]>;
 }
-type GetObjectBlockParams< T extends {}, M = GetObjectBlockParamsMap< T > > = UnionToIntersection< M[ keyof M ] >;
+
+type GetObjectBlockParamsBlockMap< T extends {} > = {
+    [ P in keyof T ]: GetDescriptBlockParamsBlock<InferParamsIn<T[ P ]>>;
+}
+
+type GetObjectBlockParamsFnInMap< T extends {} > = {
+    [ P in keyof T ]: GetDescriptBlockParamsFnIn<InferParamsIn<T[ P ]>>;
+}
+
+type GetObjectBlockParamsFnOutMap< T extends {} > = {
+    [ P in keyof T ]: GetDescriptBlockParamsFnOut<InferParamsOut<T[ P ]>>;
+}
+
+type GetObjectBlockParams<
+    T extends {},
+    PB = GetObjectBlockParamsBlockMap< T >,
+    PI = GetObjectBlockParamsFnInMap< T >,
+    PO = GetObjectBlockParamsFnOutMap< T >,
+> = DescriptBlockParams<
+    UnionToIntersection<PB[ keyof PB ]>,
+    UnionToIntersection<PI[ keyof PI ]>,
+    UnionToIntersection<PO[ keyof PO ]>
+>;
 
 type GetObjectBlockContextMap< T extends {} > = {
     [ P in keyof T ]: InferContext<T[ P ]>;
@@ -455,7 +532,11 @@ type GetObjectBlockContextMap< T extends {} > = {
 type GetObjectBlockContext< T extends {}, M = GetObjectBlockContextMap< T > > = UnionToIntersection< M[ keyof M ] >;
 
 type DescriptObjectBlockDescription< T extends {} > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer Result > ? T[ P ] : never
+    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ParamsOut, infer ResultOut > ? T[ P ] : never
+}
+
+type DescriptObjectBlockDescriptionResults< T extends {} > = {
+    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ParamsOut, infer ResultOut > ? ResultOut : never
 }
 
 interface DescriptObjectBlock<
@@ -471,8 +552,18 @@ interface DescriptObjectBlock<
         ExtendedParamsOut = ExtendedParams,
         ExtendedResultOut = ResultOut,
     >( args: {
-        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, ExtendedResultIn, GetDescriptBlockParamsFnOut<ExtendedParamsOut>, ExtendedResultOut >,
-    } ): DescriptObjectBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>, ExtendedResultOut >;
+        options?: DescriptBlockOptions<
+            Context,
+            GetDescriptBlockParamsFnIn<ExtendedParams>,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<ExtendedResultIn>>,
+            GetDescriptBlockParamsFnOut<ExtendedParamsOut>,
+            GetDescriptBlockResultOut<InferResultOutFromBlocks<ExtendedResultOut>>
+        >,
+    } ): DescriptObjectBlock<
+        Context,
+        DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>,
+        GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
+    >;
 }
 
 declare function object<
@@ -481,19 +572,23 @@ declare function object<
     Params = GetObjectBlockParams< Block >,
     ResultIn = GetObjectBlockResultIn< Block >,
     ParamsOut = Params,
-    ResultOut = ResultIn,
+    ResultOut = GetObjectBlockResultOut<Block>,
 > (
     args: {
         block: DescriptObjectBlockDescription< Block >,
         options?: DescriptBlockOptions<
             Context,
             GetDescriptBlockParamsFnIn<Params>,
-            ResultIn,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<ResultIn>>,
             GetDescriptBlockParamsFnOut<ParamsOut>,
-            ResultOut
+            GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
         >,
     },
-): DescriptObjectBlock< Context, DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnOut<ParamsOut>>, ResultOut >;
+): DescriptObjectBlock<
+    Context,
+    DescriptBlockParams<GetDescriptBlockParamsBlock<Params>, GetDescriptBlockParamsFnOut<ParamsOut>>,
+    GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
+>;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 /*
@@ -540,14 +635,21 @@ declare function run<
     Context,
     Params,
     Result,
+    ParamsOut = Params,
     ResultOut = Result,
 > (
-    block: DescriptBlock< Context, Params, GetDescriptBlockResultIn<ResultOut> >,
+    block: DescriptBlock<
+        Context,
+        GetDescriptBlockParamsFnIn<Params>,
+        GetDescriptBlockResultIn<InferResultInFromBlocks<Result>>,
+        GetDescriptBlockParamsFnOut<ParamsOut>,
+        GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
+    >,
     args: {
         params?: GetDescriptBlockParamsBlock<Params>,
         context?: Context,
     },
-): Promise< GetDescriptBlockResultOut<ResultOut> >;
+): Promise< GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>> ;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -588,3 +690,6 @@ declare namespace request {
 
     export const DEFAULT_OPTIONS: DefaultOptions;
 }
+
+
+declare function inferBlockTypes< Context, Params, Result, ParamsOut = Params, ResultOut = Result >(block: DescriptBlock<Context, Params, Result, ParamsOut, ResultOut>):  DescriptBlock<Context, Params, Result, ParamsOut, ResultOut>;

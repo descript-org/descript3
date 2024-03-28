@@ -65,11 +65,11 @@ const block1 = de.http( {
         //  Если мы здесь хотим использовать params, то нам приходится прописать тип явно.
         //  Typescript не позволяет частично задавать тип при destructure.
         //
-        after: ( { params, result }: { params: ParamsOut, result: ResultRaw }) => {
+        after: ( { params, result }) => {
             //  Тип для обработанного результата нам в принципе не нужен.
             //  Он выведется из того, что мы вернули.
             //
-            return result.a;
+            return result;
         },
     },
 } );
@@ -105,8 +105,8 @@ const block2 = de.http( {
             }
         },
 
-        after: ( { result }: { result: ResultRaw } ) => {
-            return result.a;
+        after: ( { result } ) => {
+            return result;
         },
     },
 } );
@@ -129,7 +129,7 @@ de.run( block2, {
 const block3 = de.http( {
     block: {},
     options: {
-        before: ( { params } ) => {
+        before: ( { params }: { params: ParamsIn } ) => {
             if ( !params.id ) {
                 return 'foo';
             }
@@ -138,7 +138,7 @@ const block3 = de.http( {
         //  Где-то нужно объявить тип входящих params.
         //  Например, в after. Или же в before. В зависимости от того, что есть.
         //
-        after: ( { params, result }: { params: ParamsIn, result?: string } ) => {
+        after: ( { params, result } ) => {
             return result;
         },
     },
@@ -151,4 +151,6 @@ de.run( block3, {
 } )
     .then( ( result ) => {
         console.log( result );
+
+        return result;
     } );
