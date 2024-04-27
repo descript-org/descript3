@@ -4,7 +4,7 @@ const path_ = require( 'path' );
 const fs_ = require( 'fs' );
 const http_ = require( 'http' );
 const https_ = require( 'https' );
-const zlib_ = require( 'zlib' );
+const { gzipSync, gunzipSync } = require( 'node:zlib' );
 const { compress } = require( '@fengkx/zstd-napi' );
 const { Duplex } = require( 'stream' );
 
@@ -354,6 +354,37 @@ describe( 'request', () => {
             expect( body.toString() ).toBe( body_string );
         } );
 
+        it.each( [ 'POST' ] )( '%j, body_compress', async ( method ) => {
+            const path = get_path();
+
+            const BODY = 'Привет!'.repeat( 1000 );
+
+            const spy = jest.fn( ( req, res ) => res.end() );
+
+            fake.add( path, spy );
+
+            await do_request( {
+                method: method,
+                pathname: path,
+                body: BODY,
+                body_compress: true,
+            } );
+
+            const [ req, , body ] = spy.mock.calls[ 0 ];
+
+            expect( req.method ).toBe( method );
+            expect( req.headers ).toHaveProperty( 'content-type', 'text/plain' );
+            expect( req.headers ).toHaveProperty( 'content-encoding', 'gzip' );
+            expect( req.headers ).toHaveProperty( 'transfer-encoding', 'chunked' );
+            expect( req.headers ).not.toHaveProperty( 'content-length' );
+
+            //  http://www.zlib.org/rfc-gzip.html#header-trailer
+            //  2.3.1. Member header and trailer
+            //  These have the fixed values ID1 = 31 (0x1f), ID2 = 139 (0x8b), to identify the file as being in gzip format.
+            expect( body.slice( 0, 2 ).equals( Buffer.from( '1f8b', 'hex' ) ) ).toBe( true );
+            expect( gunzipSync( body ).toString( 'utf-8' ) ).toBe( BODY );
+        } );
+
         describe( 'errors', () => {
 
             it( '2xx, custom is_error', async () => {
@@ -648,7 +679,7 @@ describe( 'request', () => {
                     const CONTENT = 'Привет!';
 
                     fake.add( path, function( req, res ) {
-                        const buffer = zlib_.gzipSync( Buffer.from( CONTENT ) );
+                        const buffer = gzipSync( Buffer.from( CONTENT ) );
 
                         res.setHeader( 'content-encoding', 'gzip' );
                         res.setHeader( 'content-length', Buffer.byteLength( buffer ) );

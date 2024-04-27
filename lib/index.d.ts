@@ -132,6 +132,8 @@ interface LoggerEvent {
         start: number;
         socket: number;
         tcp_connection: number;
+        body: number;
+        request_end: number;
         end: number;
     };
 
@@ -283,6 +285,8 @@ interface DescriptHttpBlockDescription< Params, Context > {
             context: Context,
             deps: DescriptBlockDeps,
         } ) => string | Buffer | DescriptJSON );
+
+    body_compress?: boolean;
 
     is_json?: boolean;
 
