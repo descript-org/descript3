@@ -216,6 +216,21 @@ block: {
 },
 ```
 
+```js
+block: {
+    headers: ( { headers } ) => {
+        return {
+            ...headers,
+            'content-type': 'text/html',
+        };
+    }
+    body: () => '...large_body....',
+    body_compress: {
+        level: 1,
+    },
+},
+```
+
 ### `Buffer`
 
 ```js

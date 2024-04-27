@@ -1,3 +1,5 @@
+import { ZlibOptions } from 'node:zlib';
+
 type First< T > =
     T extends readonly [ infer First, ...infer Rest ] | [ infer First, ...infer Rest ] ? First : never;
 
@@ -286,7 +288,7 @@ interface DescriptHttpBlockDescription< Params, Context > {
             deps: DescriptBlockDeps,
         } ) => string | Buffer | DescriptJSON );
 
-    body_compress?: boolean;
+    body_compress?: boolean | ZlibOptions;
 
     is_json?: boolean;
 
