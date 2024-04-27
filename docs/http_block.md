@@ -155,7 +155,7 @@ block: {
 ```
 
 
-## `body`
+## `body` и `body_compress`
 
 Для `POST`, `PUT` и `PATCH` запросов почти всегда нужно передавать что-то в `body`:
 
@@ -197,6 +197,22 @@ block: {
         };
     }
     body: () => '<h1>Привет!</h1>',
+},
+```
+
+Параметр `compress_body` позволяет сжать тело запроса с помощью gzip.
+К запросу автоматически будет добавлен заголовок `content-encoding: gzip`
+
+```js
+block: {
+    headers: ( { headers } ) => {
+        return {
+            ...headers,
+            'content-type': 'text/html',
+        };
+    }
+    body: () => '...large_body....',
+    body_compress: true,
 },
 ```
 
