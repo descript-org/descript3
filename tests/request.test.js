@@ -382,6 +382,41 @@ describe( 'request', () => {
             //  2.3.1. Member header and trailer
             //  These have the fixed values ID1 = 31 (0x1f), ID2 = 139 (0x8b), to identify the file as being in gzip format.
             expect( body.slice( 0, 2 ).equals( Buffer.from( '1f8b', 'hex' ) ) ).toBe( true );
+            expect( body ).toHaveLength( 77 );
+            expect( gunzipSync( body ).toString( 'utf-8' ) ).toBe( BODY );
+        } );
+
+        it.each( [ 'POST' ] )( '%j, body_compress with options', async ( method ) => {
+            const path = get_path();
+
+            const BODY = 'Привет!'.repeat( 1000 );
+
+            const spy = jest.fn( ( req, res ) => res.end() );
+
+            fake.add( path, spy );
+
+            await do_request( {
+                method: method,
+                pathname: path,
+                body: BODY,
+                body_compress: {
+                    level: 1,
+                },
+            } );
+
+            const [ req, , body ] = spy.mock.calls[ 0 ];
+
+            expect( req.method ).toBe( method );
+            expect( req.headers ).toHaveProperty( 'content-type', 'text/plain' );
+            expect( req.headers ).toHaveProperty( 'content-encoding', 'gzip' );
+            expect( req.headers ).toHaveProperty( 'transfer-encoding', 'chunked' );
+            expect( req.headers ).not.toHaveProperty( 'content-length' );
+
+            //  http://www.zlib.org/rfc-gzip.html#header-trailer
+            //  2.3.1. Member header and trailer
+            //  These have the fixed values ID1 = 31 (0x1f), ID2 = 139 (0x8b), to identify the file as being in gzip format.
+            expect( body.slice( 0, 2 ).equals( Buffer.from( '1f8b', 'hex' ) ) ).toBe( true );
+            expect( body ).toHaveLength( 134 );
             expect( gunzipSync( body ).toString( 'utf-8' ) ).toBe( BODY );
         } );
 
