@@ -9,6 +9,7 @@ const Server = require( './server' );
 const { get_path, get_result_block } = require( './helpers' );
 
 const strip_null_and_undefined_values = require( '../lib/strip_null_and_undefined_values' );
+const { gunzipSync } = require( 'node:zlib' );
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -836,6 +837,30 @@ describe( 'http', () => {
             expect( body.toString() ).toBe( qs_.stringify( BODY ) );
         } );
 
+        it( 'with body_compress', async () => {
+            const path = get_path();
+
+            const spy = jest.fn( ( req, res ) => res.end() );
+
+            fake.add( path, spy );
+
+            const block = base_block( {
+                block: {
+                    pathname: path,
+                    method: 'POST',
+                    body: 'Привет!',
+                    body_compress: true,
+                },
+            } );
+
+            await de.run( block );
+
+            expect( spy ).toHaveBeenCalledTimes( 1 );
+            const body = spy.mock.calls[ 0 ][ 2 ];
+            expect( body.slice( 0, 2 ).equals( Buffer.from( '1f8b', 'hex' ) ) ).toBe( true );
+            expect( body ).toHaveLength( 34 );
+            expect( gunzipSync( body ).toString( 'utf-8' ) ).toBe( 'Привет!' );
+        } );
     } );
 
     describe( 'parse response', () => {
