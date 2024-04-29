@@ -4,7 +4,7 @@ const path_ = require( 'path' );
 const fs_ = require( 'fs' );
 const http_ = require( 'http' );
 const https_ = require( 'https' );
-const { gzipSync, gunzipSync } = require( 'node:zlib' );
+const { gzipSync } = require( 'node:zlib' );
 const { compress } = require( '@fengkx/zstd-napi' );
 const { Duplex } = require( 'stream' );
 
@@ -378,12 +378,9 @@ describe( 'request', () => {
             expect( req.headers ).toHaveProperty( 'transfer-encoding', 'chunked' );
             expect( req.headers ).not.toHaveProperty( 'content-length' );
 
-            //  http://www.zlib.org/rfc-gzip.html#header-trailer
-            //  2.3.1. Member header and trailer
-            //  These have the fixed values ID1 = 31 (0x1f), ID2 = 139 (0x8b), to identify the file as being in gzip format.
-            expect( body.slice( 0, 2 ).equals( Buffer.from( '1f8b', 'hex' ) ) ).toBe( true );
+            expect( body ).toBeValidGzip();
             expect( body ).toHaveLength( 77 );
-            expect( gunzipSync( body ).toString( 'utf-8' ) ).toBe( BODY );
+            expect( body ).toHaveUngzipValue( BODY );
         } );
 
         it.each( [ 'POST' ] )( '%j, body_compress with options', async ( method ) => {
@@ -412,12 +409,9 @@ describe( 'request', () => {
             expect( req.headers ).toHaveProperty( 'transfer-encoding', 'chunked' );
             expect( req.headers ).not.toHaveProperty( 'content-length' );
 
-            //  http://www.zlib.org/rfc-gzip.html#header-trailer
-            //  2.3.1. Member header and trailer
-            //  These have the fixed values ID1 = 31 (0x1f), ID2 = 139 (0x8b), to identify the file as being in gzip format.
-            expect( body.slice( 0, 2 ).equals( Buffer.from( '1f8b', 'hex' ) ) ).toBe( true );
+            expect( body ).toBeValidGzip();
             expect( body ).toHaveLength( 134 );
-            expect( gunzipSync( body ).toString( 'utf-8' ) ).toBe( BODY );
+            expect( body ).toHaveUngzipValue( BODY );
         } );
 
         describe( 'errors', () => {
