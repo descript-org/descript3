@@ -9,7 +9,6 @@ const Server = require( './server' );
 const { get_path, get_result_block } = require( './helpers' );
 
 const strip_null_and_undefined_values = require( '../lib/strip_null_and_undefined_values' );
-const { gunzipSync } = require( 'node:zlib' );
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -857,9 +856,9 @@ describe( 'http', () => {
 
             expect( spy ).toHaveBeenCalledTimes( 1 );
             const body = spy.mock.calls[ 0 ][ 2 ];
-            expect( body.slice( 0, 2 ).equals( Buffer.from( '1f8b', 'hex' ) ) ).toBe( true );
+            expect( body ).toBeValidGzip();
             expect( body ).toHaveLength( 34 );
-            expect( gunzipSync( body ).toString( 'utf-8' ) ).toBe( 'Привет!' );
+            expect( body ).toHaveUngzipValue( 'Привет!' );
         } );
     } );
 
