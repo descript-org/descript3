@@ -150,7 +150,7 @@ describe( 'options.deps', () => {
 
         const calls = spy.mock.calls;
 
-        expect( calls.length ).toBe( 2 );
+        expect( calls ).toHaveLength( 2 );
         expect( calls[ 0 ][ 0 ] ).toBe( 'FOO' );
         expect( calls[ 1 ][ 0 ] ).toBe( 'BAR' );
     } );
@@ -186,7 +186,7 @@ describe( 'options.deps', () => {
 
         const calls = spy.mock.calls;
 
-        expect( calls.length ).toBe( 2 );
+        expect( calls ).toHaveLength( 2 );
         expect( calls[ 0 ][ 0 ] ).toBe( 'FOO' );
         expect( calls[ 1 ][ 0 ] ).toBe( 'BAR' );
     } );
@@ -230,7 +230,7 @@ describe( 'options.deps', () => {
 
         const calls = spy.mock.calls;
 
-        expect( calls.length ).toBe( 3 );
+        expect( calls ).toHaveLength( 3 );
         expect( calls[ 0 ][ 0 ] ).toBe( 'FOO' );
         expect( calls[ 1 ][ 0 ] ).toBe( 'BAR' );
         expect( calls[ 2 ][ 0 ] ).toBe( 'QUU' );
@@ -274,7 +274,7 @@ describe( 'options.deps', () => {
 
         const calls = spy.mock.calls;
 
-        expect( calls.length ).toBe( 3 );
+        expect( calls ).toHaveLength( 3 );
         expect( calls[ 2 ][ 0 ] ).toBe( 'QUU' );
     } );
 
@@ -315,7 +315,7 @@ describe( 'options.deps', () => {
 
         const calls = spy.mock.calls;
 
-        expect( calls.length ).toBe( 3 );
+        expect( calls ).toHaveLength( 3 );
         expect( calls[ 0 ][ 0 ] ).toBe( 'FOO' );
         expect( calls[ 1 ][ 0 ] ).toBe( 'BAR' );
         expect( calls[ 2 ][ 0 ] ).toBe( 'QUU' );

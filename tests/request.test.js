@@ -466,7 +466,7 @@ describe( 'request', () => {
                 } catch ( error ) {
                     expect( de.is_error( error ) ).toBe( true );
                     expect( error.error.status_code ).toBe( status_code );
-                    expect( spy.mock.calls.length ).toBe( 0 );
+                    expect( spy.mock.calls ).toHaveLength( 0 );
                 }
             } );
 
@@ -518,7 +518,7 @@ describe( 'request', () => {
                 } catch ( error ) {
                     expect( de.is_error( error ) ).toBe( true );
                     expect( error.error.status_code ).toBe( status_code );
-                    expect( spy.mock.calls.length ).toBe( 0 );
+                    expect( spy.mock.calls ).toHaveLength( 0 );
                 }
             } );
 
@@ -546,7 +546,7 @@ describe( 'request', () => {
                 } catch ( error ) {
                     expect( de.is_error( error ) ).toBe( true );
                     expect( error.error.status_code ).toBe( status_code );
-                    expect( spy.mock.calls.length ).toBe( 0 );
+                    expect( spy.mock.calls ).toHaveLength( 0 );
                 }
             } );
 
@@ -832,7 +832,7 @@ describe( 'request', () => {
                 expect( result2.timestamps.socket === result2.timestamps.tcp_connection ).toBe( true );
             } );
 
-            it( 'is an object', async () => {
+            it( 'is an http.Agent instance', async () => {
                 const path = get_path();
 
                 fake.add( path, {

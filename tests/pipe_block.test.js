@@ -43,9 +43,9 @@ describe( 'de.pipe', () => {
         const result = await de.run( block );
 
         expect( spy_1.mock.calls[ 0 ][ 0 ].deps.prev ).toEqual( [] );
-        expect( spy_2.mock.calls[ 0 ][ 0 ].deps.prev.length ).toBe( 1 );
+        expect( spy_2.mock.calls[ 0 ][ 0 ].deps.prev ).toHaveLength( 1 );
         expect( spy_2.mock.calls[ 0 ][ 0 ].deps.prev[ 0 ] ).toBe( result_1 );
-        expect( spy_3.mock.calls[ 0 ][ 0 ].deps.prev.length ).toBe( 2 );
+        expect( spy_3.mock.calls[ 0 ][ 0 ].deps.prev ).toHaveLength( 2 );
         expect( spy_3.mock.calls[ 0 ][ 0 ].deps.prev[ 0 ] ).toBe( result_1 );
         expect( spy_3.mock.calls[ 0 ][ 0 ].deps.prev[ 1 ] ).toBe( result_2 );
         expect( spy_1.mock.calls[ 0 ][ 0 ].deps.prev ).not.toBe( spy_2.mock.calls[ 0 ][ 0 ].deps.prev );
@@ -79,7 +79,7 @@ describe( 'de.pipe', () => {
 
         } catch ( e ) {
             expect( e ).toBe( error );
-            expect( spy_2.mock.calls.length ).toBe( 0 );
+            expect( spy_2.mock.calls ).toHaveLength( 0 );
         }
     } );
 
@@ -109,7 +109,7 @@ describe( 'de.pipe', () => {
 
         } catch ( e ) {
             expect( e ).toBe( error );
-            expect( spy_1.mock.calls.length ).toBe( 1 );
+            expect( spy_1.mock.calls ).toHaveLength( 1 );
         }
     } );
 

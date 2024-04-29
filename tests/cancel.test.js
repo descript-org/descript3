@@ -4,7 +4,7 @@ const de = require( '../lib' );
 
 describe( 'de.Cancel', () => {
 
-    test( 'cancel', () => {
+    it( 'cancel', () => {
         const cancel = new de.Cancel();
 
         const spy = jest.fn();
@@ -18,7 +18,7 @@ describe( 'de.Cancel', () => {
         expect( spy.mock.calls[ 0 ][ 0 ] ).toBe( error );
     } );
 
-    test( 'cancel with plain object', () => {
+    it( 'cancel with plain object', () => {
         const cancel = new de.Cancel();
 
         const spy = jest.fn();
@@ -34,7 +34,7 @@ describe( 'de.Cancel', () => {
         expect( reason.error.id ).toBe( error.id );
     } );
 
-    test( 'cancel after cancel', () => {
+    it( 'cancel after cancel', () => {
         const cancel = new de.Cancel();
 
         const spy = jest.fn();
@@ -49,10 +49,10 @@ describe( 'de.Cancel', () => {
         } );
         cancel.cancel( error2 );
 
-        expect( spy.mock.calls.length ).toBe( 1 );
+        expect( spy.mock.calls ).toHaveLength( 1 );
     } );
 
-    test( 'cancel after close', () => {
+    it( 'cancel after close', () => {
         const cancel = new de.Cancel();
 
         const spy = jest.fn();
@@ -65,10 +65,10 @@ describe( 'de.Cancel', () => {
         } );
         cancel.cancel( error );
 
-        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( spy.mock.calls ).toHaveLength( 0 );
     } );
 
-    test( 'throw_if_cancelled #1', () => {
+    it( 'throw_if_cancelled #1', () => {
         const cancel = new de.Cancel();
 
         const error = de.error( {
@@ -85,13 +85,14 @@ describe( 'de.Cancel', () => {
         }
     } );
 
-    test( 'throw_if_cancelled #2', () => {
-        const cancel = new de.Cancel();
-
-        cancel.throw_if_cancelled();
+    it( 'throw_if_cancelled #2', () => {
+        expect( () => {
+            const cancel = new de.Cancel();
+            cancel.throw_if_cancelled();
+        } ).not.toThrow();
     } );
 
-    test( 'subscribe after close', () => {
+    it( 'subscribe after close', () => {
         const cancel = new de.Cancel();
 
         cancel.close();
@@ -99,10 +100,10 @@ describe( 'de.Cancel', () => {
         const spy = jest.fn();
         cancel.subscribe( spy );
 
-        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( spy.mock.calls ).toHaveLength( 0 );
     } );
 
-    test( 'subscribe after cancel', () => {
+    it( 'subscribe after cancel', () => {
         const cancel = new de.Cancel();
 
         const error = de.error( {
@@ -116,7 +117,7 @@ describe( 'de.Cancel', () => {
         expect( spy.mock.calls[ 0 ][ 0 ] ).toBe( error );
     } );
 
-    test( 'get_promise', async () => {
+    it( 'get_promise', async () => {
         const cancel = new de.Cancel();
 
         const promise = cancel.get_promise();
@@ -137,7 +138,7 @@ describe( 'de.Cancel', () => {
         }
     } );
 
-    test( 'get_promise after cancel', async () => {
+    it( 'get_promise after cancel', async () => {
         const cancel = new de.Cancel();
 
         const error = de.error( {
@@ -154,7 +155,7 @@ describe( 'de.Cancel', () => {
         }
     } );
 
-    test( 'child canceled after parent cancel', () => {
+    it( 'child canceled after parent cancel', () => {
         const parent_cancel = new de.Cancel();
         const child_cancel = parent_cancel.create();
 
@@ -169,7 +170,7 @@ describe( 'de.Cancel', () => {
         expect( spy.mock.calls[ 0 ][ 0 ] ).toBe( error );
     } );
 
-    test( 'child closed if parent was closed #1', () => {
+    it( 'child closed if parent was closed #1', () => {
         const parent_cancel = new de.Cancel();
         parent_cancel.close();
         const child_cancel = parent_cancel.create();
@@ -182,10 +183,10 @@ describe( 'de.Cancel', () => {
         } );
         parent_cancel.cancel( error );
 
-        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( spy.mock.calls ).toHaveLength( 0 );
     } );
 
-    test( 'child closed if parent was closed #2', () => {
+    it( 'child closed if parent was closed #2', () => {
         const parent_cancel = new de.Cancel();
         parent_cancel.close();
         const child_cancel = parent_cancel.create();
@@ -198,10 +199,10 @@ describe( 'de.Cancel', () => {
         } );
         child_cancel.cancel( error );
 
-        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( spy.mock.calls ).toHaveLength( 0 );
     } );
 
-    test( 'child cancelled if parent was cancelled #1', () => {
+    it( 'child cancelled if parent was cancelled #1', () => {
         const parent_cancel = new de.Cancel();
         const error = de.error( {
             id: 'SOME_ERROR',

@@ -2,7 +2,7 @@ const strip_null_and_undefined_values = require( '../lib/strip_null_and_undefine
 
 describe( 'strip_null_and_undefined_values', () => {
 
-    test( 'returns copy', () => {
+    it( 'returns copy', () => {
         const obj = {
             a: 'a',
             b: 'b',
@@ -13,7 +13,7 @@ describe( 'strip_null_and_undefined_values', () => {
         expect( stripped ).not.toBe( obj );
     } );
 
-    test( 'strip null and undefined', () => {
+    it( 'strip null and undefined', () => {
         const obj = {
             a: undefined,
             b: null,

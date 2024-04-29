@@ -295,7 +295,7 @@ describe( 'de.array', () => {
 
             } catch ( e ) {
                 expect( e ).toBe( abort_error );
-                expect( action_foo_spy.mock.calls.length ).toBe( 0 );
+                expect( action_foo_spy.mock.calls ).toHaveLength( 0 );
                 expect( action_bar_spy.mock.calls[ 0 ][ 0 ] ).toBe( abort_error );
             }
         } );

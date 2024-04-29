@@ -1246,8 +1246,8 @@ describe( 'http', () => {
 
             await de.run( block );
 
-            expect( spy_1.mock.calls.length ).toBe( 0 );
-            expect( spy_2.mock.calls.length ).toBe( 1 );
+            expect( spy_1.mock.calls ).toHaveLength( 0 );
+            expect( spy_2.mock.calls ).toHaveLength( 1 );
         } );
 
         it( 'default parse_body', async () => {

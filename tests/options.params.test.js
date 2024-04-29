@@ -92,7 +92,7 @@ describe( 'options.params', () => {
             } catch ( e ) {
                 expect( de.is_error( e ) ).toBe( true );
                 expect( e.error.id ).toBe( de.ERROR_ID.INVALID_OPTIONS_PARAMS );
-                expect( spy.mock.calls.length ).toBe( 0 );
+                expect( spy.mock.calls ).toHaveLength( 0 );
             }
         } );
 

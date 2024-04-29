@@ -184,7 +184,7 @@ describe( 'de.object', () => {
         }
     } );
 
-    it( 'two subblocks, one required failed #1', async () => {
+    it( 'two subblocks, one required failed #2', async () => {
         const error_foo = de.error( {
             id: 'SOME_ERROR',
         } );
@@ -312,7 +312,7 @@ describe( 'de.object', () => {
 
             } catch ( e ) {
                 expect( e ).toBe( abort_error );
-                expect( action_foo_spy.mock.calls.length ).toBe( 0 );
+                expect( action_foo_spy.mock.calls ).toHaveLength( 0 );
                 expect( action_bar_spy.mock.calls[ 0 ][ 0 ] ).toBe( abort_error );
             }
         } );

@@ -27,7 +27,7 @@ describe( 'de.first', () => {
 
         expect( result ).toBe( result_1 );
         expect( spy_1.mock.calls[ 0 ][ 0 ].deps.prev ).toEqual( [] );
-        expect( spy_2.mock.calls.length ).toEqual( 0 );
+        expect( spy_2.mock.calls ).toHaveLength( 0 );
     } );
 
     it( 'first block throws', async () => {
@@ -60,7 +60,7 @@ describe( 'de.first', () => {
         const result = await de.run( block );
 
         expect( result ).toBe( result_2 );
-        expect( spy_2.mock.calls[ 0 ][ 0 ].deps.prev.length ).toBe( 1 );
+        expect( spy_2.mock.calls[ 0 ][ 0 ].deps.prev ).toHaveLength( 1 );
         expect( spy_2.mock.calls[ 0 ][ 0 ].deps.prev[ 0 ] ).toBe( error_1 );
     } );
 
@@ -97,7 +97,7 @@ describe( 'de.first', () => {
         } catch ( e ) {
             expect( de.is_error( e ) ).toBe( true );
             expect( e.error.id ).toBe( de.ERROR_ID.ALL_BLOCKS_FAILED );
-            expect( e.error.reason.length ).toBe( 2 );
+            expect( e.error.reason ).toHaveLength( 2 );
             expect( e.error.reason[ 0 ] ).toBe( error_1 );
             expect( e.error.reason[ 1 ] ).toBe( error_2 );
         }

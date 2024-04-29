@@ -71,7 +71,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
 
         expect( result_1 ).toBe( block_value );
         expect( result_2 ).toBe( block_value );
-        expect( spy.mock.calls.length ).toBe( 2 );
+        expect( spy.mock.calls ).toHaveLength( 2 );
 
     } );
 
@@ -95,7 +95,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
 
         expect( result_1 ).toBe( block_value );
         expect( result_2 ).toBe( block_value );
-        expect( spy.mock.calls.length ).toBe( 2 );
+        expect( spy.mock.calls ).toHaveLength( 2 );
 
     } );
 
@@ -121,7 +121,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
 
         expect( result_1 ).toBe( block_value );
         expect( result_2 ).toBe( block_value );
-        expect( spy.mock.calls.length ).toBe( 1 );
+        expect( spy.mock.calls ).toHaveLength( 1 );
     } );
 
     it( 'key is a function, cache expired, real second run', async () => {
@@ -144,7 +144,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
 
         await de.run( block );
 
-        expect( spy.mock.calls.length ).toBe( 2 );
+        expect( spy.mock.calls ).toHaveLength( 2 );
     } );
 
     it( 'key is a function and returns undefined', async () => {
@@ -166,7 +166,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
 
         const result = await de.run( block );
 
-        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( spy.mock.calls ).toHaveLength( 0 );
         expect( result ).toBe( data );
     } );
 
@@ -191,7 +191,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
 
         expect( result_1 ).toBe( block_value );
         expect( result_2 ).toBe( block_value );
-        expect( spy.mock.calls.length ).toBe( 1 );
+        expect( spy.mock.calls ).toHaveLength( 1 );
     } );
 
     it( 'cache.get throws', async () => {
@@ -214,7 +214,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
 
         await de.run( block );
 
-        expect( spy.mock.calls.length ).toBe( 1 );
+        expect( spy.mock.calls ).toHaveLength( 1 );
     } );
 
     it( 'cache.get returns promise that rejects, block has deps', async () => {
@@ -259,7 +259,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
         const r = await de.run( block );
 
         expect( r ).toEqual( { foo: null, bar: null } );
-        expect( spy.mock.calls.length ).toBe( 1 );
+        expect( spy.mock.calls ).toHaveLength( 1 );
     } );
 
     it( 'cache.set throws', async () => {
@@ -279,7 +279,9 @@ describe( 'options.cache, options.key, options.maxage', () => {
             },
         } );
 
-        await de.run( block );
+        await expect( async () => {
+            await de.run( block );
+        } ).not.toThrow();
     } );
 
     it( 'cache.get returns rejected promise', async () => {
@@ -302,7 +304,7 @@ describe( 'options.cache, options.key, options.maxage', () => {
 
         await de.run( block );
 
-        expect( spy.mock.calls.length ).toBe( 1 );
+        expect( spy.mock.calls ).toHaveLength( 1 );
     } );
 
     it( 'cache.set returns rejected promise', async () => {
@@ -322,7 +324,9 @@ describe( 'options.cache, options.key, options.maxage', () => {
             },
         } );
 
-        await de.run( block );
+        await expect( async () => {
+            await de.run( block );
+        } ).not.toThrow();
     } );
 
 } );

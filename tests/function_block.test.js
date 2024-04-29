@@ -11,7 +11,7 @@ const {
 
 describe( 'de.func', () => {
 
-    test( 'resolves with value', async () => {
+    it( 'resolves with value', async () => {
         const data = {
             foo: 42,
         };
@@ -23,7 +23,7 @@ describe( 'de.func', () => {
         expect( result ).toBe( data );
     } );
 
-    test( 'resolves with promise', async () => {
+    it( 'resolves with promise', async () => {
         const data = {
             foo: 42,
         };
@@ -39,7 +39,7 @@ describe( 'de.func', () => {
         expect( result ).toBe( data );
     } );
 
-    test( 'resolves with block', async () => {
+    it( 'resolves with block', async () => {
         const data = {
             foo: 42,
         };
@@ -53,7 +53,7 @@ describe( 'de.func', () => {
     } );
 
     //  Самый простой способ вычислить факториал!
-    test( 'recursion', async () => {
+    it( 'recursion', async () => {
         const block = de.func( {
             block: ( { params } ) => {
                 if ( params.n === 1 ) {
@@ -83,7 +83,7 @@ describe( 'de.func', () => {
         expect( result ).toBe( 120 );
     } );
 
-    test( 'rejects with de.error', async () => {
+    it( 'rejects with de.error', async () => {
         const error = de.error( {
             id: 'SOME_ERROR',
         } );
@@ -100,7 +100,7 @@ describe( 'de.func', () => {
 
     } );
 
-    test( 'cancellable', async () => {
+    it( 'cancellable', async () => {
         const block = get_result_block( null, 100 );
         const cancel = new de.Cancel();
 
