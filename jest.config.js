@@ -4,5 +4,7 @@ module.exports = {
         '/tests/server.js',
         '/tests/helpers.js',
     ],
+    testEnvironment: 'node',
+    testRunner: 'jest-circus/runner',
 };
 

@@ -40,7 +40,7 @@ describe( 'options.before', () => {
         const result = await de.run( block );
 
         expect( result ).toBe( before_result );
-        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( spy.mock.calls ).toHaveLength( 0 );
     } );
 
     it( 'before throws, action never called', async () => {
@@ -62,7 +62,7 @@ describe( 'options.before', () => {
 
         } catch ( e ) {
             expect( e ).toBe( before_error );
-            expect( spy.mock.calls.length ).toBe( 0 );
+            expect( spy.mock.calls ).toHaveLength( 0 );
         }
     } );
 
@@ -83,7 +83,7 @@ describe( 'options.before', () => {
 
         } catch ( e ) {
             expect( e ).toBe( before_error );
-            expect( spy.mock.calls.length ).toBe( 0 );
+            expect( spy.mock.calls ).toHaveLength( 0 );
         }
     } );
 
@@ -141,7 +141,7 @@ describe( 'options.before', () => {
         const result = await de.run( block );
 
         expect( result ).toBe( before_result );
-        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( spy.mock.calls ).toHaveLength( 0 );
     } );
 
     it( 'before returns undefined', async () => {
@@ -210,7 +210,7 @@ describe( 'options.before', () => {
             await de.run( child );
 
             const calls = spy.mock.calls;
-            expect( calls.length ).toBe( 2 );
+            expect( calls ).toHaveLength( 2 );
             expect( calls[ 0 ][ 0 ] ).toBe( 'CHILD' );
             expect( calls[ 1 ][ 0 ] ).toBe( 'PARENT' );
         } );
@@ -231,7 +231,7 @@ describe( 'options.before', () => {
             const result = await de.run( child );
 
             expect( result ).toBe( child_before_result );
-            expect( spy.mock.calls.length ).toBe( 0 );
+            expect( spy.mock.calls ).toHaveLength( 0 );
         } );
 
         it.each( [ null, false, 0, '', 42, 'foo', {} ] )( 'child returns undefined, parent returns %j', async ( parent_before_result ) => {
@@ -321,7 +321,7 @@ describe( 'options.before', () => {
 
             } catch ( e ) {
                 expect( e ).toBe( child_before_error );
-                expect( spy.mock.calls.length ).toBe( 0 );
+                expect( spy.mock.calls ).toHaveLength( 0 );
             }
         } );
 

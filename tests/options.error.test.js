@@ -47,7 +47,7 @@ describe( 'options.error', () => {
 
         await de.run( block );
 
-        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( spy.mock.calls ).toHaveLength( 0 );
     } );
 
     it( 'returns another error', async () => {
@@ -92,7 +92,7 @@ describe( 'options.error', () => {
         } catch ( e ) {
             expect( de.is_error( e ) ).toBe( true );
             expect( e.error.id ).toBe( 'ReferenceError' );
-            expect( spy.mock.calls.length ).toBe( 1 );
+            expect( spy.mock.calls ).toHaveLength( 1 );
         }
     } );
 
@@ -120,7 +120,7 @@ describe( 'options.error', () => {
 
         } catch ( e ) {
             expect( e ).toBe( error_2 );
-            expect( spy.mock.calls.length ).toBe( 1 );
+            expect( spy.mock.calls ).toHaveLength( 1 );
         }
     } );
 
@@ -173,7 +173,7 @@ describe( 'options.error', () => {
         const result = await de.run( block_2 );
 
         expect( result ).toBe( value );
-        expect( spy.mock.calls.length ).toBe( 0 );
+        expect( spy.mock.calls ).toHaveLength( 0 );
     } );
 
     it( 'first throws, second gets error from first', async () => {

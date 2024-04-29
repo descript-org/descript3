@@ -49,7 +49,7 @@ describe( 'options.after', () => {
             await de.run( block );
 
         } catch ( e ) {
-            expect( spy.mock.calls.length ).toBe( 0 );
+            expect( spy.mock.calls ).toHaveLength( 0 );
         }
     } );
 
@@ -67,7 +67,7 @@ describe( 'options.after', () => {
         const result = await de.run( block );
 
         expect( result ).toBe( after_result );
-        expect( spy.mock.calls.length ).toBe( 1 );
+        expect( spy.mock.calls ).toHaveLength( 1 );
     } );
 
     it( 'after throws', async () => {
@@ -262,7 +262,7 @@ describe( 'options.after', () => {
 
         } catch ( e ) {
             expect( e ).toBe( error );
-            expect( spy.mock.calls.length ).toBe( 1 );
+            expect( spy.mock.calls ).toHaveLength( 1 );
         }
 
     } );
@@ -285,7 +285,7 @@ describe( 'options.after', () => {
             await de.run( child );
 
             const calls = spy.mock.calls;
-            expect( calls.length ).toBe( 2 );
+            expect( calls ).toHaveLength( 2 );
             expect( calls[ 0 ][ 0 ] ).toBe( 'PARENT' );
             expect( calls[ 1 ][ 0 ] ).toBe( 'CHILD' );
         } );
@@ -314,7 +314,7 @@ describe( 'options.after', () => {
 
             } catch ( e ) {
                 expect( e ).toBe( parent_after_error );
-                expect( spy.mock.calls.length ).toBe( 0 );
+                expect( spy.mock.calls ).toHaveLength( 0 );
             }
         } );
 
