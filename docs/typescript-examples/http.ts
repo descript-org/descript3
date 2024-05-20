@@ -65,6 +65,16 @@ const block1 = de.http( {
     },
 
     options: ({
+        before: () => {
+            return {
+                d: 1
+            }
+        },
+        error: () => {
+            return {
+                x: 's'
+            }
+        },
         params: ( { params }: { params: ParamsIn1 }) => {
             return {
                 s1: params.id_1,

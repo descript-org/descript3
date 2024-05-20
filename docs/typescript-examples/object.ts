@@ -10,24 +10,49 @@ interface Context {
 }
 
 //  ---------------------------------------------------------------------------------------------------------------  //
+export interface CreateCardRequest {
+    added_manually?: boolean;
+    added_by_identifier?: string;
+    // card: Card;
+    card: Record<string, string>;
+}
 
 interface ParamsIn1 {
     id_1: string;
+    payload: CreateCardRequest;
+}
+interface ParamsOut1 {
+    s1: string;
+}
+interface Result1 {
+    r: number;
 }
 
 const block_1 = de.http( {
-    block: {},
+    block: {
+        body: ({ params }) => params.payload,
+    },
     options: {
         params: ( { params }: { params: ParamsIn1, context: Context } ) => {
             return {
                 s1: params.id_1,
+                payload: params.payload
             };
         },
 
-        after: ( { params, context } ) => {
-            return {
-                a: params.s1,
+        after: ( { params, context, result }: { params: ParamsOut1, context: Context, result: Result1 } ) => {
+            const a = {
+                a: 1,
             };
+            const b = {
+                b: params.s1,
+            }
+
+            if (params.s1 === 'lol') {
+                return a;
+            }
+
+            return b;
         },
     },
 } );
@@ -36,12 +61,15 @@ const block_1 = de.http( {
 de.run( block_1, {
     params: {
         id_1: '67890',
+        payload: {
+            card: {}
+        }
     },
 } )
     .then( ( result ) => {
         console.log( result );
         return {
-            foo: result.a,
+            foo: 'a' in result ? result.a : result.b,
             bar: undefined,
         };
     } );
@@ -138,6 +166,9 @@ de.run( block_3, {
     params: {
         id_1: '12345',
         id_2: 67890,
+        payload: {
+            card: {}
+        }
     },
 } )
     .then( ( result ) => {
@@ -166,6 +197,9 @@ de.run( block_3_func, {
     params: {
         id_1: '12345',
         id_2: 67890,
+        payload: {
+            card: {}
+        }
     },
 } )
     .then( ( result ) => {
@@ -180,10 +214,24 @@ const block_4 = block_3( {
     },
 } );
 
+const block_5 = block_3( {
+    options: {
+        error: ({ cancel, error }) => {
+            if (error.error) {
+                throw error;
+            }
+        },
+        after: ( { result } ) => result,
+    },
+} );
+
 de.run( block_4, {
     params: {
         id_1: '12345',
         id_2: 67890,
+        payload: {
+            card: {}
+        }
     },
 } )
     .then( ( result ) => {

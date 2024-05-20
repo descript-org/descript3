@@ -16,11 +16,11 @@ type UnionToIntersection< U > = (
     ( k: infer I ) => void
     ) ? I : never;
 
-type InferContext<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? Context : never;
-type InferParamsIn<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? ParamsIn : never;
-type InferParamsOut<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? ParamsOut : never;
-type InferResultIn<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? ResultIn : never;
-type InferResultOut<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer ResultOut > ? ResultOut : never;
+type InferContext<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ? Context : never;
+type InferParamsIn<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ? ParamsIn : never;
+type InferParamsOut<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ? ParamsOut : never;
+type InferResultIn<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ? ResultIn : never;
+type InferResultOut<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer ResultIn, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ? ResultOut : never;
 
 
 type DescriptBlockParams<BlockParams, ParamsFnIn = BlockParams, ParamsFnOut = ParamsFnIn> = {
@@ -39,16 +39,17 @@ type DescriptBlockResult<ResultIn, ResultOut = ResultIn> = {
 type GetDescriptBlockResultIn<T> = T extends DescriptBlockResult<infer ResultIn, infer ResultOut> ? ResultIn : T;
 type GetDescriptBlockResultOut<T> = T extends DescriptBlockResult<infer ResultIn, infer ResultOut> ? ResultOut : T;
 
-type InferResultInFromBlockOrReturnResultIn<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ? Result : Type;
-type InferResultOutFromBlockOrReturnResultOut<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ? ResultOut : Type;
-type InferParamsFromBlockOrReturnParams<Block, Params> = Block extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ? ParamsIn : Params;
+type InferResultInFromBlockOrReturnResultIn<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut, infer ResultOut > ? Result : Type;
+type InferResultOutFromBlockOrReturnResultOut<Type> = Type extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ? ResultOut : Type;
+type InferParamsFromBlockOrReturnParams<Block, Params> = Block extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ? ParamsIn : Params;
 
-type InferResultInFromBlocks<Block> = Block extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ?
+type InferResultInFromBlocks<Block> = Block extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ?
     { [ K in keyof Result ]: InferResultInFromBlocks<Result[K]> } :
     Block;
 
+type NotUnknown<T> = NonNullable<unknown extends T ? undefined : T>;
 
-type InferResultOutFromBlocks<Block> = Block extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer ResultOut > ?
+type InferResultOutFromBlocks<Block> = Block extends DescriptBlock< infer Context, infer ParamsIn, infer Result, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ?
     { [ K in keyof ResultOut ]: InferResultOutFromBlocks<ResultOut[K]> } :
     Block;
 
@@ -70,6 +71,7 @@ type DescriptJSON =
     undefined |
     null |
     { [ property: string ]: DescriptJSON } |
+    object |
     Array< DescriptJSON >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
@@ -163,12 +165,18 @@ type DescriptBlockGenerateId = () => DescriptBlockId;
 
 type DescriptBlockDeps = Record< DescriptBlockId, any >;
 
+type ComplexResult<Result> = Result | GetDescriptBlockResultOut<Result> | Promise< Result | GetDescriptBlockResultOut<Result> > | void | null;
+
 interface DescriptBlockOptions<
     Context,
     Params,
     ResultIn,
     ParamsOut = Params,
-    ResultOut = ResultIn,
+    BeforeResultOut = ResultIn,
+    ErrorResultOut = ResultIn,
+    AfterResultIn = ResultIn,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > {
     name?: string;
 
@@ -186,15 +194,15 @@ interface DescriptBlockOptions<
         context: Context,
         deps: DescriptBlockDeps,
         cancel: Cancel,
-    } ) => ResultOut | Promise<ResultOut> | undefined | void;
+    } ) => ComplexResult<BeforeResultOut>
 
     after?: ( args: {
         params: ParamsOut,
         context: Context,
         deps: DescriptBlockDeps,
         cancel: Cancel,
-        result: ResultIn,
-    } ) => ResultOut | Promise< ResultOut >;
+        result: AfterResultIn,
+    } ) => ComplexResult<AfterResultOut>
 
     error?: <E extends object>( args: {
         params: ParamsOut,
@@ -202,7 +210,7 @@ interface DescriptBlockOptions<
         deps: DescriptBlockDeps,
         cancel: Cancel,
         error: DescriptError<E>,
-    } ) => ResultOut | void;
+    } ) => ComplexResult<ErrorResultOut>
 
     timeout?: number;
 
@@ -212,7 +220,7 @@ interface DescriptBlockOptions<
         deps: DescriptBlockDeps,
     } ) => string );
     maxage?: number;
-    cache?: Cache< ResultOut, Context >;
+    cache?: Cache< ResultOut | GetDescriptBlockResultOut<ResultOut>, Context >;
 
     required?: boolean;
 
@@ -325,16 +333,34 @@ interface DescriptHttpBlock<
     Params,
     Result,
     ParamsOut = Params,
-    ResultOut = Result,
+    BeforeResultOut = undefined,
+    ErrorResultOut = undefined,
+    AfterResultIn = Result,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > {
     <
         ExtendedParams = Params,
         ExtendedResult = Result,
         ExtendedParamsOut = ExtendedParams,
-        ExtendedResultOut = ExtendedResult,
+        ExtendedBeforeResultOut = undefined,
+        ExtendedErrorResultOut = undefined,
+        ExtendedAfterResultIn = ExtendedResult,
+        ExtendedAfterResultOut = ExtendedAfterResultIn,
+        ExtendedResultOut = Exclude<ExtendedBeforeResultOut | ExtendedErrorResultOut | ExtendedAfterResultOut, undefined>,
     >( args: {
         block?: DescriptHttpBlockDescription< GetDescriptBlockParamsFnOut<ExtendedParamsOut>, Context >,
-        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, GetDescriptBlockResultIn<ExtendedResult>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>, GetDescriptBlockResultOut<ExtendedResultOut> >,
+        options?: DescriptBlockOptions<
+            Context,
+            GetDescriptBlockParamsFnIn<ExtendedParams>,
+            GetDescriptBlockResultIn<ExtendedResult>,
+            GetDescriptBlockParamsFnOut<ExtendedParamsOut>,
+            ExtendedBeforeResultOut,
+            ExtendedErrorResultOut,
+            GetDescriptBlockResultIn<ExtendedAfterResultIn>,
+            ExtendedAfterResultOut,
+            ExtendedResultOut
+        >,
     } ): DescriptHttpBlock<
         Context,
         DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>,
@@ -347,11 +373,25 @@ declare function http<
     Params,
     Result,
     ParamsOut = Params,
-    ResultOut = Result,
+    BeforeResultOut = undefined,
+    ErrorResultOut = undefined,
+    AfterResultIn = Result,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > (
     args: {
         block: DescriptHttpBlockDescription< GetDescriptBlockParamsFnOut<ParamsOut>, Context >,
-        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<Params>, GetDescriptBlockResultIn<Result>, GetDescriptBlockParamsFnOut<ParamsOut>, GetDescriptBlockResultOut<ResultOut> >,
+        options?: DescriptBlockOptions<
+            Context,
+            GetDescriptBlockParamsFnIn<Params>,
+            GetDescriptBlockResultIn<Result>,
+            GetDescriptBlockParamsFnOut<ParamsOut>,
+            BeforeResultOut,
+            ErrorResultOut,
+            GetDescriptBlockResultIn<AfterResultIn>,
+            AfterResultOut,
+            ResultOut
+        >,
     },
 ): DescriptHttpBlock<
     Context,
@@ -381,13 +421,21 @@ interface DescriptFuncBlock<
     Params,
     Result,
     ParamsOut = Params,
-    ResultOut = Result,
+    BeforeResultOut = undefined,
+    ErrorResultOut = undefined,
+    AfterResultIn = Result,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > {
     <
         ExtendedParams = Params,
         ExtendedResult = Result,
         ExtendedParamsOut = ExtendedParams,
-        ExtendedResultOut = ExtendedResult,
+        ExtendedBeforeResultOut = undefined,
+        ExtendedErrorResultOut = undefined,
+        ExtendedAfterResultIn = ExtendedResult,
+        ExtendedAfterResultOut = ExtendedAfterResultIn,
+        ExtendedResultOut = ExtendedBeforeResultOut | ExtendedErrorResultOut | ExtendedAfterResultOut,
     >( args: {
         block?: DescriptFuncBlockDescription< Context, GetDescriptBlockParamsFnOut<ExtendedParamsOut>, GetDescriptBlockResultIn<ExtendedResult>>,
         options?: DescriptBlockOptions<
@@ -395,7 +443,11 @@ interface DescriptFuncBlock<
             GetDescriptBlockParamsFnIn<ExtendedParams>,
             GetDescriptBlockResultIn<InferResultInFromBlocks<ExtendedResult>>,
             GetDescriptBlockParamsFnOut<ExtendedParamsOut>,
-            GetDescriptBlockResultOut<ExtendedResultOut>
+            ExtendedBeforeResultOut,
+            ExtendedErrorResultOut,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<ExtendedAfterResultIn>>,
+            ExtendedAfterResultOut,
+            ExtendedResultOut
         >,
     } ): DescriptFuncBlock< Context,
         DescriptBlockParams<GetDescriptBlockParamsBlock<InferParamsFromBlockOrReturnParams<ExtendedResult, ExtendedParams>>, GetDescriptBlockParamsFnOut<InferParamsFromBlockOrReturnParams<ExtendedResult, ExtendedParamsOut>>>,
@@ -406,22 +458,30 @@ interface DescriptFuncBlock<
 declare function func<
     Context,
     Params,
-    Result,
+    ResultIn,
     ParamsOut = Params,
-    ResultOut = Result,
+    BeforeResultOut = undefined,
+    ErrorResultOut = undefined,
+    AfterResultIn = ResultIn,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > (
     args: {
-        block: DescriptFuncBlockDescription< Context, GetDescriptBlockParamsFnOut<ParamsOut>, GetDescriptBlockResultIn<Result> >,
+        block: DescriptFuncBlockDescription< Context, GetDescriptBlockParamsFnOut<ParamsOut>, GetDescriptBlockResultIn<ResultIn> >,
         options?: DescriptBlockOptions<
             Context,
             GetDescriptBlockParamsFnIn<Params>,
-            GetDescriptBlockResultIn<InferResultInFromBlocks<Result>>,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<ResultIn>>,
             GetDescriptBlockParamsFnOut<ParamsOut>,
-            GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
+            BeforeResultOut,
+            ErrorResultOut,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<AfterResultIn>>,
+            AfterResultOut,
+            ResultOut
         >,
     },
 ): DescriptFuncBlock< Context,
-    DescriptBlockParams<GetDescriptBlockParamsBlock<InferParamsFromBlockOrReturnParams<Result, Params>>, GetDescriptBlockParamsFnOut<InferParamsFromBlockOrReturnParams<Result, ParamsOut>>>,
+    DescriptBlockParams<GetDescriptBlockParamsBlock<InferParamsFromBlockOrReturnParams<ResultIn, Params>>, GetDescriptBlockParamsFnOut<InferParamsFromBlockOrReturnParams<ResultIn, ParamsOut>>>,
     GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
 >;
 
@@ -447,7 +507,7 @@ type GetArrayBlockContext< T > = {
 }[ T extends [] ? 0 : T extends ( ( readonly [ any ] ) | [ any ] ) ? 1 : 2 ];
 
 type DescriptArrayBlockDescription< T > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer Result > ? T[ P ] : never
+    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut, infer Result > ? T[ P ] : never
 }
 
 interface DescriptArrayBlock<
@@ -455,15 +515,33 @@ interface DescriptArrayBlock<
     Params,
     ResultIn,
     ParamsOut = Params,
-    ResultOut = ResultIn,
+    BeforeResultOut = undefined,
+    ErrorResultOut = undefined,
+    AfterResultIn = ResultIn,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > {
     <
         ExtendedParams = Params,
         ExtendedResultIn = ResultIn,
         ExtendedParamsOut = ExtendedParams,
-        ExtendedResultOut = ResultOut,
+        ExtendedBeforeResultOut = undefined,
+        ExtendedErrorResultOut = undefined,
+        ExtendedAfterResultIn = ExtendedResultIn,
+        ExtendedAfterResultOut = ExtendedAfterResultIn,
+        ExtendedResultOut = Exclude<ExtendedBeforeResultOut | ExtendedErrorResultOut | ExtendedAfterResultOut, undefined>,
     >( args: {
-        options?: DescriptBlockOptions< Context, GetDescriptBlockParamsFnIn<ExtendedParams>, ExtendedResultIn, GetDescriptBlockParamsFnOut<ExtendedParamsOut>, ExtendedResultOut >,
+        options?: DescriptBlockOptions<
+            Context,
+            GetDescriptBlockParamsFnIn<ExtendedParams>,
+            ExtendedResultIn,
+            GetDescriptBlockParamsFnOut<ExtendedParamsOut>,
+            ExtendedBeforeResultOut,
+            ExtendedErrorResultOut,
+            ExtendedAfterResultIn,
+            ExtendedAfterResultOut,
+            ExtendedResultOut
+        >,
     } ): DescriptArrayBlock<
         Context,
         DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>,
@@ -477,7 +555,11 @@ declare function array<
     Params = GetArrayBlockParams< Block >,
     ResultIn = GetArrayBlockResult< Block >,
     ParamsOut = Params,
-    ResultOut = ResultIn,
+    BeforeResultOut = undefined,
+    ErrorResultOut = undefined,
+    AfterResultIn = GetArrayBlockResult< Block >,
+    AfterResultOut = GetArrayBlockResult< Block >,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > (
     args: {
         block: DescriptArrayBlockDescription< Block >,
@@ -486,6 +568,10 @@ declare function array<
             GetDescriptBlockParamsFnIn<Params>,
             ResultIn,
             GetDescriptBlockParamsFnOut<ParamsOut>,
+            BeforeResultOut,
+            ErrorResultOut,
+            AfterResultIn,
+            AfterResultOut,
             ResultOut
         >,
     },
@@ -538,11 +624,11 @@ type GetObjectBlockContextMap< T extends {} > = {
 type GetObjectBlockContext< T extends {}, M = GetObjectBlockContextMap< T > > = UnionToIntersection< M[ keyof M ] >;
 
 type DescriptObjectBlockDescription< T extends {} > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ParamsOut, infer ResultOut > ? T[ P ] : never
+    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ParamsOut,  infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut, infer ResultOut > ? T[ P ] : never
 }
 
 type DescriptObjectBlockDescriptionResults< T extends {} > = {
-    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ParamsOut, infer ResultOut > ? ResultOut : never
+    [ P in keyof T ]: T[ P ] extends DescriptBlock< infer Context, infer Params, infer ResultIn, infer ParamsOut, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer ResultOut > ? ResultOut : never
 }
 
 interface DescriptObjectBlock<
@@ -550,25 +636,37 @@ interface DescriptObjectBlock<
     Params,
     ResultIn,
     ParamsOut = Params,
-    ResultOut = ResultIn,
+    BeforeResultOut = undefined,
+    ErrorResultOut = undefined,
+    AfterResultIn = ResultIn,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > {
     <
         ExtendedParams = Params,
         ExtendedResultIn = ResultIn,
         ExtendedParamsOut = ExtendedParams,
-        ExtendedResultOut = ResultOut,
+        ExtendedBeforeResultOut = undefined,
+        ExtendedErrorResultOut = undefined,
+        ExtendedAfterResultIn = ExtendedResultIn,
+        ExtendedAfterResultOut = ExtendedAfterResultIn,
+        ExtendedResultOut = Exclude<ExtendedBeforeResultOut | ExtendedErrorResultOut | ExtendedAfterResultOut, undefined>,
     >( args: {
         options?: DescriptBlockOptions<
             Context,
             GetDescriptBlockParamsFnIn<ExtendedParams>,
             GetDescriptBlockResultIn<InferResultInFromBlocks<ExtendedResultIn>>,
             GetDescriptBlockParamsFnOut<ExtendedParamsOut>,
-            GetDescriptBlockResultOut<InferResultOutFromBlocks<ExtendedResultOut>>
+            ExtendedBeforeResultOut,
+            ExtendedErrorResultOut,
+            ExtendedAfterResultIn,
+            ExtendedAfterResultOut,
+            ExtendedResultOut
         >,
     } ): DescriptObjectBlock<
         Context,
         DescriptBlockParams<GetDescriptBlockParamsBlock<ExtendedParams>, GetDescriptBlockParamsFnOut<ExtendedParamsOut>>,
-        GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
+        GetDescriptBlockResultOut<InferResultOutFromBlocks<ExtendedResultOut>>
     >;
 }
 
@@ -578,7 +676,12 @@ declare function object<
     Params = GetObjectBlockParams< Block >,
     ResultIn = GetObjectBlockResultIn< Block >,
     ParamsOut = Params,
-    ResultOut = GetObjectBlockResultOut<Block>,
+    //ResultOut = GetObjectBlockResultOut<Block>,
+    BeforeResultOut = undefined,
+    ErrorResultOut = undefined,
+    AfterResultIn = GetObjectBlockResultOut<Block>,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > (
     args: {
         block: DescriptObjectBlockDescription< Block >,
@@ -587,7 +690,16 @@ declare function object<
             GetDescriptBlockParamsFnIn<Params>,
             GetDescriptBlockResultIn<InferResultInFromBlocks<ResultIn>>,
             GetDescriptBlockParamsFnOut<ParamsOut>,
-            GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
+            BeforeResultOut,
+            ErrorResultOut,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<AfterResultIn>>,
+            AfterResultOut,
+            ResultOut
+            /*GetDescriptBlockResultIn<InferResultInFromBlocks<ResultIn>>,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<ResultIn>>,
+            GetDescriptBlockResultIn<InferResultInFromBlocks<ResultIn>>,
+            InferResultOutFromBlocks<ResultOut>,
+            InferResultOutFromBlocks<ResultOut>*/
         >,
     },
 ): DescriptObjectBlock<
@@ -618,22 +730,22 @@ interface DescriptFirstBlock {
 
 */
 
-type DescriptBlock< Context, Params, Result, ParamsOut = Params, ResultOut = Result > =
-    DescriptHttpBlock< Context, Params, Result, ParamsOut, ResultOut > |
-    DescriptFuncBlock< Context, Params, Result, ParamsOut, ResultOut > |
-    DescriptArrayBlock< Context, Params, Result, ParamsOut, ResultOut > |
-    DescriptObjectBlock< Context, Params, Result, ParamsOut, ResultOut >;
+type DescriptBlock< Context, Params, Result, ParamsOut = Params, BeforeResultOut = Result, ErrorResultOut = Result, AfterResultIn = Result, AfterResultOut = Result, ResultOut = BeforeResultOut | ErrorResultOut | AfterResultOut > =
+    DescriptHttpBlock< Context, Params, Result, ParamsOut, BeforeResultOut, ErrorResultOut, AfterResultIn, AfterResultOut, ResultOut > |
+    DescriptFuncBlock< Context, Params, Result, ParamsOut, BeforeResultOut, ErrorResultOut, AfterResultIn, AfterResultOut, ResultOut > |
+    DescriptArrayBlock< Context, Params, Result, ParamsOut, BeforeResultOut, ErrorResultOut, AfterResultIn, AfterResultOut, ResultOut > |
+    DescriptObjectBlock< Context, Params, Result, ParamsOut, BeforeResultOut, ErrorResultOut, AfterResultIn, AfterResultOut, ResultOut >;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 export type GetDescriptBlockResult< T > =
-    T extends DescriptBlock< infer Context, infer Params, infer Result > ? Result : never;
+    T extends DescriptBlock< infer Context, infer Params,  infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut, infer Result > ? Result : never;
 
 export type GetDescriptBlockParams< T > =
-    T extends DescriptBlock< infer Context, infer Params, infer Result > ? Params : never;
+    T extends DescriptBlock< infer Context, infer Params, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer Result > ? Params : never;
 
 export type GetDescriptBlockContext< T > =
-    T extends DescriptBlock< infer Context, infer Params, infer Result > ? Context : never;
+    T extends DescriptBlock< infer Context, infer Params, infer BeforeResultOut, infer ErrorResultOut, infer AfterResultIn, infer AfterResultOut,  infer Result > ? Context : never;
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -642,14 +754,22 @@ declare function run<
     Params,
     Result,
     ParamsOut = Params,
-    ResultOut = Result,
+    BeforeResultOut = undefined,
+    ErrorResultOut = undefined,
+    AfterResultIn = Result,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
 > (
     block: DescriptBlock<
         Context,
         GetDescriptBlockParamsFnIn<Params>,
         GetDescriptBlockResultIn<InferResultInFromBlocks<Result>>,
         GetDescriptBlockParamsFnOut<ParamsOut>,
-        GetDescriptBlockResultOut<InferResultOutFromBlocks<ResultOut>>
+        BeforeResultOut,
+        ErrorResultOut,
+        AfterResultIn,
+        AfterResultOut,
+        ResultOut
     >,
     args: {
         params?: GetDescriptBlockParamsBlock<Params>,
@@ -698,4 +818,14 @@ declare namespace request {
 }
 
 
-declare function inferBlockTypes< Context, Params, Result, ParamsOut = Params, ResultOut = Result >(block: DescriptBlock<Context, Params, Result, ParamsOut, ResultOut>):  DescriptBlock<Context, Params, Result, ParamsOut, ResultOut>;
+declare function inferBlockTypes<
+    Context,
+    Params,
+    ResultIn,
+    ParamsOut = Params,
+    BeforeResultOut = ResultIn,
+    ErrorResultOut = ResultIn,
+    AfterResultIn = ResultIn,
+    AfterResultOut = AfterResultIn,
+    ResultOut = Exclude<BeforeResultOut | ErrorResultOut | AfterResultOut, undefined>,
+>(block: DescriptBlock<Context, Params, ResultIn, ParamsOut, BeforeResultOut, ErrorResultOut, AfterResultIn, AfterResultOut, ResultOut>): typeof block;

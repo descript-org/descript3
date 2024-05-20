@@ -30,16 +30,17 @@ const block_1 = de.func( {
         };
     },
     options: {
+        error: () => {
+            return {
+                x: 1
+            }
+        },
         params: ( { params }: { params: ParamsIn1 } ) => {
             return {
                 s1: params.id,
             };
         },
 
-        //  Важно!!!
-        //  Необходимо задать тип входящего result'а именно здесь.
-        //  Почему-то этот тип не берется из результата функции из block.
-        //
         after: ( { params, result }) => {
             console.log( params );
             return {
@@ -64,13 +65,31 @@ const block_2 = de.func({
         return Promise.resolve(result);
     },
     options: {
-        after: ({ result }): string => {
+        after: ({ result }) => {
             return result.foo;
         },
     },
 });
 
 de.run( block_2, {} )
+    .then( ( result ) => {
+        console.log( result );
+    });
+
+const block3 = block_2({
+    options: {
+        after: ({ result }) => {
+            console.log(result);
+
+            return {
+                res: result,
+            }
+        },
+    }
+})
+
+
+de.run( block3, {} )
     .then( ( result ) => {
         console.log( result );
     });
