@@ -133,6 +133,7 @@ const sessionMethod = de.func({
                 },
 
                 after: ({context, params, result}) => {
+                    const x = result;
                     const session = result.session as Session & Record<string, unknown>;
 
                     return session;
