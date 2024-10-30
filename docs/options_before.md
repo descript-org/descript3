@@ -157,7 +157,7 @@ const parent = de.block( {
     },
 } );
 
-const child = parent( {
+const child = parent.extend( {
     options: {
         //  Сперва вызовется этот before.
         //  Если он вернет что-то или бросит ошибку,

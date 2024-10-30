@@ -1,19 +1,18 @@
-import * as de from "../../lib";
-import {DescriptError} from "../../lib";
+import * as de from '../../lib';
+import type { DescriptHttpBlockResult } from '../../lib/types';
 
-interface ResultRaw {
-    result: string | DescriptError
-}
-
-const block1 = de.http( {
+const block1 = de.http({
     block: {},
     options: {
-        after: ( { result }: ResultRaw ): string => {
-            if (de.is_error(result)) {
+        //TODO как указать тип blockResult?
+        after: ({ result }: { result: DescriptHttpBlockResult<string> }) => {
+            if (de.isError(result)) {
                 return result.error.id;
-            } else{
-                return result.slice(0, 10);
+            } else {
+                return result.result.slice(0, 10);
             }
         },
     },
-} );
+});
+
+block1;

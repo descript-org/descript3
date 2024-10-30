@@ -6,9 +6,9 @@
 const block = de.object( {
     block: {
 
-        foo: block_foo,
+        foo: blockFoo,
 
-        bar: block_bar( {
+        bar: blockBar.extend( {
             options: {
                 required: true,
             },
@@ -18,7 +18,7 @@ const block = de.object( {
 } );
 ```
 
-Если в процессе выполнения этого блока `block_foo` завершится ошибкой, а `block_bar` нет,
+Если в процессе выполнения этого блока `blockFoo` завершится ошибкой, а `blockBar` нет,
 то результатом работы `block` будет что-то типа:
 
 ```js
@@ -35,9 +35,9 @@ const block = de.object( {
 }
 ```
 
-Т.е. несмотря на ошибку в `block_foo`, сам блок `block` завершится удачно.
+Т.е. несмотря на ошибку в `blockFoo`, сам блок `block` завершится удачно.
 
-Если же теперь наоборот, `block_foo` завершается успешно, а `block_bar` ошибкой.
+Если же теперь наоборот, `blockFoo` завершается успешно, а `blockBar` ошибкой.
 В этом случае, блок `block` тоже завершится вот такой ошибкой:
 
 ```js

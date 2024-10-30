@@ -4,30 +4,30 @@
 из других блоков:
 
 ```js
-const block_foo = require( '.../blocks/foo' );
-const block_bar = require( '.../blocks/bar' );
+const blockFoo = require( '.../blocks/foo' );
+const blockBar = require( '.../blocks/bar' );
 ...
 
 const block = de.array( {
 
     block: [
-        block_foo,
-        block_bar,
+        blockFoo,
+        blockBar,
         ...
     ],
 
 } );
 ```
 
-Когда мы запускаем `de.array`, запускаются все его непосредственные подблоки (`block_foo`, `block_bar`, ...)
+Когда мы запускаем `de.array`, запускаются все его непосредственные подблоки (`blockFoo`, `blockBar`, ...)
 и из их результатов составляется результат `de.array`'а:
 
 ```js
 const result = [
-    //  Результат работы block_foo
-    result_foo,
-    //  Результат работы block_bar
-    result_bar,
+    //  Результат работы blockFoo
+    resultFoo,
+    //  Результат работы blockBar
+    resultBar,
     ...
 ];
 ```
@@ -43,10 +43,10 @@ const result = [
 
 ```js
 const result = [
-    //  Ошибка block_foo
-    error_foo,
-    //  Результат работы block_bar
-    result_bar,
+    //  Ошибка blockFoo
+    errorFoo,
+    //  Результат работы blockBar
+    resultBar,
     ...
 ];
 ```
@@ -61,12 +61,12 @@ const block = de.array( {
 
     block: [
         //  Если этот блок зафейлится, то и весь de.array так же зафейлится.
-        block_foo( {
+        blockFoo.extend( {
             options: {
                 required: true,
             },
         } ),
-        block_bar,
+        blockBar,
         ...
     ],
 
@@ -80,10 +80,10 @@ const block = de.array( {
 ```js
 const block = de.array( {
     block: [
-        block_foo,
+        blockFoo,
         de.array( {
             block: [
-                block_quu,
+                blockQuu,
                 ...
             ],
         } ),
@@ -96,9 +96,9 @@ const block = de.array( {
 
 ```js
 const result = [
-    result_foo,
+    resultFoo,
     [
-        result_quu,
+        resultQuu,
         ...
     ],
     ...

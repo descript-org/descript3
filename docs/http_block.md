@@ -3,7 +3,7 @@
 Этот блок, как следует из названия, делает http-запросы.
 
 ```js
-const de = require( 'descript' );
+import * as de from 'descript';
 
 const block = de.http( {
 
@@ -295,23 +295,23 @@ block: {
 Полученный агент будет закэширован:
 
 ```js
-const agent_options = {
+const agentOptions = {
     keepAlive: true,
     maxSockets: 16,
 };
 
-const block_1 = de.http( {
+const block1 = de.http( {
     ...
-    agent: agent_options,
+    agent: agentOptions,
 } );
 
-const block_2 = de.http( {
+const block2 = de.http( {
     ...
-    agent: agent_options,
+    agent: agentOptions,
 } );
 ```
 
-Для `block_1` и `block_2` будет использован один и тот же агент.
+Для `block1` и `block2` будет использован один и тот же агент.
 
 
 ## `timeout`
@@ -333,8 +333,8 @@ block: {
 ```js
 block: {
     timeout: 1000,
-    max_retries: 2,
-    retry_timeout: 500,
+    maxRetries: 2,
+    retryTimeout: 500,
 },
 ```
 
@@ -351,54 +351,56 @@ options: {
 ```
 
 
-## `is_json`
+## `isJson`
 
 Если в ответе на http-запрос будет заголовок `content-type: application/json`, то descript попытается автоматически
 распарсить ответ при помощи `JSON.parse`.
 Но если так вышло, что мы точно знаем, что в ответе должен вернуться json, а заголовок по каким-то причинам отсутствует,
-можно выставить флаг `is_json: true`:
+можно выставить флаг `isJson: true`:
 
 ```js
 block: {
-    is_json: true,
+    isJson: true,
 },
 ```
 
 В этом случае, ответ всегда будет парситься через `JSON.parse`.
 
 
-## `is_error`
+## `isError`
 
 По-дефолту, если статус ответа больше или равен 400, то это считается ошибкой.
 Это поведение можно переопределить. Например, иногда полезно не считать такие ответы ошибкой.
 Или же наоборот, ответ с кодом 200, но каким-то специальным заголовком, считать ошибкой.
 
-Можно переопределить параметр `is_error`.
-Дефолтный `is_error` доступен как `de.request.DEFAULT_OPTIONS.is_error`.
+Можно переопределить параметр `isError`.
+Дефолтный `isError` доступен как `de.request.DEFAULT_OPTIONS.isError`.
 
 
 Не считать вообще ничего ошибкой:
 
 ```js
 block: {
-    is_error: () => false,
+    isError: () => false,
 },
 ```
 
 Считать ответ со кодом ответа 200 и специальным заголовком ошибкой:
 
 ```js
-const de = require( 'descript' );
+impoer * as de from 'descript';
 
 const block = de.http( {
-    is_error: ( error, request_options ) => {
-        if ( error.error.status_code === 200 && error.error.headers[ 'x-foo' ] === 'FOO' ) {
-            return true;
-        }
+    block: {
+        isError: ( error, requestOptions ) => {
+            if ( error.error.statusCode === 200 && error.error.headers[ 'x-foo' ] === 'FOO' ) {
+                return true;
+            }
 
-        //  Все остальное отправляем в дефолтный is_error.
-        //
-        return de.request.DEFAULT_OPTIONS.is_error( error, request_options );
+            //  Все остальное отправляем в дефолтный isError.
+            //
+            return de.request.DEFAULT_OPTIONS.isError( error, requestOptions );
+        },
     },
 } );
 ```
@@ -409,41 +411,41 @@ const block = de.http( {
 Если мы сделали запрос и получили ошибку, иногда можно и нужно сделать повторный запрос (или несколько).
 Перезапросы настраиваются тремя параметрами:
 
-  * `is_retry_allowed` — функция (похожая на `is_error`), которая сообщает, можно ли этот конкретный запрос ретраить.
-  * `max_retries` — сколько можно сделать ретраев (по-дефолту 0).
-  * `retry_timeout` — пауза между ретраями в миллисекундах (по-дефолту 100).
+  * `isRetryAllowed` — функция (похожая на `isError`), которая сообщает, можно ли этот конкретный запрос ретраить.
+  * `maxRetries` — сколько можно сделать ретраев (по-дефолту 0).
+  * `retryTimeout` — пауза между ретраями в миллисекундах (по-дефолту 100).
 
 ```js
 block: {
-    is_retry_allowed: ( error, request_options ) => {
-        if ( error.error.status_code === 404 ) {
+    isRetryAllowed: ( error, requestOptions ) => {
+        if ( error.error.statusCode === 404 ) {
             //  У нас странный бэкенд.
             return true;
         }
 
-        return de.request.DEFAULT_OPTIONS.is_retry_allowed( error, request_options );
+        return de.request.DEFAULT_OPTIONS.isRetryAllowed( error, requestOptions );
     },
 
     //  Т.е. всего будет сделано максимум 3 запроса, прежде чем мы окончательно сдадимся
     //  и завершим работу с ошибкой.
     //
-    max_retries: 2,
+    maxRetries: 2,
 
-    retry_timeout: 500,
+    retryTimeout: 500,
 },
 ```
 
 
-## `prepare_request_options`
+## `prepareRequestOptions`
 
 Чорная магия.
 
 ```js
 block: {
-    prepare_request_options: ( request_options ) => {
-        request_options.headers[ 'x-foo' ] = 'FOO';
+    prepareRequestOptions: ( requestOptions ) => {
+        requestOptions.headers[ 'x-foo' ] = 'FOO';
 
-        return request_options;
+        return requestOptions;
     },
 },
 ```
@@ -474,7 +476,7 @@ options: {
 ```js
 const parent = de.http( ... );
 
-const child = parent( {
+const child = parent.extend( {
     block: {
         ...
     },
@@ -498,7 +500,7 @@ const parent = de.http( {
     },
 } );
 
-const child = parent( {
+const child = parent.extend( {
     block: {
         //  Все эти параметры перетирают соответствующие значения параметров parent.
         //
@@ -515,7 +517,7 @@ const child = parent( {
 `query` и `headers` не перезатирают значения родителя, но дополняют:
 
 ```js
-const child = parent( {
+const child = parent.extend( {
 
     block: {
         //  Добавляем к тому, что отправляет в query родитель еще один параметр.

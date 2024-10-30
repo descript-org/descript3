@@ -1,91 +1,159 @@
-import {DescriptBlockParams} from '../../lib';
+/* eslint-disable no-console */
 import * as de from '../../lib';
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-interface Context {
-    is_mobile: boolean;
-}
-
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 interface ParamsIn1 {
-    id_1: string;
+    id1: string;
 }
 
-const block_1 = de.http( {
+const block1 = de.http({
     block: {},
     options: {
-        params: ( { params }: { params: ParamsIn1 } ) => {
+        params: ({ params }: { params: ParamsIn1 }) => {
             return {
-                s1: params.id_1,
+                s1: params.id1,
             };
         },
 
-        after: ( { params } ) => {
+        after: ({ params }) => {
             return {
+                b1: 1,
                 a: params.s1,
             };
         },
     },
-} );
+});
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 interface ParamsIn2 {
-    id_2: number;
+    id2: number;
 }
 
-const block_2 = de.http( {
+const block2 = de.http({
     block: {},
     options: {
-        params: ( { params }: { params: ParamsIn2 }) => {
+
+        params: ({ params }: { params: ParamsIn2 }) => {
             return params;
         },
 
-        after: ( { params } ) => {
+        after: ({ params }) => {
             return {
-                b: params.id_2,
+                p: params.id2,
+                b2: 2,
             };
         },
     },
-} );
+});
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-const block_3 = de.array( {
-    block: [ block_1, block_2 ] as const,
+const block3 = de.array({
+    block: [
+        block1,
+        block2,
+        de.func({
+            block: () => 1,
+            options: {},
+        }),
+    ] as const,
     options: {
-        after: ( { result } ) => {
-            return [ result[ 0 ].a, result[ 1 ].b ] as const;
+        params: ({ params }) => {
+            return params;
+        },
+        after: ({ result }) => {
+            return [ 'a' in result[ 0 ] ? result[ 0 ].a : '', 'b2' in result[ 1 ] ? result[ 1 ].b2 : '' ] as const;
         },
     },
-} );
+});
 
-de.run( block_3, {
+de.run(block3, {
     params: {
-        id_1: '12345',
-        id_2: 67890,
+        id1: '12345',
+        id2: 67890,
     },
-} )
-    .then( ( result ) => {
-        console.log( result[ 0 ], result[ 1 ] );
-    } );
+})
+    .then((result) => {
+        console.log(result[ 0 ], result[ 1 ]);
+    });
 
-const block_4 = block_3( {
+const block4 = block3.extend({
     options: {
-        after: ( { result } ) => {
+        after: ({ result }) => {
             return result[ 0 ];
         },
     },
-} );
+});
 
-de.run( block_4, {
+de.run(block4, {
     params: {
-        id_1: '12345',
-        id_2: 67890,
+        id1: '12345',
+        id2: 67890,
     },
-} )
-    .then( ( result ) => {
-        console.log( result );
-    } );
+})
+    .then((result) => {
+        console.log(result);
+    });
+
+
+const bfn1 = de.func({
+    block: ({ params }: { params: { p1: number } }) => {
+        return {
+            b1: params.p1,
+        };
+    },
+    options: {
+        after: ({ result }) => {
+            return {
+                r: 1,
+                b1: result.b1,
+            };
+        },
+    },
+});
+
+
+const bfn2 = de.func({
+    block: ({ params }: { params: { p2: string } }) => {
+        return {
+            b2: params.p2,
+        };
+    },
+    options: {
+        after: ({ result }) => {
+            return {
+                r2: 1,
+                b2: result.b2,
+            };
+        },
+    },
+});
+
+const bfn3 = de.array({
+    block: [
+        bfn1,
+        bfn2,
+    ],
+    options: {
+        params: ({ params }) => {
+            return params;
+        },
+        after: ({ result }) => {
+            return [ !de.isError(result[ 0 ]) ? result[ 0 ].b1 : '', !de.isError(result[ 1 ]) ? result[ 1 ].b2 : '' ];
+        },
+    },
+});
+
+de.run(bfn3, {
+    params: {
+        p2: '12345',
+        p1: 67890,
+    },
+})
+    .then((result) => {
+        console.log(result[ 0 ], result[ 1 ]);
+    });
