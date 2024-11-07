@@ -85,9 +85,10 @@ class PipeBlock<
 
     extend<
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        ExtendedResultOut extends
-        BlockResultOut<ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut>,
-        ExtendedParamsOut = Params,
+        //ExtendedResultOut extends
+        //BlockResultOut<ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut>,
+        //ExtendedCustomBlock extends PipeBlockDefinition<Block>,
+        ExtendedParamsOut extends Params = Params,
         ExtendedParams = Params,
         ExtendedBlockResult = ResultOut,
         ExtendedBeforeResultOut = undefined,
@@ -95,28 +96,13 @@ class PipeBlock<
         ExtendedErrorResultOut = undefined,
     >({ options }: {
         options: DescriptBlockOptions<
-        Context, Params & ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
+        Context, ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
         >;
     }) {
-        return this.extendClass<
-        PipeBlock<
-        Context,
-        Block,
-        ExtendedResultOut,
-        Params & ExtendedParamsOut,
-        ExtendedBlockResult,
-        ExtendedBeforeResultOut,
-        ExtendedAfterResultOut,
-        ExtendedErrorResultOut,
-        ExtendedParams
-        >,
-        ExtendedBlockResult,
-        ExtendedParamsOut,
-        ExtendedParams,
-        ExtendedBeforeResultOut,
-        ExtendedAfterResultOut,
-        ExtendedErrorResultOut
-        >({ options });
+        return new PipeBlock({
+            block: this.extendBlock(this.block),
+            options: this.extendOptions(this.options, options) as typeof options,
+        });
     }
 
 

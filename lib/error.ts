@@ -43,6 +43,8 @@ export interface ErrorData<Error = Buffer | null | unknown> {
     headers?: OutgoingHttpHeaders;
     statusCode?: number;
 
+    location?: string;
+
     errno?: number | undefined;
     code?: string | undefined;
     path?: string | undefined;
@@ -105,6 +107,7 @@ export class DescriptError {
                 stack: error.stack,
                 errno: error.errno,
                 syscall: error.syscall,
+                location: error.location,
             };
 
             this.error = _error;

@@ -3,10 +3,10 @@ import { ERROR_ID, createError, isError, DescriptError } from './error';
 
 import Cancel from './cancel';
 import Logger from './logger';
-import Cache from './cache';
+import Cache, { CacheItem } from './cache';
 
 import request from './request';
-
+import type { GenerateId, DescriptBlockDeps, DescriptBlockId } from './depsDomain';
 import Block from './block';
 import ArrayBlock from './arrayBlock';
 import ObjectBlock from './objectBlock';
@@ -15,9 +15,17 @@ import FunctionBlock from './functionBlock';
 import HttpBlock from './httpBlock';
 import FirstBlock from './firstBlock';
 
-import type { DescriptHttpBlockResult, BlockResultOut, DescriptBlockOptions } from './types';
+import type {
+    DescriptHttpBlockResult,
+    BlockResultOut,
+    DescriptBlockOptions,
+    DescriptHttpBlockHeaders,
+    InferResultFromBlock,
+    InferParamsInFromBlock,
+    InferBlock,
+} from './types';
 import type BaseBlock from './block';
-import type { DescriptHttpBlockDescription } from './httpBlock';
+import type { DescriptHttpBlockDescription, DescriptHttpBlockQuery, DescriptHttpBlockQueryValue } from './httpBlock';
 import type { GetObjectBlockParams, GetObjectBlockResult, ObjectBlockDefinition } from './objectBlock';
 import type { GetArrayBlockParams, GetArrayBlockResult, ArrayBlockDefinition } from './arrayBlock';
 import type { GetFirstBlockParams, GetFirstBlockResult, FirstBlockDefinition } from './firstBlock';
@@ -169,6 +177,7 @@ const run = function<
 export {
     Logger,
     Cache,
+    CacheItem,
     request,
     ERROR_ID,
     createError as error,
@@ -184,4 +193,18 @@ export {
     run,
     DescriptError,
     DescriptHttpBlockResult,
+    DescriptHttpBlockHeaders,
+    DescriptHttpBlockDescription,
+    DescriptHttpBlockQuery,
+    DescriptHttpBlockQueryValue,
+    GenerateId,
+    DescriptBlockId,
+    InferResultFromBlock,
+    InferParamsInFromBlock,
+    InferBlock,
+    DescriptBlockDeps,
+    BaseBlock,
+    BlockResultOut,
+
+    HttpBlock,
 };

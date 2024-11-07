@@ -87,7 +87,8 @@ class FirstBlock<
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ExtendedResultOut extends
         BlockResultOut<ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut>,
-        ExtendedParamsOut = Params,
+        //ExtendedCustomBlock extends FirstBlockDefinition<Block>,
+        ExtendedParamsOut extends Params = Params,
         ExtendedParams = Params,
         ExtendedBlockResult = ResultOut,
         ExtendedBeforeResultOut = undefined,
@@ -95,28 +96,13 @@ class FirstBlock<
         ExtendedErrorResultOut = undefined,
     >({ options }: {
         options: DescriptBlockOptions<
-        Context, Params & ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
+        Context, ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
         >;
     }) {
-        return this.extendClass<
-        FirstBlock<
-        Context,
-        Block,
-        ExtendedResultOut,
-        Params & ExtendedParamsOut,
-        ExtendedBlockResult,
-        ExtendedBeforeResultOut,
-        ExtendedAfterResultOut,
-        ExtendedErrorResultOut,
-        ExtendedParams
-        >,
-        ExtendedBlockResult,
-        ExtendedParamsOut,
-        ExtendedParams,
-        ExtendedBeforeResultOut,
-        ExtendedAfterResultOut,
-        ExtendedErrorResultOut
-        >({ options });
+        return new FirstBlock({
+            block: this.extendBlock(this.block),
+            options: this.extendOptions(this.options, options) as typeof options,
+        });
     }
 
     protected initBlock(block: FirstBlockDefinition<Block>) {

@@ -2,7 +2,7 @@ import CompositeBlock from './compositeBlock';
 import type { DescriptError } from './error';
 import { createError, ERROR_ID } from './error';
 import type BaseBlock from './block';
-import type { InferParamsInFromBlock, InferResultFromBlock, DescriptBlockOptions, BlockResultOut, UnionToIntersection } from './types';
+import type { InferParamsInFromBlock, DescriptBlockOptions, BlockResultOut, UnionToIntersection, InferResultFromBlock } from './types';
 import type ContextClass from './context';
 import type Cancel from './cancel';
 import type { DescriptBlockDeps } from './depsDomain';
@@ -112,7 +112,8 @@ class ObjectBlock<
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         ExtendedResultOut extends
         BlockResultOut<ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut>,
-        ExtendedParamsOut = Params,
+        //ExtendedCustomBlock extends ObjectBlockDefinition<Blocks>,
+        ExtendedParamsOut extends Params = Params,
         ExtendedParams = Params,
         ExtendedBlockResult = ResultOut,
         ExtendedBeforeResultOut = undefined,
@@ -120,28 +121,13 @@ class ObjectBlock<
         ExtendedErrorResultOut = undefined,
     >({ options }: {
         options: DescriptBlockOptions<
-        Context, Params & ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
+        Context, ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
         >;
     }) {
-        return this.extendClass<
-        ObjectBlock<
-        Context,
-        Blocks,
-        ExtendedResultOut,
-        Params & ExtendedParamsOut,
-        ExtendedBlockResult,
-        ExtendedBeforeResultOut,
-        ExtendedAfterResultOut,
-        ExtendedErrorResultOut,
-        ExtendedParams
-        >,
-        ExtendedBlockResult,
-        Params & ExtendedParamsOut,
-        ExtendedParams,
-        ExtendedBeforeResultOut,
-        ExtendedAfterResultOut,
-        ExtendedErrorResultOut
-        >({ options });
+        return new ObjectBlock({
+            block: this.extendBlock(this.block),
+            options: this.extendOptions(this.options, options) as typeof options,
+        });
     }
 
 }

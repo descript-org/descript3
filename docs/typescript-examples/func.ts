@@ -66,11 +66,17 @@ de.run(block2, {
 
 const block3 = block2.extend({
     options: {
-        after: ({ result }) => {
+        params: ({ params }: { params: { param2: number } }) => {
+            return {
+                param: params.param2,
+            };
+        },
+        after: ({ result, params }) => {
             console.log(result);
 
             return {
                 res: result,
+                x: params.param,
             };
         },
     },
@@ -79,7 +85,7 @@ const block3 = block2.extend({
 
 de.run(block3, {
     params: {
-        param: 2,
+        param2: 2,
     },
 })
     .then((result) => {
@@ -87,13 +93,20 @@ de.run(block3, {
     });
 
 
+const objBlock = de.object({
+    block: {
+        foo: block1,
+        boo: block2,
+    },
+});
+
 const block4 = de.func({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     block: ({ params }) => {
         //TODO не выводится params.
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         //const x = params.id;
-        return block1;
+        return objBlock;
     },
     options: {
         after: ({ result, params }) => {

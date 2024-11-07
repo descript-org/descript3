@@ -27,7 +27,7 @@ abstract class CompositeBlock<
     BeforeResultOut = undefined,
     AfterResultOut = undefined,
     ErrorResultOut = undefined,
-    Params = ParamsOut,
+    Params = ParamsOut
 > extends BaseBlock<
     Context,
     CustomBlock,

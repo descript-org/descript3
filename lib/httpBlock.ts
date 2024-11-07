@@ -24,8 +24,8 @@ type DescriptHttpBlockDescriptionCallback< T, Params, Context > = T | ((args: {
     deps: DescriptBlockDeps;
 }) => T);
 
-type DescriptHttpBlockQueryValue = string | number | boolean | undefined | null | Array<string | number | boolean | object>;
-type DescriptHttpBlockQuery = Record< string, DescriptHttpBlockQueryValue >;
+export type DescriptHttpBlockQueryValue = string | number | boolean | undefined | null | Array<string | number | boolean | object>;
+export type DescriptHttpBlockQuery = Record< string, DescriptHttpBlockQueryValue >;
 
 type HttpQuery<Params, Context> = Record<
 string,
@@ -46,7 +46,7 @@ DescriptHttpBlockQueryValue |
     }) => DescriptHttpBlockQuery
 );
 
-type HttpHeaders<Params, Context> = Record< string,
+export type HttpHeaders<Params, Context> = Record< string,
 string |
 ((args: {
     params: Params;
@@ -179,41 +179,41 @@ class HttpBlock<
     Params
     > {
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+
     extend<
-        ExtendedResultOut extends
-        BlockResultOut<ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut>,
-        ExtendedParamsOut = Params,
+        ExtendedResultOut extends BlockResultOut<ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut>,
+        ExtendedParamsOut extends Params = Params,
         ExtendedParams = Params,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        //ExtendedCustomBlock = DescriptHttpBlockDescription<ExtendedParamsOut, Context, HttpResult>,
 
         ExtendedBlockResult = ResultOut,
         ExtendedBeforeResultOut = undefined,
         ExtendedAfterResultOut = undefined,
         ExtendedErrorResultOut = undefined,
     >({ options, block }: {
-        block?: DescriptHttpBlockDescription<ParamsOut, Context, HttpResult>;
+        block?: DescriptHttpBlockDescription<ParamsOut & ExtendedParamsOut, Context, HttpResult>;
         options?: DescriptBlockOptions<
-        Context, Params & ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
+        Context, ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
         >;
     }) {
-        return this.extendClass<
-        HttpBlock<
+        const x = new HttpBlock<
         Context,
         ExtendedParamsOut,
         HttpResult,
-        Params & ExtendedResultOut,
+        ExtendedResultOut,
         ExtendedBlockResult,
         ExtendedBeforeResultOut,
         ExtendedAfterResultOut,
         ExtendedErrorResultOut,
         ExtendedParams
-        >,
-        ExtendedBlockResult,
-        Params & ExtendedParamsOut,
-        ExtendedParams,
-        ExtendedBeforeResultOut,
-        ExtendedAfterResultOut,
-        ExtendedErrorResultOut
-        >({ options, block });
+        >({
+            block: this.extendBlock(block),
+            options: this.extendOptions(this.options, options),
+        });
+
+        return x;
     }
 
     protected logger: Logger;
@@ -237,7 +237,7 @@ class HttpBlock<
         //  this._compiled_props = compile_props( this.block );
     }
 
-    protected extendBlock(by: DescriptHttpBlockDescription<ParamsOut, Context, HttpResult> = {}) {
+    protected extendBlock(by: DescriptHttpBlockDescription<any, Context, HttpResult> = {}) {
         const what = this.block;
         const headers = extendOption(what.headers, by.headers);
         const query = extendOption(what.query, by.query);

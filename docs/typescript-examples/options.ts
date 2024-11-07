@@ -117,6 +117,8 @@ de.run(block2, {
 const block3 = de.http({
     block: {},
     options: {
+        //TODO как вывести In из Out?
+        //params: ({ params }: { params: ParamsIn }) => params,
         before: ({ params }: { params: ParamsIn }) => {
             if (!params.id) {
                 return 'foo';
@@ -143,3 +145,130 @@ de.run(block3, {
 
         return result;
     });
+
+const block4 = de.http({
+    block: {
+        agent: { maxSockets: 16 },
+        maxRetries: 1,
+        timeout: 1000,
+        body: ({ params }: { params: { p4: number } }) => params,
+    },
+    options: {
+        after: ({ result }: { result: de.DescriptHttpBlockResult<{ r: number }> }) => result.result,
+    },
+});
+
+de.run(block4, {
+    params: {
+        p4: 1,
+    },
+});
+
+const block5 = block4.extend({
+    block: {
+        body: ({ params }) => params,
+    },
+
+    options: {
+        after: ({ params }) => params,
+    },
+});
+
+const block6 = de.object({
+    block: {
+        block4: block5.extend({
+            options: {
+                params: ({ params }) => {
+                    return {
+                        p4: params.p4,
+                    };
+                },
+                //after: ({ result }) => result,
+            },
+        }),
+        block3: block3.extend({}),
+    },
+
+    options: {
+        after: ({ result }) => {
+            return result.block4;
+        },
+    },
+});
+
+de.run(block6, {
+    params: {
+        p4: 8,
+        id: '1',
+    },
+});
+
+const block7 = de.object({
+    block: {
+        block6: block6.extend({
+            options: {
+                params: ({ params }) => {
+                    return {
+                        p4: params.p4,
+                        id: '1',
+                        x: 1,
+                    };
+                },
+                //after: ({ result }) => result,
+            },
+        }),
+        block3: block3.extend({}),
+    },
+    options: {
+        after: ({ result }) => {
+            return result.block6;
+        },
+    },
+});
+
+
+de.run(block7, {
+    params: {
+        p4: 8,
+        id: '1',
+    },
+});
+
+const block8 = de.http({
+    block: {
+        agent: { maxSockets: 16 },
+        maxRetries: 1,
+        timeout: 1000,
+        body: ({ params }: { params: { p1: number } }) => params,
+    },
+    options: {
+        after: ({ result }: { result: de.DescriptHttpBlockResult<{ r: number }> }) => result.result,
+    },
+});
+
+const block9 = block8.extend({
+    block: {
+        body: ({ params }: { params: { p4: number; p1: number } }) => params,
+    },
+
+    options: {
+        after: ({ params }) => params,
+    },
+});
+
+
+de.run(block9, {
+    params: {
+        p1: 8,
+    },
+});
+
+const block10 = de.func({
+    block: () => {
+        return block8;
+    },
+});
+
+de.run(block10, {
+    params: {},
+});

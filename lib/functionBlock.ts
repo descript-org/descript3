@@ -2,7 +2,7 @@ import BaseBlock from './block';
 import type { DescriptBlockDeps } from './depsDomain';
 import DepsDomain from './depsDomain';
 import { createError, ERROR_ID } from './error';
-import type { BlockResultOut, DescriptBlockOptions } from './types';
+import type { BlockResultOut, DescriptBlockOptions, InferParamsOutFromBlock } from './types';
 import type ContextClass from './context';
 import type Cancel from './cancel';
 
@@ -27,7 +27,7 @@ class FunctionBlock<
     BeforeResultOut = undefined,
     AfterResultOut = undefined,
     ErrorResultOut = undefined,
-    Params = ParamsOut
+    Params = never extends InferParamsOutFromBlock<BlockResult> ? ParamsOut : InferParamsOutFromBlock<BlockResult>
 > extends BaseBlock<
     Context,
     FunctionBlockDefinition<Context, ParamsOut, BlockResult>,
@@ -93,40 +93,26 @@ class FunctionBlock<
     }
 
     extend<
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        ExtendedResultOut extends
-        BlockResultOut<ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut>,
-        ExtendedParamsOut = Params,
+        ExtendedParamsOut extends Params = Params,
         ExtendedParams = Params,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        //ExtendedCustomBlock = DescriptHttpBlockDescription<ExtendedParamsOut, Context, HttpResult>,
+
         ExtendedBlockResult = ResultOut,
         ExtendedBeforeResultOut = undefined,
         ExtendedAfterResultOut = undefined,
         ExtendedErrorResultOut = undefined,
     >({ options }: {
         options: DescriptBlockOptions<
-        Context, Params & ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
+        Context, ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
         >;
     }) {
-        return this.extendClass<
-        FunctionBlock<
-        Context,
-        //FNBlock,
-        //FunctionBlockDefinition<Context, Params & ExtendedParamsOut, BlockResult>,
-        Params & ExtendedParamsOut,
-        ExtendedBlockResult,
-        ExtendedResultOut,
-        ExtendedBeforeResultOut,
-        ExtendedAfterResultOut,
-        ExtendedErrorResultOut,
-        ExtendedParams
-        >,
-        ExtendedBlockResult,
-        Params & ExtendedParamsOut,
-        ExtendedParams,
-        ExtendedBeforeResultOut,
-        ExtendedAfterResultOut,
-        ExtendedErrorResultOut
-        >({ options });
+        return new FunctionBlock({
+            block: this.extendBlock(this.block) as typeof this.block,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-expect-error
+            options: this.extendOptions(this.options, options) as typeof options,
+        });
     }
 }
 

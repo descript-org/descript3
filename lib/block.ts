@@ -58,7 +58,7 @@ abstract class BaseBlock<
     BeforeResultOut = undefined,
     AfterResultOut = undefined,
     ErrorResultOut = undefined,
-    Params = ParamsOut,
+    Params = ParamsOut
 > {
     protected block: CustomBlock;
     protected options: BlockOptions<Context, ParamsOut, BlockResult, BeforeResultOut, AfterResultOut, ErrorResultOut, Params>;
@@ -84,49 +84,51 @@ abstract class BaseBlock<
     protected extendClass<
         ClassType,
         ExtendedBlockResult,
-        ExtendedParamsOut = Params,
+        ExtendedParamsOut extends Params = Params,
         ExtendedParams = Params,
-        ExtendedBeforeResultOut = undefined,
-        ExtendedAfterResultOut = undefined,
-        ExtendedErrorResultOut = undefined,
+        ExtendedBeforeResultOut = void,
+        ExtendedAfterResultOut = void,
+        ExtendedErrorResultOut = void,
+        ExtendedCustomBlock extends CustomBlock = CustomBlock,
     >({ block, options }: {
-        block?: CustomBlock;
+        block?: ExtendedCustomBlock;
         options?:
         DescriptBlockOptions<
-        Context, Params & ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
+        Context, ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
         >;
     }): ClassType {
 
         return new (<BlockConstructor<
         Context,
-        Params & ExtendedParamsOut,
+        ExtendedParamsOut,
         ExtendedBlockResult,
         ExtendedBeforeResultOut,
         ExtendedAfterResultOut,
         ExtendedErrorResultOut,
         ExtendedParams,
         ClassType,
-        CustomBlock
+        ExtendedCustomBlock
         >> this.constructor)({
-            block: this.extendBlock(block),
+            block: this.extendBlock(block) as ExtendedCustomBlock,
             options: this.extendOptions(this.options, options),
         });
     }
 
     abstract extend<
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        ExtendedResultOut extends
-        BlockResultOut<ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut>,
-        ExtendedParamsOut = Params,
+        //ExtendedResultOut extends
+        //BlockResultOut<ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut>,
+        ExtendedParamsOut extends Params = Params,
         ExtendedParams = Params,
+        //ExtendedCustomBlock = CustomBlock,
         ExtendedBlockResult = ResultOut,
-        ExtendedBeforeResultOut = undefined,
-        ExtendedAfterResultOut = undefined,
-        ExtendedErrorResultOut = undefined,
+        ExtendedBeforeResultOut = void,
+        ExtendedAfterResultOut = void,
+        ExtendedErrorResultOut = void,
     >({ block, options }: {
         block?: CustomBlock;
         options?: DescriptBlockOptions<
-        Context, Params & ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
+        Context, ParamsOut & ExtendedParamsOut, ExtendedBlockResult, ExtendedBeforeResultOut, ExtendedAfterResultOut, ExtendedErrorResultOut, ExtendedParams
         >;
     }): unknown
 
@@ -144,7 +146,7 @@ abstract class BaseBlock<
     }
 
     //eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected extendBlock(block?: CustomBlock) {
+    protected extendBlock<ExtendedCustomBlock extends CustomBlock>(block?: ExtendedCustomBlock) {
         return this.block;
     }
 
@@ -201,9 +203,9 @@ abstract class BaseBlock<
     private extendLifecycle<
         ExtendedParamsOut,
         ExtendedBlockResult,
-        ExtendedBeforeResultOut = undefined,
-        ExtendedAfterResultOut = undefined,
-        ExtendedErrorResultOut = undefined,
+        ExtendedBeforeResultOut = void,
+        ExtendedAfterResultOut = void,
+        ExtendedErrorResultOut = void,
         ExtendedParams = ExtendedParamsOut,
         // eslint-disable-next-line max-len
         W extends BlockOptions<Context, ParamsOut, BlockResult, BeforeResultOut, AfterResultOut, ErrorResultOut, Params> =

@@ -127,3 +127,33 @@ de.run(block2, {
     .then((result) => {
         console.log(result.c);
     });
+
+const block3 = de.http({
+    block: {},
+    options: {},
+});
+
+const block4 = block3.extend({
+    block: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        headers: ({ params }) => {
+            return {
+                'x-header': String(params.param2),
+            };
+        },
+    },
+    options: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        params: ({ params }: { params: { param: number } }) => {
+            return {
+                param2: params.param,
+            };
+        },
+    },
+});
+
+de.run(block4, {
+    params: {
+        param: 1,
+    },
+});
