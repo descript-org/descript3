@@ -10,7 +10,7 @@
 ```js
 const cache = {
     get: function( { key, context } ) { ... },
-    set: function( { key, value, maxage, context } ) { ... },
+    set: function( { key, value, maxage } ) { ... },
 };
 ```
 

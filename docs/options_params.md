@@ -3,16 +3,16 @@
 Позволяет изменить переданные блоку сверху параметры:
 
 ```js
-const orig_params = {
+const origParams = {
     foo: 42,
 };
 
 const block = de.block( {
     options: {
-        //  Вот сюда в params придет orig_params.
+        //  Вот сюда в params придет origParams.
         //
         params: ( { params } ) => {
-            console.log( params, params === orig_params );
+            console.log( params, params === origParams );
             //  { foo: 42 }, true
 
             return {
@@ -34,7 +34,7 @@ const block = de.block( {
 //  Запускаем блок с какими-то параметрами:
 //
 const result = await de.run( block, {
-    params: orig_params,
+    params: origParams,
 } );
 ```
 
@@ -80,9 +80,9 @@ const parent = de.block( {
     },
 } );
 
-const child = parent( {
+const child = parent.extend( {
     options: {
-        //  Сперва вызовется эта функция, в params придет orig_params.
+        //  Сперва вызовется эта функция, в params придет origParams.
         //
         params: ( { params } ) => {
             //  И дальше везде в работе блока будет использоваться этот объект.
@@ -96,9 +96,9 @@ const child = parent( {
     },
 } );
 
-const orig_params = {
+const origParams = {
     foo: 42,
 };
-de.run( child, { params: orig_params } );
+de.run( child, { params: origParams } );
 ```
 

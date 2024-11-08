@@ -72,11 +72,11 @@ const block = de.block( {
 ```js
 options: {
     after: ( { result, context } ) => {
-        if ( result.redirect_url ) {
+        if ( result.redirectUrl ) {
             const { res } = context;
 
             res.statusCode = 302;
-            res.setHeader( 'location', result.redirect_url );
+            res.setHeader( 'location', result.redirectUrl );
             res.end();
         }
     },
@@ -97,13 +97,13 @@ options: {
 const block = de.block( {
     options: {
         after: ( { result, cancel } ) => {
-            if ( result.redirect_url ) {
+            if ( result.redirectUrl ) {
                 //  Не делаем редирект изнутри блока,
                 //  но кидаем специальную ошибку о том, что нужно сделать редирект.
                 //
                 cancel.cancel( de.error( {
                     id: 'REDIRECT',
-                    location: result.redirect_url,
+                    location: result.redirectUrl,
                     status_code: 302,
                 } ) );
             }

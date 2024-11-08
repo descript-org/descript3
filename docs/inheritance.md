@@ -2,9 +2,9 @@
 
 На самом деле это не совсем наследование, а скорее расширение и дополнение функциональности блока.
 
-    const parent_block = de.block( ... );
+    const parentBlock = de.block( ... );
 
-    const child_block = parent_block( {
+    const childBlock = parentBlock.extend( {
         block: {
             //  Модификации блока.
         },

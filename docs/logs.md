@@ -5,26 +5,26 @@
 Что такое логгер. Это объект с одним методом `log`, в который приходят события:
 
 ```js
-const de = require( 'descript' );
+import * as de from 'descript';
 
 const logger = {
     log: function( event, context ) {
         switch ( event.type ) {
 
-            case de.Logger.EVENT.REQUEST_START: {
-                const { request_options } = event;
+            case de.EVENT.REQUEST_START: {
+                const { requestOptions } = event;
                 ...
                 break;
             }
 
-            case de.Logger.EVENT.REQUEST_SUCCESS: {
-                const { request_options, result, timestamps } = event;
+            case de.EVENT.REQUEST_SUCCESS: {
+                const { requestOptions, result, timestamps } = event;
                 ...
                 break;
             }
 
-            case de.Logger.EVENT.REQUEST_ERROR: {
-                const { request_options, error, timestamps } = event;
+            case de.EVENT.REQUEST_ERROR: {
+                const { requestOptions, error, timestamps } = event;
                 ...
                 break;
             }
@@ -34,8 +34,8 @@ const logger = {
 };
 ```
 
-В поле `event.request_options` содержится много всего, описывающего http-запрос, который мы логируем.
-В частности, в `event.request_options.http_options` содержится объект,
+В поле `event.requestOptions` содержится много всего, описывающего http-запрос, который мы логируем.
+В частности, в `event.requestOptions.http_options` содержится объект,
 который был отправлен в нодовский метод `http.request` (или `https.request`).
 
 

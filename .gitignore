@@ -1,7 +1,9 @@
 .idea
+.vscode
 node_modules
 *.swp
 tests/server.key
 tests/server.crt
 coverage
+build
 

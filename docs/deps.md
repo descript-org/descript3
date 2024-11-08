@@ -11,24 +11,24 @@
 ## Простой пример
 
 ```js
-const block = ( { generate_id } ) => {
-    const foo_id = generate_id();
+const block = ( { generateId } ) => {
+    const fooId = generateId();
 
     return de.object( {
         block: {
-            foo: block_foo( {
+            foo: blockFoo.extend( {
                 options: {
                     //  Выдаем блоку id-шник.
                     //
-                    id: foo_id,
+                    id: fooId,
                 },
             } ),
 
-            bar: block_bar( {
+            bar: blockBar.extend( {
                 options: {
-                    //  Ждать, пока успешно завершит свою работу блок с id равным foo_id.
+                    //  Ждать, пока успешно завершит свою работу блок с id равным fooId.
                     //
-                    deps: foo_id,
+                    deps: fooId,
                 },
             } ),
         },
@@ -37,36 +37,36 @@ const block = ( { generate_id } ) => {
 };
 ```
 
-Здесь сперва запустится `block_foo`, если он успешно отработает, то затем запустится `block_bar`.
-Если `block_foo` завершится ошибкой, то и `block_bar` завершится ошибкой `de.ERROR_ID.DEPS_ERROR`.
+Здесь сперва запустится `blockFoo`, если он успешно отработает, то затем запустится `blockBar`.
+Если `blockFoo` завершится ошибкой, то и `blockBar` завершится ошибкой `de.ERROR_ID.DEPS_ERROR`.
 
 
 ## Блок может зависить от нескольких блоков
 
 ```js
-const block = ( { generate_id } ) => {
-    const foo_id = generate_id();
-    const bar_id = generate_id();
+const block = ( { generateId } ) => {
+    const fooId = generateId();
+    const barId = generateId();
 
     return de.object( {
         block: {
-            foo: block_foo( {
+            foo: blockFoo.extend( {
                 options: {
-                    id: foo_id,
+                    id: fooId,
                 },
             } ),
 
-            bar: block_bar( {
+            bar: blockBar.extend( {
                 options: {
-                    id: bar_id,
+                    id: barId,
                 },
             } ),
 
-            quu: block_quu( {
+            quu: blockQuu.extend( {
                 options: {
-                    //  Ждем выполнения и блока block_foo, и блока block_bar.
+                    //  Ждем выполнения и блока blockFoo, и блока blockBar.
                     //
-                    deps: [ foo_id, bar_id ],
+                    deps: [ fooId, barId ],
                 },
             } ),
         },
@@ -75,9 +75,9 @@ const block = ( { generate_id } ) => {
 };
 ```
 
-Аналогично. Сперва запускаются параллельно блоки `block_foo` и `block_bar`.
-Когда оба они успешно отработали, запустится блок `block_quu`.
-Если хотя бы один из них отработает с ошибкой, `block_quu` опять таки сразу завершится с ошибкой `de.ERROR_ID.DEPS_ERROR`.
+Аналогично. Сперва запускаются параллельно блоки `blockFoo` и `blockBar`.
+Когда оба они успешно отработали, запустится блок `blockQuu`.
+Если хотя бы один из них отработает с ошибкой, `blockQuu` опять таки сразу завершится с ошибкой `de.ERROR_ID.DEPS_ERROR`.
 
 
 ## Как использовать результат зависимостей
@@ -86,34 +86,34 @@ const block = ( { generate_id } ) => {
 Но чаще всего, нам нужно результат одного блока использовать для запуска другого блока.
 
 ```js
-const block = ( { generate_id } ) => {
-    const foo_id = generate_id();
+const block = ( { generateId } ) => {
+    const fooId = generateId();
 
     return de.object( {
         block: {
-            foo: block_foo( {
+            foo: blockFoo.extend(( {
                 options: {
-                    id: foo_id,
+                    id: fooId,
                 },
             } ),
 
-            bar: block_bar( {
+            bar: blockBar.extend(( {
                 options: {
-                    deps: foo_id,
+                    deps: fooId,
 
                     params: ( { deps } ) => {
                         //  В deps приходят результаты работы всех блоков,
                         //  от которых зависит блок.
                         //
-                        //  Достаем результат block_foo.
+                        //  Достаем результат blockFoo.
                         //
-                        const foo_result = deps[ foo_id ];
+                        const fooResult = deps[ fooId ];
 
-                        //  Используем значение из foo_result в качестве
-                        //  параметра запроса блока block_bar.
+                        //  Используем значение из fooResult в качестве
+                        //  параметра запроса блока blockBar.
                         //
                         return {
-                            foo_id: foo_result.id,
+                            fooId: fooResult.id,
                         };
                     },
                 },
@@ -128,29 +128,29 @@ const block = ( { generate_id } ) => {
 будет приходить объект с результатами этих зависимостей.
 
 
-## `generate_id()`
+## `generateId()`
 
 Чтобы установить связь между блоками, нужно использовать какой-то id-шник в `options.id` и `options.deps`.
-И этот id-шник не может быть чем-либо, кроме результата работы `generate_id`.
+И этот id-шник не может быть чем-либо, кроме результата работы `generateId`.
 Эта функция приходит в обертку-замыкание или в `de.func`:
 
 ```js
-const block = ( { generate_id } ) => {
-    const id = generate_id();
+const block = ( { generateId } ) => {
+    const id = generateId();
 
     ...
 };
 
 const block = de.func( {
-    block: ( { generate_id } ) => {
-        const id = generate_id();
+    block: ( { generateId } ) => {
+        const id = generateId();
 
         ...
     },
 } );
 ```
 
-id-шники, сгенерированные при помощи `generate_id`, действительны только внутри соответствующего замыкания.
+id-шники, сгенерированные при помощи `generateId`, действительны только внутри соответствующего замыкания.
 И при попытке использовать какое-либо другое значение в качестве id, блок завершится с ошибкой `de.ERROR_ID.INVALID_DEPS_ID`.
 
 
@@ -170,18 +170,18 @@ id-шники, сгенерированные при помощи `generate_id`,
 Например:
 
 ```js
-const block = ( { generate_id } ) => {
-    const foo_id = generate_id();
+const block = ( { generateId } ) => {
+    const fooId = generateId();
 
     return de.object( {
         block: {
-            foo: block_foo,
+            foo: blockFoo,
 
-            bar: block_bar( {
+            bar: blockBar.extend(( {
                 options: {
                     //  А с таким id никто не запущен!
                     //
-                    deps: foo_id,
+                    deps: fooId,
                 },
             } ),
         },
@@ -194,41 +194,41 @@ const block = ( { generate_id } ) => {
 
   * Будет создан и запущен `de.object`
 
-  * У этого `de.object` есть два подблока, один — `block_foo` — можно запустить сразу (он не имеет никаких зависимостей),
-    а `block_bar` ждет окончания работы блока с id `foo_id`.
+  * У этого `de.object` есть два подблока, один — `blockFoo` — можно запустить сразу (он не имеет никаких зависимостей),
+    а `blockBar` ждет окончания работы блока с id `fooId`.
 
-  * Блок `block_foo` завершит свою работу (неважно, ошибкой или нет).
+  * Блок `blockFoo` завершит свою работу (неважно, ошибкой или нет).
 
-  * Возникнет ситуация, когда ни один блок не активен, но зависимости блока `block_bar` все еще не сошлись.
+  * Возникнет ситуация, когда ни один блок не активен, но зависимости блока `blockBar` все еще не сошлись.
 
-  * Блок `block_bar` упадет с ошибкой `de.ERROR_ID.DEPS_NOT_RESOLVED`.
+  * Блок `blockBar` упадет с ошибкой `de.ERROR_ID.DEPS_NOT_RESOLVED`.
 
 
-При этом в целом такая схема, когда на момент старта `block_bar` никакой блок с id `foo_id` не запущен, нормальна.
-Могло быть так, что `block_foo` запустит блок, который будет иметь таки `foo_id` и тогда процесс сойдется
+При этом в целом такая схема, когда на момент старта `blockBar` никакой блок с id `fooId` не запущен, нормальна.
+Могло быть так, что `blockFoo` запустит блок, который будет иметь таки `fooId` и тогда процесс сойдется
 (или еще сложнее, запустит блок, который запустит блок, который запустит блок ..., который будет иметь нужный id).
 
 ```js
-const block = ( { generate_id } ) => {
-    const foo_id = generate_id();
+const block = ( { generateId } ) => {
+    const fooId = generateId();
 
     return de.object( {
         block: {
             foo: de.func( {
                 block: async () => {
-                    await do_something();
+                    await doSomething();
 
                     return de.block( {
                         options: {
-                            id: foo_id,
+                            id: fooId,
                         },
                     } );
                 },
             } ),
 
-            bar: block_bar( {
+            bar: blockBar.extend(( {
                 options: {
-                    deps: foo_id,
+                    deps: fooId,
                 },
             } ),
         },

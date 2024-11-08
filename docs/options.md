@@ -30,8 +30,8 @@ de.block( {
         name: 'my_api.my_method',
 
         //  Зависимости между блоками.
-        id: some_id,
-        deps: [ some_id_1, some_id_2, ... ],
+        id: someId,
+        deps: [ someId1, someId2, ... ],
 
         //  Возможность вычислить новые параметры для блока.
         params: ...,

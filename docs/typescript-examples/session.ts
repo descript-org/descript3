@@ -1,5 +1,8 @@
-import {inferBlockTypes, DescriptBlockResultJSON} from '../../lib';
+/* eslint-disable no-console */
+
+import type { DescriptHttpBlockResult } from '../../lib';
 import * as de from '../../lib';
+import type DepsDomain from '../../lib/depsDomain';
 
 interface TRequest extends Request {
     session?: Session;
@@ -15,22 +18,30 @@ interface TDescriptContext {
     additionalParams?: Record<string, unknown>;
 }
 
+type SessionParams = {
+    dealerId?: string;
+}
+
 type Session = {
     id: string;
     username: string;
-    client_id?: string;
+    clientId?: string;
 }
 
-const baseResource = de.http<TDescriptContext, object, DescriptBlockResultJSON<object>>( {
+const baseResource = de.http({
     block: {},
-} );
+    options: {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        before: ({ context }: { context?: TDescriptContext }) => {},
+    },
+});
 
-const resource = baseResource( {
+const resource = baseResource.extend({
     block: {
         agent: { maxSockets: 16, keepAlive: true },
-        max_retries: 1,
+        maxRetries: 1,
         timeout: 1000,
-        headers: ( { headers, context } ) => {
+        headers: ({ headers }) => {
 
             return {
                 ...headers,
@@ -41,13 +52,13 @@ const resource = baseResource( {
     options: {
         name: 'session',
     },
-} );
+});
 
-const secondRequest = resource({
-    block:{}
-})
+const secondRequest = resource.extend({
+    block: {},
+});
 
-const session = resource( {
+const session = resource.extend({
     block: {
         method: 'GET',
         pathname: '/1.0/session/',
@@ -56,17 +67,20 @@ const session = resource( {
 
     options: {
         name: 'publicApiAuth:GET /1.0/session',
+        params: ({ params }: { params: SessionParams }) => params,
         before: (args) => {
             const { context } = args;
 
-            if (context.req.session) {
+            if (context?.req.session) {
                 // возвращаем кешированную сессию
                 return context.req.session;
             }
+
+            throw 's';
         },
 
-        after: ({ result }: { result: DescriptBlockResultJSON<SessionResult> }) => {
-            const session = result.result.session;
+        after: ({ result }: { result: DescriptHttpBlockResult<SessionResult> | Session }) => {
+            const session = 'result' in result ? result.result.session : result;
             return session;
         },
 
@@ -74,124 +88,125 @@ const session = resource( {
             throw error;
         },
     },
-} );
+});
 
-function getClientId({ params } : { params: any }) {
-    return params.client_id;
+function getClientId({ params }: { params: any }) {
+    return params.clientId;
 }
 
-const x = de.object({
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const temp = de.object({
     block: {
-        secondRequest: inferBlockTypes(secondRequest({block:{}})),
-        session: inferBlockTypes(session({
+        secondRequest: secondRequest.extend({ block: {} }),
+        session: session.extend({
             options: {
                 required: true,
             },
-        })),
+        }),
     },
     options: {
         params: (args) => {
             return {
-                dealer_id: getClientId(args),
+                dealerId: getClientId(args),
             };
         },
 
-        after: ({context, params, result}) => {
+        after: ({ result }) => {
             const session = result.session;
 
             return session;
         },
-    }
+    },
 });
 
 const sessionMethod = de.func({
-    block: ({generate_id: generateId}) => {
+    block: ({ generateId: generateId }) => {
         const sessionId = generateId();
 
 
         return de.object({
             block: {
-                session: inferBlockTypes(session({
+                session: session.extend({
                     options: {
                         id: sessionId,
                         required: true,
-                        after: ({params, result}) => {
-                            if ((params as any).dealer_id && result) {
-                                result.client_id = (params as any).dealer_id;
+                        after: ({ params, result }) => {
+                            if (params.dealerId && result) {
+                                result.clientId = params.dealerId;
                             }
 
                             return result;
                         },
                     },
-                })),
+                }),
             },
             options: {
                 params: (args) => {
                     return {
-                        dealer_id: getClientId(args),
+                        dealerId: getClientId(args),
                     };
                 },
 
-                after: ({context, params, result}) => {
-                    const x = result;
-                    const session = result.session as Session & Record<string, unknown>;
+                after: ({ result }) => {
+                    const session = result.session;
 
                     return session;
                 },
-            }
+            },
         });
 
-    }
+    },
 });
 
 type Params = {
-    param: string
+    param: string;
 }
 
 const controller = de.func({
-    block: ({ generate_id: generateId, params }: { params: Params; generate_id: de.DescriptBlockGenerateId }) => {
-        const session1 = sessionMethod({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    block: ({ generateId: generateId, params }: { params: Params; generateId: DepsDomain['generateId'] }) => {
+        const session1 = sessionMethod.extend({
             options: {
-                after: ({result}) => result
-            }
+                after: ({ result }) => result,
+            },
         });
 
         return de.object({
             block: {
-                session:session1,
-                session2: inferBlockTypes(sessionMethod({ options: {
-                        after: ({result}) => result
-                    }})),
+                session: session1,
+                session2: sessionMethod.extend({ options: {
+                    after: ({ result }) => result,
+                } }),
             },
             options: {
-                after: ({result}) => result,
-            }
+                after: ({ result }) => result,
+            },
         });
     },
 
     options: {
-        after: ({result}) => result,
-    }
-})
+        after: ({ result }) => result,
+    },
+});
 
 de.run(controller, {})
     .then(result => {
-        console.log(result.session, result.session2)
-    })
+        console.log(result.session, result.session2);
+    });
 
 const sessionMethod2 = de.func({
-    block: ({generate_id: generateId}) => {
+    block: ({ generateId: generateId }) => {
         const sessionId = generateId();
 
-        const session2 = session({
+        const session2 = session.extend({
             options: {
                 id: sessionId,
                 // При падении сессии роняем весь блок.
                 // Тогда можно будет в нужных местах написать session({ options: { required: true } });
                 required: true,
-                after: ({params, result}) => {
-                    if ((params as any).dealer_id && result) {
-                        result.client_id = (params as any).dealer_id;
+                after: ({ params, result }) => {
+                    if (params.dealerId && result) {
+                        result.clientId = params.dealerId;
                     }
 
                     return result;
@@ -201,44 +216,46 @@ const sessionMethod2 = de.func({
 
         return de.object({
             block: {
-                session: inferBlockTypes(session({
+                session: session.extend({
                     options: {
                         id: sessionId,
                         // При падении сессии роняем весь блок.
                         // Тогда можно будет в нужных местах написать session({ options: { required: true } });
                         required: true,
-                        after: ({params, result}) => {
-                            if ((params as any).dealer_id && result) {
-                                result.client_id = (params as any).dealer_id;
+                        after: ({ params, result }) => {
+                            if (params.dealerId && result) {
+                                result.clientId = params.dealerId;
                             }
 
                             return result;
                         },
                     },
-                })),
+                }),
                 session2,
             },
             options: {
                 params: (args) => {
                     return {
-                        dealer_id: getClientId(args),
+                        dealerId: getClientId(args),
                     };
                 },
 
-                after: ({context, params, result}) => {
+                after: ({ result }) => {
                     const session = result.session;
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const session2 = result.session2;
 
                     return session;
                 },
-            }
+            },
         });
-    }
-} );
+    },
+});
 
 
 de.run(sessionMethod2, {})
     .then(result => {
-        console.log(result.username)
-    })
-
+        if (!de.isError(result)) {
+            console.log(result.username);
+        }
+    });

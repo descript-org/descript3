@@ -1,7 +1,7 @@
-import {
-    inferBlockTypes
-} from '../../lib';
+/* eslint-disable no-console */
+
 import * as de from '../../lib';
+import type { DescriptHttpBlockResult, InferParamsInFromBlock } from '../../lib/types';
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -11,14 +11,14 @@ interface Context {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 export interface CreateCardRequest {
-    added_manually?: boolean;
-    added_by_identifier?: string;
+    addedManually?: boolean;
+    addedByIdentifier?: string;
     // card: Card;
     card: Record<string, string>;
 }
 
 interface ParamsIn1 {
-    id_1: string;
+    id1: string;
     payload: CreateCardRequest;
 }
 interface ParamsOut1 {
@@ -28,25 +28,25 @@ interface Result1 {
     r: number;
 }
 
-const block_1 = de.http( {
+const block1 = de.http({
     block: {
         body: ({ params }) => params.payload,
     },
     options: {
-        params: ( { params }: { params: ParamsIn1, context: Context } ) => {
+        params: ({ params }: { params: ParamsIn1; context?: Context }) => {
             return {
-                s1: params.id_1,
-                payload: params.payload
+                s1: params.id1,
+                payload: params.payload,
             };
         },
 
-        after: ( { params, context, result }: { params: ParamsOut1, context: Context, result: Result1 } ) => {
+        after: ({ params, result }: { params: ParamsOut1; result: DescriptHttpBlockResult<Result1> }) => {
             const a = {
-                a: 1,
+                a: result.result.r,
             };
             const b = {
                 b: params.s1,
-            }
+            };
 
             if (params.s1 === 'lol') {
                 return a;
@@ -55,102 +55,106 @@ const block_1 = de.http( {
             return b;
         },
     },
-} );
+});
 
 
-de.run( block_1, {
+de.run(block1, {
     params: {
-        id_1: '67890',
+        id1: '67890',
         payload: {
-            card: {}
-        }
+            card: {},
+        },
     },
-} )
-    .then( ( result ) => {
-        console.log( result );
+})
+    .then((result) => {
+        console.log(result);
         return {
             foo: 'a' in result ? result.a : result.b,
             bar: undefined,
         };
-    } );
+    });
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 interface ParamsIn2 {
-    id_2: number;
+    id2: number;
 }
 
-interface ResultOut2 {
-    b: string;
-}
-
-const block_2 = de.http( {
+const block2 = de.http({
     block: {},
     options: {
-        params: ( { params }: {params: ParamsIn2} ) => {
+        params: ({ params }: {params: ParamsIn2}) => {
             return params;
         },
 
-        after: ( { params, result } ) => {
+        after: ({ params }) => {
             return {
-                b: String(params.id_2),
+                b: String(params.id2),
             };
         },
     },
-} );
+});
 
-const block_2_func = de.func({
-    block: (x) => block_2,
+const block2Func = de.func({
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    block: ({ params }: { params: InferParamsInFromBlock<typeof block1> & { p1: number } }) => block2,
+    //block: () => block2,
     options: {
-        after: ({result}) => {
+        after: ({ result }) => {
             console.log(result.b);
             return {
                 b: result.b + '2',
-                c: 1
+                c: 1,
             };
-        }
-    }
+        },
+    },
 });
 
-de.run( block_2_func, {
+de.run(block2Func, {
     params: {
-        id_2: 67890,
+        id1: '67890',
+        p1: 1,
+        payload: {
+            card: {},
+        },
     },
-} )
-    .then( ( result ) => {
-        console.log( result );
+})
+    .then((result) => {
+        console.log(result);
         return {
             foo: result.c,
             bar: result.b,
         };
-    } );
+    });
 
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-const block_3 = de.object( {
+const block3 = de.object({
     block: {
-        foo: inferBlockTypes(de.http( {
+        foo: de.http({
             block: {},
             options: {
-                params: ( { params }: { params: ParamsIn1, context: Context } ) => {
+                params: ({ params }: { params: ParamsIn2; context?: Context }) => {
                     return {
-                        s1: params.id_1,
+                        s1: params.id2,
                     };
                 },
 
-                after: ( { params, context } ) => {
+                after: ({ params }) => {
                     return {
                         a: params.s1,
                     };
                 },
             },
-        } )),
-        bar: block_2_func,
-     },
+        }),
+        bar: block2Func,
+    },
     options: {
-        params: ({params}) => params,
-        after: ( { result, params } ) => {
+        params: ({ params }) => params,
+        after: ({ result, params }) => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const x = params.id2;
             return {
                 foo: {
                     ...result.foo,
@@ -160,80 +164,97 @@ const block_3 = de.object( {
             };
         },
     },
-} );
+});
 
-de.run( block_3, {
+de.run(block3, {
     params: {
-        id_1: '12345',
-        id_2: 67890,
+        id1: '12345',
+        id2: 67890,
+        p1: 1,
         payload: {
-            card: {}
-        }
+            card: {},
+        },
     },
-} )
-    .then( ( result ) => {
-        console.log( result.foo.a, result.bar.b );
+})
+    .then((result) => {
         return {
-            foo: result.foo.a,
-            bar: result.bar.b,
+            foo: 'a' in result.foo ? result.foo.a : result.foo.error,
+            bar: 'b' in result.bar ? result.bar.b : result.bar.error,
         };
-    } );
+    });
 
-const block_3_func = de.func( {
+const block3Func = de.func({
     block: () => {
-        return block_3;
+        return block3;
     },
     options: {
         after: ({ result }) => {
             return {
-                foo: result.foo.a + '1',
-                bar: result.bar.b + '1',
-            }
-        }
-    }
-});
-
-de.run( block_3_func, {
-    params: {
-        id_1: '12345',
-        id_2: 67890,
-        payload: {
-            card: {}
-        }
-    },
-} )
-    .then( ( result ) => {
-        console.log( result.foo, result.bar );
-    } );
-
-const block_4 = block_3( {
-    options: {
-        after: ( { result } ) => {
-            return result.foo.a + result.bar.b;
+                foo: 'a' in result.foo ? result.foo.a + 1 : result.foo.error,
+                bar: 'b' in result.bar ? result.bar.b + 1 : result.bar.error,
+            };
         },
     },
-} );
+});
 
-const block_5 = block_3( {
+de.run(block3Func, {
+    params: {
+        id1: '12345',
+        id2: 67890,
+        payload: {
+            card: {},
+        },
+    },
+})
+    .then((result) => {
+        console.log(result.foo, result.bar);
+    });
+
+const block4 = block3.extend({
     options: {
-        error: ({ cancel, error }) => {
+        after: ({ result }) => {
+            return (('a' in result.foo ? result.foo.a : result.foo.error.id) || '') +
+            (('b' in result.bar ? result.bar.b : result.bar.error.id) || '');
+        },
+    },
+});
+
+const block5 = block3.extend({
+    options: {
+        error: ({ error }) => {
             if (error.error) {
                 throw error;
             }
         },
-        after: ( { result } ) => result,
+        after: ({ result }) => result,
     },
-} );
+});
 
-de.run( block_4, {
+de.run(block4, {
     params: {
-        id_1: '12345',
-        id_2: 67890,
+        id1: '12345',
+        id2: 67890,
+        p1: 1,
         payload: {
-            card: {}
-        }
+            card: {},
+        },
     },
-} )
-    .then( ( result ) => {
-        console.log( result );
-    } );
+})
+    .then((result) => {
+        console.log(result);
+    });
+
+
+de.run(block5, {
+    params: {
+        id1: '12345',
+        id2: 67890,
+        p1: 1,
+        payload: {
+            card: {},
+        },
+    },
+})
+    .then((result) => {
+        console.log(result);
+    });

@@ -57,7 +57,7 @@ options: {
 options: {
     after: ( { result } ) => {
         if ( !result.foo ) {
-            return another_block;
+            return anotherBlock;
         }
 
         return result;
@@ -115,7 +115,7 @@ const parent = de.block( {
     },
 } );
 
-const child = parent( {
+const child = parent.extend( {
     options: {
         //  Если родительский after отработал без ошибок и вернул что-то,
         //  то это что-то приходит в after потомка в качестве результата.

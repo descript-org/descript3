@@ -31,7 +31,7 @@ const block = de.func( {
 
 
 ```js
-const another_block = require( '...' );
+const anotherBlock = require( '...' );
 
 const block = de.func( {
 
@@ -49,7 +49,7 @@ const block = de.func( {
         }
 
         if ( params.foo ) {
-            return another_block;
+            return anotherBlock;
         }
 
         return new Promise( ( resolve ) => {
@@ -68,27 +68,27 @@ const block = de.func( {
 
 ```js
 const block = ( { params } ) => {
-    return ( params.foo ) ? block_foo : block_bar;
+    return ( params.foo ) ? blockFoo : blockBar;
 };
 ```
 
 
-## `generate_id`
+## `generateId`
 
 И в `de.func`, и в сокращенную версию блока приходит
-функция `generate_id`, чтобы устанавливать [зависимости](./deps.md) между блоками.
+функция `generateId`, чтобы устанавливать [зависимости](./deps.md) между блоками.
 
 ```js
 const block = de.func( {
-    block: ( { params, generate_id } ) => {
-        const id = generate_id();
+    block: ( { params, generateId } ) => {
+        const id = generateId();
 
         ...
     },
 } );
 
-const block = ( { params, generate_id } ) => {
-    const id = generate_id();
+const block = ( { params, generateId } ) => {
+    const id = generateId();
 
     ...
 };

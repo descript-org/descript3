@@ -53,7 +53,7 @@ const result = de.run( block, { context } );
 
 //  Более реалистично
 //
-const api_config = require( '.../api/config' );
+import apiConfig from '.../api/config';
 
 const server = http_.createServer( ( req, res ) => {
     const params = ...;
@@ -65,7 +65,7 @@ const server = http_.createServer( ( req, res ) => {
     const context = {
         req: req,
         res: res,
-        api: api_config,
+        api: apiConfig,
     };
 
     const result = de.run( block, { params, context } );

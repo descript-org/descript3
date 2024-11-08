@@ -43,12 +43,12 @@ de.run( block, {
 Более-менее приближенный к реальности пример.
 
 ```js
-const http_ = require( 'http' );
-const url_ = require( 'url' );
+import http_ from 'http';
+import url_ from 'url';
 
 //  Роутер. Превращает урл в пару { page_id, page_params }.
 //
-const router = require( '.../router' );
+import router from '.../router';
 
 //  Словарь страничных блоков.
 //  Каждому page_id соответствует какой-то дескриптовый блок.

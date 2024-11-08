@@ -4,30 +4,30 @@
 из других блоков:
 
 ```js
-const block_foo = require( '.../blocks/foo' );
-const block_bar = require( '.../blocks/bar' );
+import blockFoo from '.../blocks/foo';
+import blockBar from '.../blocks/bar';
 ...
 
 const block = de.object( {
 
     block: {
-        foo: block_foo,
-        bar: block_bar,
+        foo: blockFoo,
+        bar: blockBar,
         ...
     },
 
 } );
 ```
 
-Когда мы запускаем `de.object`, запускаются все его непосредственные подблоки (`block_foo`, `block_bar`, ...)
+Когда мы запускаем `de.object`, запускаются все его непосредственные подблоки (`blockFoo`, `blockBar`, ...)
 и из их результатов составляется результат `de.object`'а:
 
 ```js
 const result = {
-    //  Результат работы block_foo
-    foo: result_foo,
-    //  Результат работы block_bar
-    bar: result_bar,
+    //  Результат работы blockFoo
+    foo: resultFoo,
+    //  Результат работы blockBar
+    bar: resultBar,
     ...
 };
 ```
@@ -42,10 +42,10 @@ const result = {
 
 ```js
 const result = {
-    //  Ошибка block_foo
-    foo: error_foo,
-    //  Результат работы block_bar
-    bar: result_bar,
+    //  Ошибка blockFoo
+    foo: errorFoo,
+    //  Результат работы blockBar
+    bar: resultBar,
     ...
 };
 ```
@@ -60,12 +60,12 @@ const block = de.object( {
 
     block: {
         //  Если этот блок зафейлится, то и весь de.object так же зафейлится.
-        foo: block_foo( {
+        foo: blockFoo( {
             options: {
                 required: true,
             },
         } ),
-        bar: block_bar,
+        bar: blockBar,
         ...
     },
 
@@ -79,10 +79,10 @@ const block = de.object( {
 ```js
 const block = de.object( {
     block: {
-        foo: block_foo,
+        foo: blockFoo,
         bar: de.object( {
             block: {
-                quu: block_quu,
+                quu: blockQuu,
                 ...
             },
         } ),
@@ -95,9 +95,9 @@ const block = de.object( {
 
 ```js
 const result = {
-    foo: result_foo,
+    foo: resultFoo,
     bar: {
-        quu: result_quu,
+        quu: resultQuu,
         ...
     },
     ...
