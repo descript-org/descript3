@@ -7,6 +7,7 @@ import type DescriptLogger from './logger';
 import type { IncomingHttpHeaders } from 'http';
 import type { EventTimestamps } from './logger';
 import type { RequestOptions } from './request';
+import type HttpBlock from './httpBlock';
 
 export interface DescriptHttpBlockResult<Result> {
     statusCode: number;
@@ -120,6 +121,13 @@ export type InferBlock<Type> = Type extends BaseBlock<
 infer Context, infer CustomBlock, infer ParamsOut, infer ResultOut, infer IntermediateResult,
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 infer BlockResult, infer BeforeResultOut, infer AfterResultOut, infer ErrorResultOut, infer Params
+> ? Type : never;
+
+export type InferHttpBlock<Type> = Type extends HttpBlock<
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+infer Context, infer ParamsOut, infer HttpResult, infer ResultOut, infer BlockResult,
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+infer BeforeResultOut, infer AfterResultOut, infer ErrorResultOut, infer Params
 > ? Type : never;
 
 export type InferContextFromBlock< T > = T extends BaseBlock<

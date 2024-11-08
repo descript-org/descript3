@@ -23,6 +23,7 @@ import type {
     InferResultFromBlock,
     InferParamsInFromBlock,
     InferBlock,
+    InferHttpBlock,
 } from './types';
 import type BaseBlock from './block';
 import type { DescriptHttpBlockDescription, DescriptHttpBlockQuery, DescriptHttpBlockQueryValue } from './httpBlock';
@@ -205,6 +206,6 @@ export {
     DescriptBlockDeps,
     BaseBlock,
     BlockResultOut,
-
+    InferHttpBlock,
     HttpBlock,
 };
