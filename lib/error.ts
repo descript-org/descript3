@@ -33,6 +33,7 @@ export enum ERROR_ID {
     TCP_CONNECTION_TIMEOUT = 'TCP_CONNECTION_TIMEOUT',
     TOO_MANY_AFTERS_OR_ERRORS = 'TOO_MANY_AFTERS_OR_ERRORS',
     UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+    JS_ERROR = 'JS_ERROR',
 }
 
 export interface ErrorData<Error = Buffer | null | unknown> {
@@ -51,7 +52,7 @@ export interface ErrorData<Error = Buffer | null | unknown> {
     syscall?: string | undefined;
 
     stack?: string;
-    error?: unknown;
+    error?: any;
     reason?: Reason | Array<Reason>;
 }
 
@@ -75,7 +76,7 @@ export class DescriptError {
             }
         } else if (error instanceof Error) {
             const _error: ErrorData = {
-                id: id || error.name,
+                id: id || error.name || ERROR_ID.JS_ERROR,
                 message: error.message,
                 stack: error.stack,
             };
@@ -103,7 +104,7 @@ export class DescriptError {
                 reason: error.reason,
                 path: error.path,
                 code: error.code,
-                message: error.message,
+                message: error.message || error.error?.message,
                 stack: error.stack,
                 errno: error.errno,
                 syscall: error.syscall,
@@ -120,9 +121,21 @@ export class DescriptError {
             };
         }
 
-        if (!this.error?.id || this.error?.id === 'Error') {
+        if (this.error?.id === 'Error') {
             this.error.id = ERROR_ID.UNKNOWN_ERROR;
         }
+
+        if (!this.error?.id) {
+            this.error.id = ERROR_ID.UNKNOWN_ERROR;
+        }
+
+        this.error = Object.keys(this.error).reduce((acc, key) => {
+            if ((this.error as any)[key] !== undefined) {
+                (acc as any)[key] = (this.error as any)[key];
+            }
+
+            return acc;
+        }, {} as ErrorData);
     }
 }
 

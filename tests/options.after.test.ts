@@ -394,4 +394,43 @@ describe('options.after', () => {
 
     });
 
+    it('after gets beforeResult and block returns afterResult, action never called', async() => {
+        const blockResult = {
+            blockResult: 1,
+        };
+        const beforeResult = {
+            beforeResult: 1,
+        };
+
+        const afterResult = {
+            blockResult: 1,
+        };
+
+        const blockSpy = jest.fn<any, any>(() => blockResult);
+        const afterSpy = jest.fn<any, any>(() => afterResult);
+
+        const block = getResultBlock(blockSpy).extend({
+            options: {
+                before: () => beforeResult,
+                after: afterSpy,
+            },
+        });
+
+        const params = {
+            bar: 24,
+        };
+        const context = {
+            context: true,
+        };
+
+        const result = await de.run(block, { params, context });
+
+        const calls = afterSpy.mock.calls;
+        expect(blockSpy.mock.calls).toHaveLength(0);
+        expect(calls[ 0 ][ 0 ].params).toBe(params);
+        expect(calls[ 0 ][ 0 ].context).toBe(context);
+        expect(calls[ 0 ][ 0 ].result).toBe(beforeResult);
+        expect(result).toBe(afterResult);
+    });
+
 });
