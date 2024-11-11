@@ -519,10 +519,10 @@ abstract class BaseBlock<
         if (errorResult !== undefined) {
             result = errorResult;
         } else {
-            if (resultBefore !== undefined) {
-                result = resultBefore;
-            } else if (typeof step.after === 'function') {
+            if (typeof step.after === 'function') {
                 result = resultAfter;
+            } else if (resultBefore !== undefined) {
+                result = resultBefore;
             } else {
                 result = resultBlock;
             }
