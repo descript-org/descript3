@@ -122,7 +122,7 @@ export class DescriptError {
         }
 
         if (this.error?.id === 'Error') {
-            this.error.id = ERROR_ID.UNKNOWN_ERROR;
+            this.error.id = ERROR_ID.JS_ERROR;
         }
 
         if (!this.error?.id) {
