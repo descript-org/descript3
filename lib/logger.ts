@@ -51,6 +51,8 @@ export type LoggerEvent = SuccessLoggerEvent | ErrorLoggerEvent | StartLoggerEve
 
 
 class Logger {
+    static EVENT = EVENT;
+
     private _debug = false;
 
     constructor(config: Config) {

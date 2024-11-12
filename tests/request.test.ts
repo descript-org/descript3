@@ -763,7 +763,7 @@ describe('request', () => {
 
                     } catch (error) {
                         expect(de.isError(error)).toBe(true);
-                        expect(error.error.id).toBe('UNKNOWN_ERROR');
+                        expect(error.error.id).toBe('JS_ERROR');
                         expect(error.error.code).toBe('Z_DATA_ERROR');
                     }
                 });
@@ -812,7 +812,7 @@ describe('request', () => {
 
                     } catch (error) {
                         expect(de.isError(error)).toBe(true);
-                        expect(error.error.id).toBe('UNKNOWN_ERROR');
+                        expect(error.error.id).toBe('JS_ERROR');
                         expect(error.error.code).toBe('GenericFailure');
                     }
                 });

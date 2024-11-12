@@ -65,7 +65,7 @@ describe('de.error', () => {
             Object.keys(e).forEach(key => err[key] = e[key]);
             const error = de.error(err);
 
-            expect(error.error.id).toBe('UNKNOWN_ERROR');
+            expect(error.error.id).toBe('JS_ERROR');
             expect(error.error.code).toBe('ENOENT');
             expect(error.error.syscall).toBe('open');
             //  FIXME: Может лучше .toBeDefined() использовать?
