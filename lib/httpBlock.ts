@@ -216,7 +216,7 @@ class HttpBlock<
         return x;
     }
 
-    protected logger: Logger;
+    protected logger: Logger<Context>;
 
     constructor({ block, options }: {
         block?: DescriptHttpBlockDescription<ParamsOut, Context, HttpResult>;
@@ -334,7 +334,7 @@ class HttpBlock<
         let error;
 
         try {
-            result = await request(options, this.logger, blockCancel);
+            result = await request(options, this.logger, context, blockCancel);
             headers = result.headers;
 
         } catch (e) {

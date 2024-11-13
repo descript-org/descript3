@@ -281,10 +281,10 @@ export class RequestOptions {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-class DescriptRequest {
-
+class DescriptRequest<Context> {
+    context: Context;
     options: RequestOptions;
-    logger: Logger;
+    logger: Logger<Context>;
     cancel: Cancel;
     timestamps: EventTimestamps;
     hTimeout: number | null;
@@ -293,10 +293,11 @@ class DescriptRequest {
 
     deferred: Deffered<DescriptHttpResult, DescriptError>;
 
-    constructor(options: RequestOptions, logger: Logger, cancel: Cancel) {
+    constructor(options: RequestOptions, logger: Logger<Context>, context: Context, cancel: Cancel) {
         this.options = options;
         this.logger = logger;
         this.cancel = cancel;
+        this.context = context;
 
         this.timestamps = {};
         this.hTimeout = null;
@@ -542,7 +543,7 @@ class DescriptRequest {
     log(event: LoggerEvent) {
         if (this.logger) {
             event.request = this.req;
-            this.logger.log(event);
+            this.logger.log(event, this.context);
         }
     }
 
@@ -550,12 +551,12 @@ class DescriptRequest {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-async function request(options: DescriptRequestOptions, logger: Logger, cancel: Cancel): Promise<DescriptHttpResult> {
+async function request<Context>(options: DescriptRequestOptions, logger: Logger<Context>, context: Context, cancel: Cancel): Promise<DescriptHttpResult> {
     const requestOptions = new RequestOptions(options);
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-        const req = new DescriptRequest(requestOptions, logger, cancel);
+        const req = new DescriptRequest(requestOptions, logger, context, cancel);
 
         try {
             const result = await req.start();

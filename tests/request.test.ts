@@ -21,14 +21,16 @@ import type Logger from '../lib/logger';
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-function getDoRequest(defaultOptions: DescriptRequestOptions) {
-    return function doRequest(options: DescriptRequestOptions = {}, logger?: Logger, cancel?: Cancel) {
+function getDoRequest<Context>(defaultOptions: DescriptRequestOptions, context: Context) {
+    return function doRequest(options: DescriptRequestOptions = {}, logger?: Logger<Context>, cancel?: Cancel) {
         logger = logger || new de.Logger({ debug: true });
         cancel = cancel || new de.Cancel();
 
-        return request({ ...defaultOptions, ...options }, logger, cancel);
+        return request({ ...defaultOptions, ...options }, logger, context, cancel);
     };
 }
+
+const context = {};
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -44,7 +46,7 @@ describe('request', () => {
             hostname: '127.0.0.1',
             port: PORT,
             pathname: '/',
-        });
+        }, context);
 
         const fake = new Server({
             module: http,
@@ -966,7 +968,7 @@ describe('request', () => {
             hostname: '127.0.0.1',
             port: PORT,
             pathname: '/',
-        });
+        }, context);
 
         let serverKey;
         let serverCert;
@@ -1070,7 +1072,7 @@ describe('request', () => {
                     hostname: '127.0.0.1',
                     port: PORT,
                     pathname: '/',
-                });
+                }, context);
 
                 const path = getPath();
 
@@ -1100,7 +1102,7 @@ describe('request', () => {
                 protocol: 'http:',
                 hostname: '127.0.0.1',
                 port: PORT,
-            });
+            }, context);
 
             beforeAll(() => serverListen(server, PORT));
             afterAll(() => serverClose(server));
@@ -1148,7 +1150,7 @@ describe('request', () => {
                 protocol: 'http:',
                 hostname: '127.0.0.1',
                 port: PORT,
-            });
+            }, context);
 
             beforeAll(() => serverListen(server, PORT));
             afterAll(() => serverClose(server));
