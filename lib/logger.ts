@@ -50,7 +50,7 @@ interface StartLoggerEvent extends BaseLoggerEvent {
 export type LoggerEvent = SuccessLoggerEvent | ErrorLoggerEvent | StartLoggerEvent;
 
 
-class Logger {
+class Logger<Context> {
     static EVENT = EVENT;
 
     private _debug = false;
@@ -61,13 +61,13 @@ class Logger {
         this._debug = config.debug || false;
     }
 
-    log(event: LoggerEvent) {
+    log(event: LoggerEvent, context: Context) {
         switch (event.type) {
             case EVENT.REQUEST_START: {
                 if (this._debug) {
                     const message = `[DEBUG] ${ event.requestOptions.httpOptions.method } ${ event.requestOptions.url }`;
 
-                    logToStream(process.stdout, message);
+                    logToStream(process.stdout, message, context);
                 }
 
                 break;
@@ -85,7 +85,7 @@ class Logger {
                     }
                 }
 
-                logToStream(process.stdout, message);
+                logToStream(process.stdout, message, context);
 
                 break;
             }
@@ -110,7 +110,7 @@ class Logger {
                 }
                 message += ` ${ total(event) } ${ event.requestOptions.httpOptions.method } ${ event.requestOptions.url }`;
 
-                logToStream(process.stderr, message);
+                logToStream(process.stderr, message, context);
 
                 break;
             }
@@ -124,7 +124,7 @@ class Logger {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-function logToStream(stream: typeof process.stderr | typeof process.stdout, message: string) {
+function logToStream<Context>(stream: typeof process.stderr | typeof process.stdout, message: string, context: Context) {
     const date = new Date().toISOString();
 
     stream.write(`${ date } ${ message }\n`);

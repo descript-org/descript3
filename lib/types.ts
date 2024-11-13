@@ -204,5 +204,5 @@ export interface DescriptBlockOptions<
 
     required?: boolean;
 
-    logger?: DescriptLogger;
+    logger?: DescriptLogger<Context>;
 }
