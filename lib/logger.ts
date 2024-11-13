@@ -124,6 +124,7 @@ class Logger<Context> {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function logToStream<Context>(stream: typeof process.stderr | typeof process.stdout, message: string, context: Context) {
     const date = new Date().toISOString();
 
