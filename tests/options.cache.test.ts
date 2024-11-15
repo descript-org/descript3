@@ -30,7 +30,7 @@ class Cache<Result> extends CacheParent<Result, CacheItem<Result>> {
     }
 
     async set({ key, value, maxage = 0 }: { key: string; value: Result; maxage?: number }) {
-        return new Promise((resolve) => {
+        return new Promise<void>((resolve) => {
             const timeout = getTimeout(0, 10);
             setTimeout(() => {
                 this.cache[ key ] = {
@@ -39,7 +39,7 @@ class Cache<Result> extends CacheParent<Result, CacheItem<Result>> {
                     value: value,
                     expires: 0,
                 };
-                resolve(undefined);
+                resolve();
             }, timeout);
         });
     }
