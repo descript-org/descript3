@@ -3,7 +3,7 @@ import { ERROR_ID, createError, isError, DescriptError } from './error';
 
 import Cancel from './cancel';
 import Logger from './logger';
-import Cache, { CacheItem } from './cache';
+import Cache, { CacheInterface, CacheItem } from './cache';
 
 import request from './request';
 import type { GenerateId, DescriptBlockDeps, DescriptBlockId } from './depsDomain';
@@ -178,6 +178,7 @@ const run = function<
 export {
     Logger,
     Cache,
+    CacheInterface,
     CacheItem,
     request,
     ERROR_ID,
