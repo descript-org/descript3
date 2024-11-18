@@ -1,25 +1,22 @@
 import * as de from '../lib';
 
 import { getResultBlock, getTimeout, waitForValue } from './helpers';
-import CacheParent from '../lib/cache';
 
-
-//  ---------------------------------------------------------------------------------------------------------------  //
 type CacheItem<Result> = {
     expires: number;
     maxage: number;
     value: Result;
-
     timestamp: number;
 }
-class Cache<Result> extends CacheParent<Result, CacheItem<Result>> {
+class Cache<Result> implements de.CacheInterface<Result> {
+    #cache: Record<string, CacheItem<Result>> = {};
 
-    async get({ key }: { key: string }): Promise<Result | undefined> {
+    get({ key }: { key: string }): Promise<Result | undefined> {
         return new Promise((resolve) => {
             const timeout = getTimeout(0, 10);
 
             setTimeout(() => {
-                const cached = this.cache[ key ];
+                const cached = this.#cache[ key ];
                 let value;
                 if (cached && !((cached.maxage > 0) && (Date.now() - cached.timestamp > cached.maxage))) {
                     value = cached.value;
@@ -29,11 +26,11 @@ class Cache<Result> extends CacheParent<Result, CacheItem<Result>> {
         });
     }
 
-    async set({ key, value, maxage = 0 }: { key: string; value: Result; maxage?: number }) {
+    set({ key, value, maxage = 0 }: { key: string; value: Result; maxage?: number }) {
         return new Promise<void>((resolve) => {
             const timeout = getTimeout(0, 10);
             setTimeout(() => {
-                this.cache[ key ] = {
+                this.#cache[ key ] = {
                     timestamp: Date.now(),
                     maxage: maxage,
                     value: value,
@@ -149,9 +146,8 @@ describe('options.cache, options.key, options.maxage', () => {
             foo: 42,
         };
 
-        const cache = {
-            get: spy,
-        } as unknown as Cache<typeof data>;
+        const cache = new Cache();
+        cache.get = spy;
 
         const block = getResultBlock(data, 50).extend({
             options: {
@@ -191,12 +187,13 @@ describe('options.cache, options.key, options.maxage', () => {
     });
 
     it('cache.get throws', async() => {
-        const cache = {
-            get: () => {
-                throw de.error('SOME_ERROR');
-            },
-            set: () => undefined,
-        } as unknown as Cache<any>;
+        const cache = new Cache();
+        cache.get = () => {
+            throw de.error('SOME_ERROR3');
+        };
+        cache.set = () => {
+            return Promise.resolve(undefined);
+        };
 
         const spy = jest.fn(() => null);
         const block = getResultBlock(spy, 50).extend({
@@ -213,16 +210,17 @@ describe('options.cache, options.key, options.maxage', () => {
     });
 
     it('cache.get returns promise that rejects, block has deps', async() => {
-        const cache = {
-            get: () => {
-                return new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        reject(de.error('SOME_ERROR'));
-                    }, 50);
-                });
-            },
-            set: () => undefined,
-        } as unknown as Cache<any>;
+        const cache = new Cache();
+        cache.get = () => {
+            return new Promise((resolve, reject) => {
+                setTimeout(() => {
+                    reject(de.error('SOME_ERROR4'));
+                }, 50);
+            });
+        };
+        cache.set = () => {
+            return Promise.resolve(undefined);
+        };
 
         const spy = jest.fn(() => null);
 
@@ -258,12 +256,14 @@ describe('options.cache, options.key, options.maxage', () => {
     });
 
     it('cache.set throws', async() => {
-        const cache = {
-            get: () => undefined,
-            set: () => {
-                throw de.error('SOME_ERROR');
-            },
-        } as unknown as Cache<any>;
+        const cache = new Cache();
+        cache.get = () => {
+            return Promise.resolve(undefined);
+        };
+        cache.set = () => {
+            throw de.error('SOME_ERROR5');
+        };
+
         const block = getResultBlock(null, 50).extend({
             options: {
                 cache: cache,
@@ -278,12 +278,14 @@ describe('options.cache, options.key, options.maxage', () => {
     });
 
     it('cache.get returns rejected promise', async() => {
-        const cache = {
-            get: () => {
-                return Promise.reject(de.error('SOME_ERROR'));
-            },
-            set: () => undefined,
-        } as unknown as Cache<any>;
+        const cache = new Cache();
+        cache.get = () => {
+            return Promise.reject(de.error('SOME_ERROR1'));
+        };
+        cache.set = () => {
+            return Promise.resolve(undefined);
+        };
+
         const spy = jest.fn(() => null);
         const block = getResultBlock(spy, 50).extend({
             options: {
@@ -299,12 +301,14 @@ describe('options.cache, options.key, options.maxage', () => {
     });
 
     it('cache.set returns rejected promise', async() => {
-        const cache = {
-            get: () => undefined,
-            set: () => {
-                return Promise.reject(de.error('SOME_ERROR'));
-            },
-        } as unknown as Cache<any>;
+        const cache = new Cache();
+        cache.get = () => {
+            return Promise.resolve(undefined);
+        };
+        cache.set = () => {
+            return Promise.reject(de.error('SOME_ERROR2'));
+        };
+
         const block = getResultBlock(null, 50).extend({
             options: {
                 cache: cache,
