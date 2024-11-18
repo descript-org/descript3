@@ -15,6 +15,7 @@ import strip_null_and_undefined_values from '../lib/stripNullAndUndefinedValues'
 import type { DescriptBlockOptions, DescriptHttpBlockResult } from '../lib/types';
 import type { DescriptHttpBlockDescription } from '../lib/httpBlock';
 import type { DescriptBlockId } from '../lib/depsDomain';
+import { expect } from '@jest/globals';
 //  ---------------------------------------------------------------------------------------------------------------  //
 
 describe('http', <
@@ -995,6 +996,7 @@ describe('http', <
             };
             fake.add(path, (req: ClientRequest, res: ServerResponse) => {
                 const buffer = Buffer.from(JSON.stringify(RESPONSE));
+                res.setHeader('x-foo', 'bar');
                 res.setHeader('content-length', Buffer.byteLength(buffer));
                 res.setHeader('content-type', 'application/json; charset=utf-8');
                 res.end(buffer);
@@ -1012,13 +1014,11 @@ describe('http', <
             const result = await de.run(block);
 
             expect(JSON.parse(result)).toEqual({
-                headers: {
-                    connection: 'keep-alive',
+                headers: expect.objectContaining({
                     'content-length': '24',
                     'content-type': 'application/json; charset=utf-8',
-                    date: expect.stringMatching(/^.* GMT$/),
-                    'keep-alive': 'timeout=5',
-                },
+                    'x-foo': 'bar',
+                }),
                 result: {
                     text: 'Привет!',
                 },
