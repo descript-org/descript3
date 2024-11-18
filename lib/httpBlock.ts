@@ -374,12 +374,23 @@ class HttpBlock<
             body = this.parseBody(result);
         }
 
-        return {
+        const blockResult = {
             statusCode: result.statusCode,
             headers: result.headers,
             requestOptions: result.requestOptions,
             result: body,
-        } as BlockResult;
+            toJSON() {
+                // stringify serializable fields only,
+                // usefully for remote cache storage
+                return {
+                    statusCode: this.statusCode,
+                    headers: this.headers,
+                    result: this.result,
+                };
+            },
+        };
+
+        return blockResult as BlockResult;
     }
 
     protected parseBody({ body, headers }: {body: DescriptHttpResult['body']; headers: DescriptHttpResult['headers']}): HttpResult {

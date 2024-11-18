@@ -610,27 +610,16 @@ abstract class BaseBlock<
 
         if (result !== undefined && key && cache) {
             try {
-                const promise = cache.set({
+                cache.set({
                     key: key,
                     value: result,
                     maxage: this.options.maxage,
-                }) as unknown as object | Promise<unknown>;
-                //  FIXME: А как правильно? cache.set может вернуть промис, а может и нет,
-                //  при этом промис может зафейлиться. Вот так плохо:
-                //
-                //      await cache.set( ... )
-                //
-                //  так как ждать ответа мы не хотим. Но результат хотим проигнорить.
-                //
-                if (promise && 'catch' in promise && typeof promise.catch === 'function') {
-                    //  It's catchable!
-                    promise.catch(() => {
-                        //  Do nothing.
-                    });
-                }
-
-            } catch (e) {
-                //  Do nothing.
+                }).catch(() => {
+                    //  Do nothing, ignore errors
+                    //  We don't want to wait for cache, so don't use "await cache.set()"
+                });
+            } catch {
+                //  Do nothing, ignore errors
             }
         }
 

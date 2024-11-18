@@ -2,7 +2,7 @@ import type Cancel from './cancel';
 import type BaseBlock from './block';
 import type { DescriptBlockDeps, DescriptBlockId } from './depsDomain';
 import type { DescriptError } from './error';
-import type Cache from './cache';
+import type { CacheInterface } from './cache';
 import type DescriptLogger from './logger';
 import type { IncomingHttpHeaders } from 'http';
 import type { EventTimestamps } from './logger';
@@ -200,7 +200,7 @@ export interface DescriptBlockOptions<
         deps: DescriptBlockDeps;
     }) => string);
     maxage?: number;
-    cache?: Cache<BlockResult>;
+    cache?: CacheInterface<BlockResult>;
 
     required?: boolean;
 
