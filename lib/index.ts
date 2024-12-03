@@ -2,7 +2,8 @@ import RunContext from './context';
 import { ERROR_ID, createError, isError, DescriptError } from './error';
 
 import Cancel from './cancel';
-import Logger from './logger';
+import Logger, { EVENT } from './logger';
+import type { LoggerEvent, LoggerInterface } from './logger';
 import Cache, { CacheInterface } from './cache';
 
 import request from './request';
@@ -177,6 +178,9 @@ const run = function<
 
 export {
     Logger,
+    LoggerEvent,
+    LoggerInterface,
+    EVENT as LOGGER_EVENT,
     Cache,
     CacheInterface,
     request,

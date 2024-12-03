@@ -3,9 +3,8 @@ import type BaseBlock from './block';
 import type { DescriptBlockDeps, DescriptBlockId } from './depsDomain';
 import type { DescriptError } from './error';
 import type { CacheInterface } from './cache';
-import type DescriptLogger from './logger';
 import type { IncomingHttpHeaders } from 'http';
-import type { EventTimestamps } from './logger';
+import type { EventTimestamps, LoggerInterface } from './logger';
 import type { RequestOptions } from './request';
 import type HttpBlock from './httpBlock';
 
@@ -204,5 +203,5 @@ export interface DescriptBlockOptions<
 
     required?: boolean;
 
-    logger?: DescriptLogger<Context>;
+    logger?: LoggerInterface;
 }
