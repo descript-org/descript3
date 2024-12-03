@@ -23,34 +23,34 @@ export type EventTimestamps = {
     end?: number;
 };
 
-interface BaseLoggerEvent {
-    requestOptions: RequestOptions;
-
-    timestamps?: EventTimestamps;
-
-    request?: http.ClientRequest;
-
-}
-
-interface SuccessLoggerEvent extends BaseLoggerEvent {
+export interface SuccessLoggerEvent {
     type: EVENT.REQUEST_SUCCESS;
     result: DescriptHttpResult;
+    request: http.ClientRequest;
+    requestOptions: RequestOptions;
+    timestamps: EventTimestamps;
 }
 
-
-interface ErrorLoggerEvent extends BaseLoggerEvent {
+export interface ErrorLoggerEvent {
     type: EVENT.REQUEST_ERROR;
     error: DescriptError;
+    request: http.ClientRequest;
+    requestOptions: RequestOptions;
+    timestamps: EventTimestamps;
 }
 
-interface StartLoggerEvent extends BaseLoggerEvent {
+export interface StartLoggerEvent {
     type: EVENT.REQUEST_START;
+    requestOptions: RequestOptions;
 }
 
 export type LoggerEvent = SuccessLoggerEvent | ErrorLoggerEvent | StartLoggerEvent;
 
+export interface LoggerInterface<Event = LoggerEvent> {
+    log(event: Event): void;
+}
 
-class Logger<Context> {
+class Logger implements LoggerInterface<LoggerEvent> {
     static EVENT = EVENT;
 
     private _debug = false;
@@ -61,13 +61,13 @@ class Logger<Context> {
         this._debug = config.debug || false;
     }
 
-    log(event: LoggerEvent, context: Context) {
+    log(event: LoggerEvent) {
         switch (event.type) {
             case EVENT.REQUEST_START: {
                 if (this._debug) {
                     const message = `[DEBUG] ${ event.requestOptions.httpOptions.method } ${ event.requestOptions.url }`;
 
-                    logToStream(process.stdout, message, context);
+                    logToStream(process.stdout, message);
                 }
 
                 break;
@@ -85,7 +85,7 @@ class Logger<Context> {
                     }
                 }
 
-                logToStream(process.stdout, message, context);
+                logToStream(process.stdout, message);
 
                 break;
             }
@@ -110,7 +110,7 @@ class Logger<Context> {
                 }
                 message += ` ${ total(event) } ${ event.requestOptions.httpOptions.method } ${ event.requestOptions.url }`;
 
-                logToStream(process.stderr, message, context);
+                logToStream(process.stderr, message);
 
                 break;
             }
@@ -119,19 +119,13 @@ class Logger<Context> {
 
 }
 
-//  ---------------------------------------------------------------------------------------------------------------  //
-
-
-//  ---------------------------------------------------------------------------------------------------------------  //
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function logToStream<Context>(stream: typeof process.stderr | typeof process.stdout, message: string, context: Context) {
+function logToStream(stream: typeof process.stderr | typeof process.stdout, message: string) {
     const date = new Date().toISOString();
 
     stream.write(`${ date } ${ message }\n`);
 }
 
-function total(event: LoggerEvent) {
+function total(event: SuccessLoggerEvent | ErrorLoggerEvent) {
     let total = `${ (event.timestamps?.end || 0) - (event.timestamps?.start || 0) }ms`;
 
     const retries = event.requestOptions.retries;

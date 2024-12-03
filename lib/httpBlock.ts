@@ -12,7 +12,7 @@ import type { BlockResultOut, DescriptHttpBlockResult, DescriptBlockOptions, Des
 import type ContextClass from './context';
 import type Cancel from './cancel';
 import type DepsDomain from './depsDomain';
-import type Logger from './logger';
+import type { LoggerInterface } from './logger';
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
@@ -216,7 +216,7 @@ class HttpBlock<
         return x;
     }
 
-    protected logger: Logger<Context>;
+    protected logger: LoggerInterface;
 
     constructor({ block, options }: {
         block?: DescriptHttpBlockDescription<ParamsOut, Context, HttpResult>;
@@ -334,7 +334,7 @@ class HttpBlock<
         let error;
 
         try {
-            result = await request(options, this.logger, context, blockCancel);
+            result = await request(options, this.logger, blockCancel);
             headers = result.headers;
 
         } catch (e) {

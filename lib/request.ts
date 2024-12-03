@@ -14,8 +14,7 @@ import { decompress } from '@fengkx/zstd-napi';
 import type { TransformOptions, TransformCallback } from 'stream';
 import { Transform } from 'stream';
 
-import type { EventTimestamps, LoggerEvent } from './logger';
-import type Logger from './logger';
+import type { ErrorLoggerEvent, EventTimestamps, LoggerEvent, LoggerInterface, StartLoggerEvent, SuccessLoggerEvent } from './logger';
 import { EVENT } from './logger';
 
 import type { Deffered } from './getDeferred';
@@ -281,10 +280,9 @@ export class RequestOptions {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-class DescriptRequest<Context> {
-    context: Context;
+class DescriptRequest {
     options: RequestOptions;
-    logger: Logger<Context>;
+    logger: LoggerInterface<LoggerEvent>;
     cancel: Cancel;
     timestamps: EventTimestamps;
     hTimeout: number | null;
@@ -293,11 +291,10 @@ class DescriptRequest<Context> {
 
     deferred: Deffered<DescriptHttpResult, DescriptError>;
 
-    constructor(options: RequestOptions, logger: Logger<Context>, context: Context, cancel: Cancel) {
+    constructor(options: RequestOptions, logger: LoggerInterface<LoggerEvent>, cancel: Cancel) {
         this.options = options;
         this.logger = logger;
         this.cancel = cancel;
-        this.context = context;
 
         this.timestamps = {};
         this.hTimeout = null;
@@ -306,10 +303,11 @@ class DescriptRequest<Context> {
     }
 
     start(): Promise<DescriptHttpResult> {
-        this.log({
+        const logEvent: StartLoggerEvent = {
             type: EVENT.REQUEST_START,
             requestOptions: this.options,
-        });
+        };
+        this.log(logEvent);
 
         this.timestamps.start = Date.now();
 
@@ -410,12 +408,16 @@ class DescriptRequest<Context> {
 
         this.timestamps.end = this.timestamps.end || Date.now();
 
-        this.log({
-            type: EVENT.REQUEST_SUCCESS,
-            requestOptions: this.options,
-            result: result,
-            timestamps: this.timestamps,
-        });
+        if (this.req) {
+            const logEvent: SuccessLoggerEvent = {
+                type: EVENT.REQUEST_SUCCESS,
+                request: this.req,
+                requestOptions: this.options,
+                result: result,
+                timestamps: this.timestamps,
+            };
+            this.log(logEvent);
+        }
 
         this.isResolved = true;
 
@@ -433,12 +435,16 @@ class DescriptRequest<Context> {
 
         const error = createError(reason);
 
-        this.log({
-            type: EVENT.REQUEST_ERROR,
-            requestOptions: this.options,
-            error: error,
-            timestamps: this.timestamps,
-        });
+        if (this.req) {
+            const logEvent: ErrorLoggerEvent = {
+                type: EVENT.REQUEST_ERROR,
+                error: error,
+                request: this.req,
+                requestOptions: this.options,
+                timestamps: this.timestamps,
+            };
+            this.log(logEvent);
+        }
 
         this.isResolved = true;
 
@@ -540,10 +546,9 @@ class DescriptRequest<Context> {
         };
     }
 
-    log(event: LoggerEvent) {
+    log(event: SuccessLoggerEvent | ErrorLoggerEvent | StartLoggerEvent) {
         if (this.logger) {
-            event.request = this.req;
-            this.logger.log(event, this.context);
+            this.logger.log(event);
         }
     }
 
@@ -551,12 +556,12 @@ class DescriptRequest<Context> {
 
 //  ---------------------------------------------------------------------------------------------------------------  //
 
-async function request<Context>(options: DescriptRequestOptions, logger: Logger<Context>, context: Context, cancel: Cancel): Promise<DescriptHttpResult> {
+async function request(options: DescriptRequestOptions, logger: LoggerInterface<LoggerEvent>, cancel: Cancel): Promise<DescriptHttpResult> {
     const requestOptions = new RequestOptions(options);
 
     // eslint-disable-next-line no-constant-condition
     while (true) {
-        const req = new DescriptRequest(requestOptions, logger, context, cancel);
+        const req = new DescriptRequest(requestOptions, logger, cancel);
 
         try {
             const result = await req.start();
